@@ -5,7 +5,7 @@ Electron Builder, package-manager install scripts, host Node, or network access
 inside build actions. MIT rules; bundled upstream licenses stay intact.
 
 ```sh
-bazel test //tests:package_test //tests:prepare_source_test //tests:node_builtins_test //tests:electron_bundles_test //source:loop_interrupt_test //source:fuses_test //source:crypto_compat_test //source:node_defines_test
+bazel test //tests:package_test //tests:prepare_source_test //tests:node_builtins_test //tests:electron_bundles_test //source:loop_interrupt_test //source:fuses_test //source:crypto_compat_test //source:node_defines_test //source:v8_tasks_test
 bazel build //examples/hello:dist
 ```
 
@@ -104,6 +104,12 @@ patched Chromium headers. Chromium's own buildflag generator supplies its header
 configuration, imported from the captured GN graph. Full patched BoringSSL
 crypto/TLS builds and runs a Node compatibility test; Node macro-isolation
 headers also generate and pass a compiled integration test.
+
+Native V8 work compiles all 40 captured libbase C++ units, three libm C units,
+and five platform queue/runner units from the exact patched V8 source. It reuses
+Abseil directly from the pinned Chromium archive. Linux AMD64 integration tests
+execute worker/foreground tasks, delayed deadlines, termination and libm math.
+Full libplatform tracing still needs patched Perfetto; full V8 remains unfinished.
 
 Chromium work at `../bcr_overlays` supplies native Bazel actions and overlays.
 Electron 39.0.0 pins Chromium **142.0.7444.52**; that repo currently pins

@@ -5,6 +5,7 @@ module(
 )
 
 bazel_dep(name = "rules_license", version = "1.0.0")
+bazel_dep(name = "bazel_skylib", version = "1.9.0")
 bazel_dep(name = "googletest", version = "1.17.0.bcr.2")
 bazel_dep(name = "rules_cc", version = "0.2.26")
 bazel_dep(name = "simdutf", version = "7.7.0")
@@ -37,6 +38,7 @@ electron.version(
 )
 use_repo(
     electron,
+    "electron_abseil_sources",
     "electron_boringssl_sources",
     "electron_cast_core_sources",
     "electron_chromium_sources",

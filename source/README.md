@@ -75,6 +75,35 @@ The native BoringSSL overlay mirrors Electron's extra crypto source list. Its
 GN list includes obsolete `decrepit/ripemd/internal.h`; that nonexistent header
 is excluded, and the real `decrepit/macros.h` dependency is declared explicitly.
 
+## Native V8 base/task slice
+
+`@electron_v8_sources//:libbase` compiles all 40 captured Linux AMD64 source
+units; `:libm` compiles all three C units. `:platform_tasks` compiles five real
+libplatform queue/foreground/worker units. These are static archives, using the
+exact patched V8 revision and captured GN definitions. Source toolchain/sysroot
+paths and warning-as-error policy are replaced by hermetic LLVM; every omitted
+option remains recorded in `native/v8_base_inputs.bzl`. New Clang deprecation
+warnings from pinned Abseil are expected and do not change source semantics.
+
+`@electron_abseil_sources` exposes native Bazel rules from Abseil embedded in
+the verified Chromium archive. It downloads no alternate Abseil version. The
+GTest production header uses a real forwarding include to the declared BCR
+header dependency. No substitute platform/tracing headers or functions exist.
+
+`bazel test //source:v8_tasks_test` executes 32 immediate worker tasks, delayed
+worker/foreground scheduling, queue termination and captured libm sin/cos.
+Only Linux AMD64 is supported by this native profile. Full libplatform still
+needs Electron-patched Perfetto tracing and the remaining platform sources;
+this slice does not initialize a V8 isolate or link Electron.
+
+Refresh its exact inventory after graph capture:
+
+```sh
+python3 tools/capture_v8_base.py --graph=source/native/linux_amd64.partial.json.gz \
+  --output=source/native/v8_base_inputs.bzl
+buildifier source/native/v8_base_inputs.bzl
+```
+
 
 ## Reproduce Linux metadata
 

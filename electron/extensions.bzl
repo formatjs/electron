@@ -2,7 +2,7 @@
 
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository", "new_git_repository")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
-load(":source_repositories.bzl", "electron_node_repository", "electron_patched_upstream", "electron_sources_repository")
+load(":source_repositories.bzl", "electron_abseil_repository", "electron_node_repository", "electron_patched_upstream", "electron_sources_repository")
 
 _VERSION = "39.0.0"
 _SHA256 = {
@@ -78,11 +78,12 @@ def _impl(ctx):
             new_git_repository(name = name, remote = remote, commit = commit, patches = patches, patch_strip = 1, build_file_content = "package(default_visibility = [\"//visibility:public\"])\nfilegroup(name = \"source_anchor\", srcs = glob([\"*\"], exclude = [\"BUILD.bazel\"]))")
         dependency_repos.append(name)
     _hub(name = "electron_runtime")
+    electron_abseil_repository(name = "electron_abseil_sources", chromium = "@electron_chromium_sources//:DEPS")
     electron_sources_repository(name = "electron_sources")
     electron_node_repository(name = "electron_node_sources", electron = "@electron_sources//:DEPS")
     direct = ["electron_runtime"]
     if any([tag.sources for module in ctx.modules if module.is_root for tag in module.tags.version]):
-        direct += ["electron_sources", "electron_node_sources", "electron_v8_sources", "electron_chromium_sources", "electron_cast_core_sources", "electron_glslang_sources"] + dependency_repos
+        direct += ["electron_sources", "electron_node_sources", "electron_v8_sources", "electron_chromium_sources", "electron_cast_core_sources", "electron_glslang_sources", "electron_abseil_sources"] + dependency_repos
     return ctx.extension_metadata(reproducible = True, root_module_direct_deps = direct, root_module_direct_dev_deps = [])
 
 electron = module_extension(implementation = _impl, tag_classes = {"version": tag_class(attrs = {"version": attr.string(mandatory = True), "sources": attr.bool(default = False)})})

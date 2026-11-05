@@ -36,6 +36,17 @@ electron_node_repository = repository_rule(
     attrs = {"electron": attr.label(mandatory = True), "build_file": attr.label(default = Label("//source:node.BUILD.bazel")), "uv_sources": attr.label(default = Label("//source:uv_sources.bzl"))},
 )
 
+def _embedded_abseil_impl(ctx):
+    ctx.read(ctx.attr.chromium)
+    root = ctx.path(ctx.attr.chromium).dirname.get_child("third_party/abseil-cpp")
+    for entry in root.readdir():
+        ctx.symlink(entry, entry.basename)
+
+electron_abseil_repository = repository_rule(
+    implementation = _embedded_abseil_impl,
+    attrs = {"chromium": attr.label(mandatory = True)},
+)
+
 def _patched_upstream_impl(ctx):
     ctx.download_and_extract(url = ctx.attr.url, sha256 = ctx.attr.sha256, stripPrefix = ctx.attr.strip_prefix)
     stack = ctx.path(ctx.attr.electron).dirname.get_child("patches/" + ctx.attr.patch_group)
@@ -54,6 +65,9 @@ exports_files(["electron_patches.json", "DEPS", "build/write_buildflag_header.py
 filegroup(name = "sources", srcs = glob(["**"], exclude = ["BUILD.bazel"]))
 cc_library(name = "fuse_base_headers", hdrs = ["base/dcheck_is_on.h", "build/buildflag.h"], includes = ["."])
 """)
+    elif ctx.attr.patch_group == "v8":
+        ctx.file("BUILD.bazel", ctx.read(ctx.attr.v8_build_file))
+        ctx.file("testing/gtest/include/gtest/gtest_prod.h", '#include "gtest/gtest_prod.h"\n')
 
 electron_patched_upstream = repository_rule(
     implementation = _patched_upstream_impl,
@@ -64,5 +78,6 @@ electron_patched_upstream = repository_rule(
         "sha256": attr.string(mandatory = True),
         "strip_prefix": attr.string(mandatory = True),
         "revision": attr.string(mandatory = True),
+        "v8_build_file": attr.label(default = Label("//source:v8.BUILD.bazel")),
     },
 )

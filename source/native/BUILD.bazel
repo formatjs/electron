@@ -1,4 +1,5 @@
 exports_files([
+    "v8_base_inputs.bzl",
     "fuses_flags.bzl",
     "linux_amd64.partial.json.gz",
     "linux_amd64.partial.json.summary.json",
