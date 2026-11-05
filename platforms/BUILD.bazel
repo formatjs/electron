@@ -1,0 +1,29 @@
+package(default_visibility = ["//visibility:public"])
+
+[platform(
+    name = name,
+    constraint_values = [
+        "@platforms//os:" + os,
+        "@platforms//cpu:" + cpu,
+    ],
+) for name, os, cpu in [
+    ("linux_amd64", "linux", "x86_64"),
+    ("linux_arm64", "linux", "aarch64"),
+    ("darwin_arm64", "macos", "aarch64"),
+    ("windows_amd64", "windows", "x86_64"),
+    ("windows_arm64", "windows", "aarch64"),
+]]
+
+[config_setting(
+    name = "is_" + name,
+    constraint_values = [
+        "@platforms//os:" + os,
+        "@platforms//cpu:" + cpu,
+    ],
+) for name, os, cpu in [
+    ("linux_amd64", "linux", "x86_64"),
+    ("linux_arm64", "linux", "aarch64"),
+    ("darwin_arm64", "macos", "aarch64"),
+    ("windows_amd64", "windows", "x86_64"),
+    ("windows_arm64", "windows", "aarch64"),
+]]

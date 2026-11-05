@@ -1,0 +1,5 @@
+common --enable_bzlmod
+build --incompatible_strict_action_env
+build --compilation_mode=opt
+build --enable_runfiles
+test --test_output=errors

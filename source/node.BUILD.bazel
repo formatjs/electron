@@ -1,0 +1,41 @@
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load(":uv_sources.bzl", "UV_SOURCES")
+
+package(default_visibility = ["//visibility:public"])
+exports_files(["electron_patches.json", "LICENSE"])
+filegroup(name = "sources", srcs = glob(["**"], exclude = ["BUILD.bazel", "uv_sources.bzl"]))
+
+cc_binary(
+    name = "node_js2c",
+    srcs = ["tools/js2c.cc", "tools/executable_wrapper.h", "src/embedded_data.cc", "src/embedded_data.h"],
+    includes = ["src", "tools"],
+    copts = select({"@platforms//os:windows": ["/std:c++20"], "//conditions:default": ["-std=c++20"]}),
+    local_defines = select({"@platforms//os:windows": [], "//conditions:default": ["NODE_JS2C_USE_STRING_LITERALS"]}),
+    deps = [":libuv", "@simdutf//:simdutf"],
+)
+
+# Includes Electron's loop-interrupt patch; stock libuv is not ABI equivalent.
+cc_library(
+    name = "libuv",
+    srcs = UV_SOURCES["common"] + select({
+        "@platforms//os:windows": UV_SOURCES["win"],
+        "@platforms//os:linux": UV_SOURCES["posix"] + UV_SOURCES["linux"] + ["deps/uv/src/unix/proctitle.c"],
+        "@platforms//os:macos": UV_SOURCES["posix"] + UV_SOURCES["apple"] + UV_SOURCES["bsd_common"] + ["deps/uv/src/unix/proctitle.c"],
+    }),
+    hdrs = glob(["deps/uv/include/**/*.h", "deps/uv/src/**/*.h"]),
+    includes = ["deps/uv/include", "deps/uv/src"],
+    defines = select({"@platforms//os:windows": ["WIN32_LEAN_AND_MEAN", "_WIN32_WINNT=0x0A00"], "//conditions:default": ["_FILE_OFFSET_BITS=64", "_LARGEFILE_SOURCE"]}),
+    local_defines = select({"@platforms//os:linux": ["_GNU_SOURCE", "_POSIX_C_SOURCE=200112"], "@platforms//os:macos": ["_DARWIN_USE_64_BIT_INODE=1", "_DARWIN_UNLIMITED_SELECT=1"], "//conditions:default": []}),
+    linkopts = select({"@platforms//os:windows": [
+        "advapi32.lib",
+        "dbghelp.lib",
+        "ole32.lib",
+        "iphlpapi.lib",
+        "psapi.lib",
+        "shell32.lib",
+        "user32.lib",
+        "userenv.lib",
+        "ws2_32.lib",
+    ], "@platforms//os:linux": ["-pthread", "-ldl", "-lrt", "-lm"], "@platforms//os:macos": ["-pthread"]}),
+)

@@ -1,0 +1,20 @@
+load("@rules_python//python:defs.bzl", "py_binary", "py_library")
+
+package(default_visibility = ["//visibility:public"])
+
+py_library(
+    name = "packaging",
+    srcs = ["package.py"],
+)
+
+py_binary(
+    name = "js2c",
+    srcs = ["js2c.py"],
+    main = "js2c.py",
+)
+
+py_binary(
+    name = "package",
+    srcs = ["package.py"],
+    main = "package.py",
+)

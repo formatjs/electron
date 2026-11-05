@@ -1,0 +1,26 @@
+module(
+    name = "rules_electron",
+    version = "0.1.0",
+    bazel_compatibility = [">=9.2.0"],
+)
+
+bazel_dep(name = "rules_cc", version = "0.2.26")
+bazel_dep(name = "simdutf", version = "7.7.0")
+bazel_dep(name = "platforms", version = "1.1.0")
+bazel_dep(name = "rules_python", version = "1.9.0")
+bazel_dep(name = "with_cfg.bzl", version = "0.12.0")
+
+# Same native compiler as formatjs/chromium and hermeticbuild/nodejs.
+bazel_dep(name = "llvm", version = "0.8.26")
+
+register_toolchains("@llvm//toolchain:all")
+
+python = use_extension("@rules_python//python/extensions:python.bzl", "python")
+python.toolchain(python_version = "3.11")
+
+electron = use_extension("//electron:extensions.bzl", "electron")
+electron.version(
+    sources = True,
+    version = "39.0.0",
+)
+use_repo(electron, "electron_node_sources", "electron_runtime", "electron_sources")

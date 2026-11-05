@@ -1,0 +1,36 @@
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+load("//electron:source_rules.bzl", "electron_js2c")
+load(":probes.bzl", "loop_probes")
+
+electron_js2c(
+    name = "embedder_javascript",
+    srcs = {"builtin.js": "lib/electron/builtin.js"},
+)
+
+exports_files([
+    "node.BUILD.bazel",
+    "uv_sources.bzl",
+])
+
+alias(
+    name = "electron",
+    actual = "@electron_sources//:sources",
+)
+
+alias(
+    name = "node",
+    actual = "@electron_node_sources//:sources",
+)
+
+alias(
+    name = "node_libuv",
+    actual = "@electron_node_sources//:libuv",
+)
+
+cc_test(
+    name = "loop_interrupt_test",
+    srcs = ["loop_interrupt_test.c"],
+    deps = [":node_libuv"],
+)
+
+loop_probes()
