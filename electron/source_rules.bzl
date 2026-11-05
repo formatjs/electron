@@ -22,7 +22,9 @@ def _webpack_impl(ctx):
     manifest = ctx.actions.declare_file(ctx.label.name + ".inputs.json")
     ctx.actions.write(manifest, json.encode({"sources": mappings, "packages": packages}))
     output = ctx.actions.declare_file(ctx.label.name + ".js")
-    arguments = ["--node", node.path, "--driver", ctx.file._driver.path, "--manifest", manifest.path, "--lock", ctx.file.lock.path, "--buildflags", ctx.file.buildflags.path, "--output", output.path]
+    if ctx.attr.config not in mappings:
+        fail("Webpack configuration must be a declared source input")
+    arguments = ["--node", node.path, "--driver", ctx.file._driver.path, "--manifest", manifest.path, "--lock", ctx.file.lock.path, "--buildflags", ctx.file.buildflags.path, "--output", output.path, "--config", ctx.attr.config]
     ctx.actions.run(executable = ctx.executable._runner, arguments = arguments, inputs = inputs + [manifest], outputs = [output], mnemonic = "ElectronWebpack")
     return [DefaultInfo(files = depset([output]))]
 
@@ -33,6 +35,7 @@ electron_webpack = rule(
         "npm_packages": attr.label_keyed_string_dict(mandatory = True),
         "lock": attr.label(allow_single_file = True, mandatory = True),
         "buildflags": attr.label(allow_single_file = True, mandatory = True),
+        "config": attr.string(mandatory = True),
         "_driver": attr.label(default = Label("//electron/private:webpack.cjs"), allow_single_file = True),
         "_runner": attr.label(default = Label("//electron/private:webpack"), executable = True, cfg = "exec"),
     },
@@ -60,10 +63,10 @@ def _js2c_impl(ctx):
     inputs = []
     for target, logical in ctx.attr.srcs.items():
         files = target.files.to_list()
-        valid_prefix = logical.startswith("lib/") or (ctx.file.config and logical.startswith("deps/"))
+        valid_prefix = logical.startswith("lib/") or (not ctx.file.config and logical.startswith("electron/js2c/")) or (ctx.file.config and logical.startswith("deps/"))
         valid_suffix = logical.endswith(".js") or (ctx.file.config and logical.endswith(".mjs"))
         if len(files) != 1 or "\\" in logical or ":" in logical or not valid_prefix or not valid_suffix or any([part in ["", ".", ".."] for part in logical.split("/")]):
-            fail("js2c inputs require one JS file mapped beneath lib/ or configured deps/: " + logical)
+            fail("js2c inputs require one JS file with a canonical builtin path: " + logical)
         if logical in mappings:
             fail("Duplicate js2c input: " + logical)
         mappings[logical] = files[0].path

@@ -13,6 +13,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("node", "driver", "manifest", "lock", "buildflags", "output"):
         parser.add_argument("--" + name, type=Path, required=True)
+    parser.add_argument("--config", required=True)
     args = parser.parse_args()
     node, driver, output, flags = (path.resolve() for path in (args.node, args.driver, args.output, args.buildflags))
     manifest = json.loads(args.manifest.read_text())
@@ -46,7 +47,7 @@ def main():
             destination.symlink_to(store / identity, target_is_directory=True)
         shutil.copyfile(driver, root / "bazel-webpack.cjs")
         environment = {"HOME": str(root), "TMPDIR": str(root), "PATH": "", "TZ": "UTC", "LANG": "C.UTF-8"}
-        subprocess.run([str(node), str(root / "bazel-webpack.cjs"), str(flags), str(output)], cwd=root, env=environment, check=True)
+        subprocess.run([str(node), str(root / "bazel-webpack.cjs"), str(flags), str(output), args.config], cwd=root, env=environment, check=True)
 
 
 if __name__ == "__main__":

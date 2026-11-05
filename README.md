@@ -5,7 +5,7 @@ Electron Builder, package-manager install scripts, host Node, or network access
 inside build actions. MIT rules; bundled upstream licenses stay intact.
 
 ```sh
-bazel test //tests:package_test //tests:prepare_source_test //tests:node_builtins_test //source:loop_interrupt_test //source:fuses_test //source:crypto_compat_test //source:node_defines_test
+bazel test //tests:package_test //tests:prepare_source_test //tests:node_builtins_test //tests:electron_bundles_test //source:loop_interrupt_test //source:fuses_test //source:crypto_compat_test //source:node_defines_test
 bazel build //examples/hello:dist
 ```
 
@@ -88,13 +88,16 @@ features; its output matches the upstream GN-driven invocation byte-for-byte.
 Integration tests verify original-fs isolation and embedded process.config.
 This target currently supports the captured Linux AMD64 configuration only.
 
-`//source:isolated_bundle` builds Electron's actual isolated-renderer webpack
-bundle with pinned Node 22.20.0 and 121 packages from Electron's exact yarn.lock.
+`//source:electron_bundles` builds all eight actual Electron webpack bundles
+with pinned Node 22.20.0 and 141 packages from Electron's exact yarn.lock.
+`//source:electron_natives` then generates their canonical native C++ registration.
 Bazel verifies archive integrity; no npm/yarn or install hooks execute. Linux
 sandbox actions deny network. This seam transpiles TypeScript without typechecking;
 declaration generation remains unfinished. `//examples/bundle_smoke:dist` packages
-that generated bundle and exercises real DOM/native webview registration plus
-rendering. The same portable bundle is byte-identical targeting Windows ARM64.
+the isolated-renderer bundle and exercises real DOM/native webview registration
+plus rendering. All eight bundles and native C++ are byte-identical targeting
+Windows ARM64. Integration tests parse all emitted bundles and verify lossless
+embedding of both one-byte and two-byte sources.
 
 `//source:fuses_test` also runs actual generated Electron C++ fuse code against
 patched Chromium headers. Chromium's own buildflag generator supplies its header

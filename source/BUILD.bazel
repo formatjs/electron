@@ -1,10 +1,10 @@
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
-load("//electron:source_rules.bzl", "electron_buildflags", "electron_fuses_generate", "electron_js2c", "electron_node_config", "electron_node_defines", "electron_original_fs", "electron_webpack")
+load("//electron:source_rules.bzl", "electron_buildflags", "electron_fuses_generate", "electron_js2c", "electron_node_config", "electron_node_defines", "electron_original_fs")
 load("//source/native:electron_buildflags.bzl", "ELECTRON_BUILD_FLAGS")
 load("//source/native:fuses_flags.bzl", "DEBUG_FLAGS")
 load("//source/native:node_inputs.bzl", "NODE_BUILTIN_INPUTS", "ORIGINAL_FS_INPUTS")
-load("//source/native:webpack_inputs.bzl", "ISOLATED_RENDERER_INPUTS", "WEBPACK_PACKAGES")
+load(":bundles.bzl", "electron_bundles")
 load(":probes.bzl", "loop_probes")
 
 electron_js2c(
@@ -116,14 +116,7 @@ electron_buildflags(
     flags = ELECTRON_BUILD_FLAGS,
 )
 
-electron_webpack(
-    name = "isolated_bundle",
-    srcs = {"@electron_sources//:" + path: path for path in ISOLATED_RENDERER_INPUTS},
-    buildflags = ":electron_buildflags",
-    lock = "//source/native:webpack_lock.json",
-    npm_packages = WEBPACK_PACKAGES,
-    visibility = ["//visibility:public"],
-)
+electron_bundles()
 
 electron_original_fs(
     name = "node_original_fs",

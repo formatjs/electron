@@ -57,18 +57,23 @@ def main():
             result["dependencies"] = {dep: visit(dep, version) for dep, version in entry["dependencies"].items()}
         return identity
 
-    roots = {name: visit(name, package["devDependencies"][name]) for name in ("webpack", "ts-loader", "typescript", "wrapper-webpack-plugin", "buffer", "process", "null-loader", "timers-browserify")}
+    roots = {name: visit(name, package["devDependencies"][name]) for name in ("webpack", "ts-loader", "typescript", "wrapper-webpack-plugin", "buffer", "process", "events", "url", "null-loader", "timers-browserify")}
     roots["terser-webpack-plugin"] = packages[roots["webpack"]]["dependencies"]["terser-webpack-plugin"]
     roots["acorn"] = packages[roots["webpack"]]["dependencies"]["acorn"]
     graph = json.loads(gzip.decompress(args.graph.read_bytes()))
-    bundle = graph["targets"]["//electron:electron_isolated_renderer_bundle"]
+    bundles = {}
+    for key, bundle in graph["targets"].items():
+        if key.startswith("//electron:electron_") and key.endswith("_bundle"):
+            filename = Path(bundle["outputs"][0]).name
+            bundles[filename.removesuffix(".js")] = {"config": bundle["args"][4].removeprefix("$SOURCE_ROOT/electron/"), "inputs": sorted({path.removeprefix("//electron/") for path in bundle["inputs"]})}
+    if len(bundles) != 8:
+        raise ValueError("Expected eight actual Electron webpack targets")
     settings = {"yarn_lock_sha256": hashlib.sha256(lock.read_bytes()).hexdigest(), "graph_sha256": hashlib.sha256(args.graph.read_bytes()).hexdigest(), "roots": roots, "packages": dict(sorted(packages.items()))}
     args.lock.write_text(json.dumps(settings, indent=2) + "\n")
-    inputs = sorted({path.removeprefix("//electron/") for path in bundle["inputs"]})
-    args.inventory.write_text('"""Actual isolated-renderer inputs and locked webpack packages."""\n\nWEBPACK_PACKAGES = ' + json.dumps({"@electron_npm//:pkg_" + key: key for key in sorted(packages)}, indent=4) + '\n\nISOLATED_RENDERER_INPUTS = ' + json.dumps(inputs, indent=4) + '\n')
+    args.inventory.write_text('"""Actual Electron bundle inputs and locked webpack packages."""\n\nWEBPACK_PACKAGES = ' + json.dumps({"@electron_npm//:pkg_" + key: key for key in sorted(packages)}, indent=4) + '\n\nELECTRON_BUNDLES = ' + json.dumps(dict(sorted(bundles.items())), indent=4) + '\n')
     flags = graph["targets"]["//electron/buildflags:buildflags"]["response_file_contents"][1:]
     args.flags.write_text('"""Actual Electron GN buildflags."""\n\nELECTRON_BUILD_FLAGS = ' + json.dumps(flags, indent=4) + '\n')
-    print(f"Captured {len(packages)} locked packages, {len(inputs)} source inputs")
+    print(f"Captured {len(packages)} locked packages, {len(bundles)} bundles")
 
 
 if __name__ == "__main__":

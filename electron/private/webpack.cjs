@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 const path = require('node:path');
 const webpack = require('webpack');
-const configuration = require('./build/webpack/webpack.config.isolated_renderer.js')({
+const configuration = require(path.resolve(process.cwd(), process.argv[4]))({
   buildflags: process.argv[2], mode: 'development',
 }, {'output-filename': path.basename(process.argv[3])});
 // Declaration generation/typechecking is a separate unfinished producer.

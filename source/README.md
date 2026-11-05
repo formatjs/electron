@@ -37,12 +37,13 @@ build runs inside Bazel actions.
 Next concrete producers: `//third_party/electron_node:libnode` has 171 C/C++
 units; `//electron:electron_lib` has 315. Node's `run_node_js2c`,
 `generate_config_gypi` and `node_js2c_original_fs` now have native Bazel
-producers. Electron's isolated-renderer webpack bundle also builds using actual
-upstream configuration, captured buildflags and 121 integrity-pinned packages
+producers. All eight Electron webpack bundles now build using actual upstream
+configurations, captured buildflags and 141 integrity-pinned packages
 from its exact yarn.lock. Pinned Node 22.20.0 comes from rules_nodejs execution
 toolchains; this bootstrap is an official runtime, not source-built Node.
-This bundle currently transpiles without typechecking. The other seven bundles
-and TypeScript definition generation remain unfinished.
+These bundles currently transpile without typechecking; TypeScript definition
+generation remains unfinished. `//source:electron_natives` runs actual C++ JS2C
+with all eight canonical `electron/js2c/*` module names.
 The Chromium importer then needs matching V8/Blink/content libraries, snapshot
 producers and runtime packaging. No target currently links a source-built
 Electron executable.
@@ -56,8 +57,13 @@ configuration embedded as JSON. No GN process runs inside these actions.
 bundle. Its preload executes that bundle against real Electron DOM/webFrame
 bindings, checks webview registration and unattached access rejection, then
 captures rendering. Linux smoke passes (800×573). Windows ARM64 target selection
-keeps Linux Node execution and produces byte-identical JavaScript; no Windows
+keeps Linux Node/LLVM execution and produces byte-identical JavaScript plus
+native registration C++; no Windows
 runtime execution claimed. GHA includes Linux bundle artifact handoff/smoke.
+`//tests:electron_bundles_test` parses all eight emitted bundles with pinned Node
+and verifies their payloads embed losslessly in both one-byte and two-byte C++
+resources. Only isolated-renderer behavior executes in the native runtime smoke;
+other initialization bundles require their bootstrap contexts.
 
 The npm closure includes exact required/optional lock dependencies, explicit
 webpack/TypeScript peers and the config's terser import. This is a bounded
