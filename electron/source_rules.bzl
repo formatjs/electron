@@ -2,6 +2,59 @@
 
 NodeBuiltinFilesInfo = provider(fields = ["files"])
 
+def _webpack_impl(ctx):
+    node = ctx.toolchains["@rules_nodejs//nodejs:toolchain_type"].nodeinfo.node
+    if not node:
+        fail("Electron webpack requires a hermetic Node execution toolchain")
+    mappings = {}
+    packages = {}
+    inputs = [ctx.file.lock, ctx.file.buildflags, ctx.file._driver, node]
+    for target, logical in ctx.attr.srcs.items():
+        files = target.files.to_list()
+        if len(files) != 1 or logical in mappings or logical.startswith("/") or any([part in ["", ".", ".."] for part in logical.split("/")]) or "\\" in logical or ":" in logical:
+            fail("Webpack input requires one file with unique relative path: " + logical)
+        mappings[logical] = files[0].path
+        inputs.append(files[0])
+    for target, identity in ctx.attr.npm_packages.items():
+        files = target.files.to_list()
+        packages[identity] = files[0].owner.workspace_root
+        inputs.extend(files)
+    manifest = ctx.actions.declare_file(ctx.label.name + ".inputs.json")
+    ctx.actions.write(manifest, json.encode({"sources": mappings, "packages": packages}))
+    output = ctx.actions.declare_file(ctx.label.name + ".js")
+    arguments = ["--node", node.path, "--driver", ctx.file._driver.path, "--manifest", manifest.path, "--lock", ctx.file.lock.path, "--buildflags", ctx.file.buildflags.path, "--output", output.path]
+    ctx.actions.run(executable = ctx.executable._runner, arguments = arguments, inputs = inputs + [manifest], outputs = [output], mnemonic = "ElectronWebpack")
+    return [DefaultInfo(files = depset([output]))]
+
+electron_webpack = rule(
+    implementation = _webpack_impl,
+    attrs = {
+        "srcs": attr.label_keyed_string_dict(allow_files = True, mandatory = True),
+        "npm_packages": attr.label_keyed_string_dict(mandatory = True),
+        "lock": attr.label(allow_single_file = True, mandatory = True),
+        "buildflags": attr.label(allow_single_file = True, mandatory = True),
+        "_driver": attr.label(default = Label("//electron/private:webpack.cjs"), allow_single_file = True),
+        "_runner": attr.label(default = Label("//electron/private:webpack"), executable = True, cfg = "exec"),
+    },
+    toolchains = ["@rules_nodejs//nodejs:toolchain_type"],
+)
+
+def _buildflags_impl(ctx):
+    output = ctx.actions.declare_file(ctx.label.name + "/electron/buildflags/buildflags.h")
+    definitions = ctx.actions.declare_file(ctx.label.name + ".flags.rsp")
+    ctx.actions.write(definitions, "--flags " + " ".join(ctx.attr.flags))
+    ctx.actions.run(executable = ctx.executable._runner, arguments = [ctx.file._script.path, "--output", "electron/buildflags/buildflags.h", "--rulename", "//electron/buildflags:buildflags", "--gen-dir", output.dirname + "/../..", "--definitions", definitions.path], inputs = [ctx.file._script, definitions], outputs = [output], mnemonic = "ElectronBuildflags")
+    return [DefaultInfo(files = depset([output]))]
+
+electron_buildflags = rule(
+    implementation = _buildflags_impl,
+    attrs = {
+        "flags": attr.string_list(mandatory = True),
+        "_script": attr.label(default = Label("@electron_chromium_sources//:build/write_buildflag_header.py"), allow_single_file = True),
+        "_runner": attr.label(default = Label("//electron/private:run_source"), executable = True, cfg = "exec"),
+    },
+)
+
 def _js2c_impl(ctx):
     mappings = {}
     inputs = []

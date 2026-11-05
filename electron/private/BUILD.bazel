@@ -2,6 +2,8 @@ load("@rules_python//python:defs.bzl", "py_binary", "py_library")
 
 package(default_visibility = ["//visibility:public"])
 
+exports_files(["webpack.cjs"])
+
 py_library(
     name = "packaging",
     srcs = ["package.py"],
@@ -27,6 +29,11 @@ py_binary(
 py_binary(
     name = "node_config",
     srcs = ["node_config.py"],
+)
+
+py_binary(
+    name = "webpack",
+    srcs = ["webpack.py"],
 )
 
 py_binary(

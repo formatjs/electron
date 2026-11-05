@@ -10,6 +10,7 @@ bazel_dep(name = "rules_cc", version = "0.2.26")
 bazel_dep(name = "simdutf", version = "7.7.0")
 bazel_dep(name = "platforms", version = "1.1.0")
 bazel_dep(name = "rules_python", version = "1.9.0")
+bazel_dep(name = "rules_nodejs", version = "6.7.7")
 bazel_dep(name = "with_cfg.bzl", version = "0.12.0")
 
 # Same native compiler as formatjs/chromium and hermeticbuild/nodejs.
@@ -19,6 +20,15 @@ register_toolchains("@llvm//toolchain:all")
 
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.toolchain(python_version = "3.11")
+
+node = use_extension("@rules_nodejs//nodejs:extensions.bzl", "node")
+node.toolchain(node_version = "22.20.0")
+use_repo(node, "nodejs_toolchains")
+
+register_toolchains("@nodejs_toolchains//:all")
+
+electron_npm = use_extension("//electron:npm_repositories.bzl", "electron_npm")
+use_repo(electron_npm, "electron_npm")
 
 electron = use_extension("//electron:extensions.bzl", "electron")
 electron.version(

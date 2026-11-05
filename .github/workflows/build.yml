@@ -22,15 +22,18 @@ jobs:
       - name: Cross-package example for all five platforms
         shell: bash
         run: |
-          bazel build //examples/hello:dist
+          bazel build //examples/hello:dist //examples/bundle_smoke:dist
           mkdir artifacts
           while IFS= read -r archive; do
             cp "$archive" artifacts/
           done < <(bazel cquery //examples/hello:dist --output=files)
+          cp bazel-bin/examples/bundle_smoke/dist.zip artifacts/bundle_smoke.zip
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: electron-linux_amd64
-          path: artifacts/dist_linux_amd64.zip
+          path: |
+            artifacts/dist_linux_amd64.zip
+            artifacts/bundle_smoke.zip
           if-no-files-found: error
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
@@ -92,6 +95,9 @@ jobs:
         run: |
           if [[ "$RUNNER_OS" == Linux ]]; then
             xvfb-run -a python tools/smoke.py --package="artifact/dist_$TARGET_PLATFORM.zip" --screenshot=render.png
+            if [[ "$TARGET_PLATFORM" == linux_amd64 ]]; then
+              xvfb-run -a python tools/smoke.py --package=artifact/bundle_smoke.zip --screenshot=bundle-render.png
+            fi
           else
             python tools/smoke.py --package="artifact/dist_$TARGET_PLATFORM.zip" --screenshot=render.png
           fi
@@ -99,5 +105,7 @@ jobs:
         if: always()
         with:
           name: rendering-${{ matrix.platform }}
-          path: render.png
+          path: |
+            render.png
+            bundle-render.png
           if-no-files-found: warn

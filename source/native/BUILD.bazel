@@ -4,4 +4,7 @@ exports_files([
     "linux_amd64.partial.json.summary.json",
     "node_config_linux_amd64.json",
     "node_inputs.bzl",
+    "webpack_lock.json",
+    "webpack_inputs.bzl",
+    "electron_buildflags.bzl",
 ])

@@ -88,6 +88,14 @@ features; its output matches the upstream GN-driven invocation byte-for-byte.
 Integration tests verify original-fs isolation and embedded process.config.
 This target currently supports the captured Linux AMD64 configuration only.
 
+`//source:isolated_bundle` builds Electron's actual isolated-renderer webpack
+bundle with pinned Node 22.20.0 and 121 packages from Electron's exact yarn.lock.
+Bazel verifies archive integrity; no npm/yarn or install hooks execute. Linux
+sandbox actions deny network. This seam transpiles TypeScript without typechecking;
+declaration generation remains unfinished. `//examples/bundle_smoke:dist` packages
+that generated bundle and exercises real DOM/native webview registration plus
+rendering. The same portable bundle is byte-identical targeting Windows ARM64.
+
 `//source:fuses_test` also runs actual generated Electron C++ fuse code against
 patched Chromium headers. Chromium's own buildflag generator supplies its header
 configuration, imported from the captured GN graph. Full patched BoringSSL

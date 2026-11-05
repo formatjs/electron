@@ -37,8 +37,12 @@ build runs inside Bazel actions.
 Next concrete producers: `//third_party/electron_node:libnode` has 171 C/C++
 units; `//electron:electron_lib` has 315. Node's `run_node_js2c`,
 `generate_config_gypi` and `node_js2c_original_fs` now have native Bazel
-producers. Electron's `electron_js2c` still depends on eight
-locked npm/webpack bundles and their TypeScript definition/buildflag producers.
+producers. Electron's isolated-renderer webpack bundle also builds using actual
+upstream configuration, captured buildflags and 121 integrity-pinned packages
+from its exact yarn.lock. Pinned Node 22.20.0 comes from rules_nodejs execution
+toolchains; this bootstrap is an official runtime, not source-built Node.
+This bundle currently transpiles without typechecking. The other seven bundles
+and TypeScript definition generation remain unfinished.
 The Chromium importer then needs matching V8/Blink/content libraries, snapshot
 producers and runtime packaging. No target currently links a source-built
 Electron executable.
@@ -47,6 +51,19 @@ Electron executable.
 chain. It checks regular fs and isolated original-fs registration/payloads,
 native module ABI 140, NAPI 10, V8 sandbox/pointer compression and target
 configuration embedded as JSON. No GN process runs inside these actions.
+
+`bazel build //examples/bundle_smoke:dist` packages the generated isolated-renderer
+bundle. Its preload executes that bundle against real Electron DOM/webFrame
+bindings, checks webview registration and unattached access rejection, then
+captures rendering. Linux smoke passes (800×573). Windows ARM64 target selection
+keeps Linux Node execution and produces byte-identical JavaScript; no Windows
+runtime execution claimed. GHA includes Linux bundle artifact handoff/smoke.
+
+The npm closure includes exact required/optional lock dependencies, explicit
+webpack/TypeScript peers and the config's terser import. This is a bounded
+Electron source tool closure, not a general npm package manager. Packages copy
+into a private staging tree; Node resolves their exact dependency links there.
+No install hooks run; sandbox actions deny network on Linux.
 
 The native BoringSSL overlay mirrors Electron's extra crypto source list. Its
 GN list includes obsolete `decrepit/ripemd/internal.h`; that nonexistent header
@@ -166,4 +183,15 @@ python3 tools/capture_node_inputs.py \
   --settings=source/native/node_config_linux_amd64.json \
   --inventory=source/native/node_inputs.bzl
 buildifier source/native/node_inputs.bzl
+```
+
+Refresh the bounded webpack lock/inventory from the same verified graph:
+
+```sh
+python3 tools/capture_webpack_deps.py --electron="$electron_source_root/electron" \
+  --graph=source/native/linux_amd64.partial.json.gz \
+  --lock=source/native/webpack_lock.json \
+  --inventory=source/native/webpack_inputs.bzl \
+  --flags=source/native/electron_buildflags.bzl
+buildifier source/native/webpack_inputs.bzl source/native/electron_buildflags.bzl
 ```

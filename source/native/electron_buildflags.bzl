@@ -1,0 +1,9 @@
+"""Actual Electron GN buildflags."""
+
+ELECTRON_BUILD_FLAGS = [
+    "ENABLE_PDF_VIEWER=true",
+    "ENABLE_ELECTRON_EXTENSIONS=true",
+    "ENABLE_BUILTIN_SPELLCHECKER=true",
+    "OVERRIDE_LOCATION_PROVIDER=true",
+    "HAS_VENDOR_VERSION=false",
+]
