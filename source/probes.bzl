@@ -15,4 +15,7 @@ def loop_probes():
         name = "loop_" + platform
         implementation(name = name, srcs = ["loop_interrupt_test.c"], deps = [":node_libuv"])
         targets.append(":" + name)
+        crypto = "crypto_" + platform
+        implementation(name = crypto, srcs = ["crypto_compat_test.cc"], deps = ["@electron_boringssl_sources//:ssl"])
+        targets.append(":" + crypto)
     native.filegroup(name = "cross_probes", srcs = targets)

@@ -11,10 +11,10 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: bazel-contrib/setup-bazel@4fd964a13a440a8aeb0be47350db2fc640f19ca8 # 0.15.0
       - name: Test packaging and Electron's patched Node loop
-        run: bazel test //tests:package_test //tests:prepare_source_test //source:loop_interrupt_test //source:fuses_test
+        run: bazel test //tests:package_test //tests:prepare_source_test //source:loop_interrupt_test //source:fuses_test //source:crypto_compat_test //source:node_defines_test
       - name: Build native embedder JavaScript generator
-        run: bazel build //source:embedder_javascript //source:chromium_patches //source:v8_patches
-      - name: Cross-compile patched libuv, Windows uses MSVC
+        run: bazel build //source:embedder_javascript //source:chromium_patches //source:v8_patches //source:dependency_patches
+      - name: Cross-compile patched libuv and crypto, Windows uses MSVC
         run: >-
           bazel build //source:cross_probes
           --repo_env=BAZEL_MSVC_RUNTIME_VISUAL_STUDIO_EULA=1

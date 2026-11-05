@@ -19,7 +19,7 @@ def link_missing(source, destination):
             link_missing(entry, target)
 
 
-def prepare(chromium, electron, node, v8, deps_cache, destination, dependencies=()):
+def prepare(chromium, electron, node, v8, deps_cache, destination, dependencies=(), fingerprints=None):
     for directory in (chromium, electron, node, v8, deps_cache):
         if not directory.is_dir():
             raise ValueError(f"Missing source root: {directory}")
@@ -31,11 +31,44 @@ def prepare(chromium, electron, node, v8, deps_cache, destination, dependencies=
         revision, count = expected[group]
         if provenance["upstream_revision"] != revision or len(provenance["patches"]) != count:
             raise ValueError(f"Unexpected patched {group} provenance")
-    shutil.copytree(chromium, destination, symlinks=True, copy_function=os.symlink)
     overlays = [("electron", electron), ("v8", v8), ("third_party/electron_node", node)]
     overlays.extend(dependencies)
+    applied = {"chromium", "node", "v8"}
+    if fingerprints is not None:
+        roots = {"": chromium, "electron": electron, "v8": v8, "third_party/electron_node": node, **dict(dependencies)}
+        applied = set()
+        for group, entry in fingerprints.items():
+            root = roots.get(entry["source_path"])
+            if root is None:
+                continue
+            for name, expected_hash in entry["files"].items():
+                path = root / name
+                actual = hashlib.sha256(path.read_bytes()).hexdigest() if path.exists() else None
+                if actual != expected_hash:
+                    raise ValueError(f"Patched file differs: {group}/{name}")
+            applied.add(group)
+    for name, root in overlays:
+        if Path(name).is_absolute() or ".." in Path(name).parts:
+            raise ValueError("Dependency destination must stay below source root")
+    shutil.copytree(chromium, destination, symlinks=True, copy_function=os.symlink)
     for name, root in overlays:
         target = destination / name
+        # A nested dependency may live below a directory symlink (Squirrel's
+        # Mantle/ReactiveObjC submodules). Materialize private parents first.
+        parents = []
+        parent = target.parent
+        while parent != destination:
+            parents.append(parent)
+            parent = parent.parent
+        for parent in reversed(parents):
+            if parent.is_symlink():
+                source = parent.resolve()
+                parent.unlink()
+                parent.mkdir()
+                for child in source.iterdir():
+                    (parent / child.name).symlink_to(child, target_is_directory=child.is_dir())
+            elif not parent.exists():
+                parent.mkdir()
         if target.exists() or target.is_symlink():
             if target.is_symlink():
                 target.unlink()
@@ -51,7 +84,7 @@ def prepare(chromium, electron, node, v8, deps_cache, destination, dependencies=
         if target.is_symlink():
             target.unlink()
         target.write_text(text, encoding="utf-8")
-    manifest = {"purpose": "GN maintainer metadata only; remaining Electron dependency patch stacks are not applied", "chromium_revision": expected["chromium"][0], "v8_revision": expected["v8"][0], "deps_sha256": hashlib.sha256((chromium / "DEPS").read_bytes()).hexdigest(), "deps_cache": str(deps_cache)}
+    manifest = {"purpose": "GN maintainer metadata only; native target translation/linkage unfinished", "chromium_revision": expected["chromium"][0], "v8_revision": expected["v8"][0], "deps_sha256": hashlib.sha256((chromium / "DEPS").read_bytes()).hexdigest(), "deps_cache": str(deps_cache), "applied_patch_groups": sorted(applied)}
     (destination / "electron-source-provenance.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
 
@@ -60,14 +93,17 @@ def main():
     for argument in ("chromium", "electron", "node", "v8", "deps-cache", "destination"):
         parser.add_argument("--" + argument, type=Path, required=True)
     parser.add_argument("--dependency", action="append", default=[], metavar="RELATIVE_PATH=SOURCE_ROOT")
+    parser.add_argument("--patch-fingerprints", type=Path)
     arguments = vars(parser.parse_args())
+    fingerprints_path = arguments.pop("patch_fingerprints")
+    fingerprints = json.loads(fingerprints_path.read_text(encoding="utf-8")) if fingerprints_path else None
     dependencies = []
     for value in arguments.pop("dependency"):
         name, root = value.split("=", 1)
         if Path(name).is_absolute() or ".." in Path(name).parts:
             parser.error("Dependency destination must stay below source root")
         dependencies.append((name, Path(root).resolve()))
-    prepare(**{name: path.resolve() for name, path in arguments.items()}, dependencies=dependencies)
+    prepare(**{name: path.resolve() for name, path in arguments.items()}, dependencies=dependencies, fingerprints=fingerprints)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
-load("//electron:source_rules.bzl", "electron_fuses_generate", "electron_js2c")
+load("//electron:source_rules.bzl", "electron_fuses_generate", "electron_js2c", "electron_node_defines")
 load("//source/native:fuses_flags.bzl", "DEBUG_FLAGS")
 load(":probes.bzl", "loop_probes")
 
@@ -13,6 +13,8 @@ exports_files([
     "node.BUILD.bazel",
     "uv_sources.bzl",
     "upstream_pins.json",
+    "boringssl-electron.patch",
+    "patch_fingerprints.json",
 ])
 
 alias(
@@ -79,4 +81,38 @@ cc_test(
     name = "fuses_test",
     srcs = ["fuses_test.cc"],
     deps = [":electron_fuses"],
+)
+
+cc_test(
+    name = "crypto_compat_test",
+    srcs = ["crypto_compat_test.cc"],
+    deps = ["@electron_boringssl_sources//:ssl"],
+)
+
+filegroup(
+    name = "dependency_patches",
+    srcs = [
+        "@electron_boringssl_sources//:LICENSE",
+        "@electron_devtools_frontend_sources//:source_anchor",
+        "@electron_ffmpeg_sources//:source_anchor",
+        "@electron_mantle_sources//:source_anchor",
+        "@electron_nan_sources//:source_anchor",
+        "@electron_perfetto_sources//:source_anchor",
+        "@electron_reactiveobjc_sources//:source_anchor",
+        "@electron_reclient_configs_sources//:source_anchor",
+        "@electron_sqlite_sources//:source_anchor",
+        "@electron_squirrel_mac_sources//:source_anchor",
+        "@electron_webrtc_sources//:source_anchor",
+    ],
+)
+
+electron_node_defines(name = "node_defines")
+
+cc_test(
+    name = "node_defines_test",
+    srcs = [
+        "node_defines_test.cc",
+        ":node_defines",
+    ],
+    includes = ["node_defines"],
 )

@@ -12,7 +12,7 @@ import subprocess
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    for name in ("chromium-tools", "source-root", "llvm-root", "rust-root", "gn", "runtime-deps", "output"):
+    for name in ("chromium-tools", "source-root", "llvm-root", "rust-root", "gn", "runtime-deps", "patch-fingerprints", "output"):
         parser.add_argument("--" + name, type=Path, required=True)
     args = parser.parse_args()
     source = args.chromium_tools / "capture_native_graph.py"
@@ -27,17 +27,28 @@ def main():
     for old, new in replacements:
         configuration = configuration.replace(old, new)
     patch_config = json.loads((args.source_root / "electron/patches/config.json").read_text(encoding="utf-8"))
-    remaining = [entry["patch_dir"].split("/")[-1] for entry in patch_config if entry["patch_dir"].split("/")[-1] not in {"chromium", "node", "v8"}]
+    fingerprints = json.loads(args.patch_fingerprints.read_text(encoding="utf-8"))
+    applied = set()
+    for group, entry in fingerprints.items():
+        for name, expected in entry["files"].items():
+            path = args.source_root / entry["source_path"] / name
+            actual = hashlib.sha256(path.read_bytes()).hexdigest() if path.exists() else None
+            if actual != expected:
+                raise ValueError(f"Patched source differs: {group}/{name}")
+        applied.add(group)
+    remaining = [entry["patch_dir"].split("/")[-1] for entry in patch_config if entry["patch_dir"].split("/")[-1] not in applied]
     graph["provenance"] = {
         "chromium_revision": "7efca501bfcc84657ba2921a852e98ce1fb37641",
         "electron_version": "39.0.0",
         "gn_version": subprocess.check_output([str(args.gn), "--version"], text=True).strip(),
         "gn_sha256": hashlib.sha256(args.gn.read_bytes()).hexdigest(),
         "capture_tool_sha256": hashlib.sha256(source.read_bytes()).hexdigest(),
+        "patch_fingerprints_sha256": hashlib.sha256(args.patch_fingerprints.read_bytes()).hexdigest(),
         "deps_sha256": hashlib.sha256((args.source_root / "DEPS").read_bytes()).hexdigest(),
         "args_gn": configuration,
         "incomplete_patch_groups": remaining,
-        "purpose": "Maintainer GN import metadata; remaining patch stacks and source linkage unfinished",
+        "applied_patch_groups": sorted(applied),
+        "purpose": "Maintainer GN import metadata; native target translation and runtime linkage unfinished",
     }
     payload = json.dumps(graph, sort_keys=True, separators=(",", ":")).encode()
     args.output.parent.mkdir(parents=True, exist_ok=True)

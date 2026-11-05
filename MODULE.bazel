@@ -4,6 +4,8 @@ module(
     bazel_compatibility = [">=9.2.0"],
 )
 
+bazel_dep(name = "rules_license", version = "1.0.0")
+bazel_dep(name = "googletest", version = "1.17.0.bcr.2")
 bazel_dep(name = "rules_cc", version = "0.2.26")
 bazel_dep(name = "simdutf", version = "7.7.0")
 bazel_dep(name = "platforms", version = "1.1.0")
@@ -25,11 +27,22 @@ electron.version(
 )
 use_repo(
     electron,
+    "electron_boringssl_sources",
     "electron_cast_core_sources",
     "electron_chromium_sources",
+    "electron_devtools_frontend_sources",
+    "electron_ffmpeg_sources",
     "electron_glslang_sources",
+    "electron_mantle_sources",
+    "electron_nan_sources",
     "electron_node_sources",
+    "electron_perfetto_sources",
+    "electron_reactiveobjc_sources",
+    "electron_reclient_configs_sources",
     "electron_runtime",
     "electron_sources",
+    "electron_sqlite_sources",
+    "electron_squirrel_mac_sources",
     "electron_v8_sources",
+    "electron_webrtc_sources",
 )

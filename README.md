@@ -5,7 +5,7 @@ Electron Builder, package-manager install scripts, host Node, or network access
 inside build actions. MIT rules; bundled upstream licenses stay intact.
 
 ```sh
-bazel test //tests:package_test //tests:prepare_source_test //source:loop_interrupt_test //source:fuses_test
+bazel test //tests:package_test //tests:prepare_source_test //source:loop_interrupt_test //source:fuses_test //source:crypto_compat_test //source:node_defines_test
 bazel build //examples/hello:dist
 ```
 
@@ -71,8 +71,9 @@ full Node 22.20.0 git archive and applies every patch in Electron's Node stack
 using Bazel's patch engine. `//source:node_libuv` compiles that patched source
 with hermeticbuild LLVM 0.8.26. `loop_interrupt_test` executes Electron's
 `UV_LOOP_INTERRUPT_ON_IO_CHANGE` API, absent from stock libuv.
-`//source:cross_probes` compiles and links this API for all five target ABIs
-with explicit MSVC Windows toolchains.
+`//source:cross_probes` compiles and links this API plus patched BoringSSL
+crypto/TLS for all five target ABIs, using explicit MSVC Windows toolchains.
+Linux GNU 2.31 crypto probe also executes locally.
 
 `electron_js2c` builds the actual patched Node C++ generator using hermetic
 LLVM, patched libuv and BCR simdutf. It stages declared JS under stable builtin
@@ -82,7 +83,9 @@ registration C++; full libnode linkage still needs the matching patched V8.
 
 `//source:fuses_test` also runs actual generated Electron C++ fuse code against
 patched Chromium headers. Chromium's own buildflag generator supplies its header
-configuration, imported from the captured GN graph.
+configuration, imported from the captured GN graph. Full patched BoringSSL
+crypto/TLS builds and runs a Node compatibility test; Node macro-isolation
+headers also generate and pass a compiled integration test.
 
 Chromium work at `../bcr_overlays` supplies native Bazel actions and overlays.
 Electron 39.0.0 pins Chromium **142.0.7444.52**; that repo currently pins
@@ -94,11 +97,12 @@ Squirrel.Mac, Mantle, ReactiveObjC, WebRTC, reclient configuration and SQLite.
 Bazel now verifies exact Chromium 142.0.7444.52 and V8 archives, applying all
 144 Chromium patches and the V8 patch. Linux GN generation succeeds; the
 checked-in partial graph contains the complete 11,955-target Electron closure
-and 4,570 runtime entries. Its provenance explicitly lists 11 remaining
-dependency patch stacks. This is import metadata, not a built Electron runtime.
+and 4,570 runtime entries. All 14 dependency patch stacks now apply (236
+patches); provenance verifies 718 changed files against checked-in fingerprints.
+This is import metadata, not a built Electron runtime.
 See [source reproduction](source/README.md).
 
-Next source steps: pin and apply remaining patch stacks; import Node/Electron libraries,
+Next source steps: import Node/Electron libraries,
 snapshot and JS generators into the existing native Bazel action model;
 provide the resulting runtime ZIP to the same packaging rules. Keep host
 generator runtimes private, stage their declared libraries and ICU beside the

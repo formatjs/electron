@@ -162,7 +162,7 @@
       "revert_track_ssl_error_zero_return_explicitly.patch",
       "feat_expose_several_extra_cipher_functions.patch"
     ],
-    "status": "pending"
+    "status": "applied"
   },
   {
     "patch_dir": "src/electron/patches/devtools_frontend",
@@ -172,7 +172,7 @@
     "patches": [
       "chore_expose_ui_to_allow_electron_to_set_dock_side.patch"
     ],
-    "status": "pending"
+    "status": "applied"
   },
   {
     "patch_dir": "src/electron/patches/ffmpeg",
@@ -182,7 +182,7 @@
     "patches": [
       "link_with_loader_path.patch"
     ],
-    "status": "pending"
+    "status": "applied"
   },
   {
     "patch_dir": "src/electron/patches/v8",
@@ -274,7 +274,7 @@
       "chore_remove_deprecated_functioncallbackinfo_holder.patch",
       "fix_replace_deprecated_get_setprototype.patch"
     ],
-    "status": "pending"
+    "status": "applied"
   },
   {
     "patch_dir": "src/electron/patches/perfetto",
@@ -284,7 +284,7 @@
     "patches": [
       "define_ssize_t_to_be_intptr_t_to_match_libuv.patch"
     ],
-    "status": "pending"
+    "status": "applied"
   },
   {
     "patch_dir": "src/electron/patches/squirrel.mac",
@@ -304,7 +304,7 @@
       "fix_crash_when_process_to_extract_zip_cannot_be_launched.patch",
       "use_uttype_class_instead_of_deprecated_uttypeconformsto.patch"
     ],
-    "status": "pending"
+    "status": "applied"
   },
   {
     "patch_dir": "src/electron/patches/Mantle",
@@ -314,7 +314,7 @@
     "patches": [
       "remove_mtlmanagedobjectadapter_h.patch"
     ],
-    "status": "pending"
+    "status": "applied"
   },
   {
     "patch_dir": "src/electron/patches/ReactiveObjC",
@@ -325,7 +325,7 @@
       "build_conditionally_import_ext_headers_from_framework_or_from.patch",
       "chore_explicitly_cast_long_max_to_double.patch"
     ],
-    "status": "pending"
+    "status": "applied"
   },
   {
     "patch_dir": "src/electron/patches/webrtc",
@@ -335,7 +335,7 @@
     "patches": [
       "fix_handle_pipewire_capturer_initialization_and_management.patch"
     ],
-    "status": "pending"
+    "status": "applied"
   },
   {
     "patch_dir": "src/electron/patches/reclient-configs",
@@ -349,7 +349,7 @@
       "fix_temporarily_use_toolchain_inputs_exclusively_instead_of_inputs.patch",
       "reland_mojo_use_large_worker_for_mojom_parser_action.patch"
     ],
-    "status": "pending"
+    "status": "applied"
   },
   {
     "patch_dir": "src/electron/patches/sqlite",
@@ -359,6 +359,6 @@
     "patches": [
       "fix_rename_sqlite_win32_exports_to_avoid_conflicts_with_node_js.patch"
     ],
-    "status": "pending"
+    "status": "applied"
   }
 ]

@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: MIT
 import json
+import hashlib
 import tempfile
 import unittest
 from pathlib import Path
@@ -56,6 +57,27 @@ class PrepareSourceTest(unittest.TestCase):
         with self.assertRaises(FileExistsError):
             prepare(**self.paths)
         self.assertEqual(keep.read_text(), "user work")
+
+    def test_nested_dependency_replaces_private_parents(self):
+        squirrel = self.root / "squirrel"
+        (squirrel / "vendor/Mantle").mkdir(parents=True)
+        original = squirrel / "vendor/Mantle/value.h"
+        original.write_text("original")
+        mantle = self.root / "mantle"
+        mantle.mkdir()
+        (mantle / "value.h").write_text("patched")
+        prepare(**self.paths, dependencies=[("third_party/squirrel.mac", squirrel), ("third_party/squirrel.mac/vendor/Mantle", mantle)])
+        target = self.paths["destination"] / "third_party/squirrel.mac"
+        self.assertFalse(target.is_symlink())
+        self.assertFalse((target / "vendor").is_symlink())
+        self.assertEqual((target / "vendor/Mantle/value.h").read_text(), "patched")
+        self.assertEqual(original.read_text(), "original")
+
+    def test_fingerprint_mismatch_rejected_before_writes(self):
+        fingerprints = {"chromium": {"source_path": "", "files": {"VERSION": hashlib.sha256(b"different").hexdigest()}}}
+        with self.assertRaisesRegex(ValueError, "Patched file differs"):
+            prepare(**self.paths, fingerprints=fingerprints)
+        self.assertFalse(self.paths["destination"].exists())
 
 
 if __name__ == "__main__":

@@ -48,3 +48,18 @@ electron_fuses_generate = rule(
         "_runner": attr.label(default = Label("//electron/private:run_source"), executable = True, cfg = "exec"),
     },
 )
+
+def _node_defines_impl(ctx):
+    push = ctx.actions.declare_file(ctx.label.name + "/electron/push_and_undef_node_defines.h")
+    pop = ctx.actions.declare_file(ctx.label.name + "/electron/pop_node_defines.h")
+    ctx.actions.run(executable = ctx.executable._runner, arguments = [ctx.file._script.path, push.dirname] + [header.path for header in ctx.files._headers], inputs = [ctx.file._script] + ctx.files._headers, outputs = [push, pop], mnemonic = "ElectronNodeDefines")
+    return [DefaultInfo(files = depset([push, pop]))]
+
+electron_node_defines = rule(
+    implementation = _node_defines_impl,
+    attrs = {
+        "_script": attr.label(default = Label("@electron_sources//:build/generate_node_defines.py"), allow_single_file = True),
+        "_headers": attr.label_list(default = [Label("@electron_node_sources//:" + path) for path in ["src/tracing/trace_event_common.h", "src/tracing/trace_event.h", "src/util.h"]], allow_files = True),
+        "_runner": attr.label(default = Label("//electron/private:run_source"), executable = True, cfg = "exec"),
+    },
+)

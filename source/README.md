@@ -2,29 +2,45 @@
 
 Runtime packages still use official Electron binaries. Native source work:
 
-- Electron39.0.0, Chromium142.0.7444.52 commit
-  `7efca501bfcc84657ba2921a852e98ce1fb37641`, Node22.20.0 and V8
+- Electron 39.0.0, Chromium 142.0.7444.52 commit
+  `7efca501bfcc84657ba2921a852e98ce1fb37641`, Node 22.20.0 and V8
   `bb294624702efbb17691b642333f06bf5108e600` are pinned.
-- Bazel's patch engine applies144 Chromium,55 Node and1 V8 patches.
+- Bazel applies all 14 ordered patch stacks: 236 upstream patches. Exact
+  revisions and patch filenames live in upstream_pins.json; 718 modified source
+  files are checked against patch_fingerprints.json.
 - Patched libuv builds/links for five platforms; Linux test executes its
   Electron-specific loop-interrupt API. Windows uses MSVC.
 - Real patched JS2C builds and emits embedder builtin C++ with separate host
   execution configuration. Electron fuse and Chromium buildflag generators
-  produce actual Electron C++; native fuse-wire/default test passes.
-- GN2285 (`81b24e01531e`) loads27,558 targets. Chromium's strict capture tool
-  validates the complete11,955-target Electron closure,4,570 runtime entries
+  produce actual Electron C++; native fuse-wire/default test passes. Full
+  patched BoringSSL crypto/TLS compiles and passes RIPEMD160, cipher lookup
+  and AES-CFB roundtrip checks. Crypto/TLS also cross-links all five platforms;
+  Linux GNU 2.31 probe executes. Real Node macro-isolation generation passes
+  a compiled push/undef/pop integration test.
+- GN 2285 (`81b24e01531e`) loads 27,558 targets. Chromium's strict capture tool
+  validates the complete 11,955-target Electron closure, 4,570 runtime entries
   and generated-file contents. `native/linux_amd64.partial.json.gz` records
-  exact tool hashes, arguments and unfinished patch groups.
+  exact tool hashes, arguments, all 14 applied patch groups and fingerprint hash.
 
 The metadata tree reuses matching-DEPS checkout files read-only. It must not
-be used to compile or package Electron. BoringSSL, DevTools, FFmpeg, NAN,
-Perfetto, Squirrel.Mac, Mantle, ReactiveObjC, WebRTC, reclient configuration
-and SQLite patch stacks remain. Their archive pins and native targets,
-Electron's locked npm bundling actions, snapshots and final linkage still need
-implementation. [upstream_pins.json](upstream_pins.json) records exact dependency
-URLs, revisions and ordered patch filenames for the next import. Other four
-source graphs also remain. No GN/Ninja build runs
-inside Bazel actions.
+be used to compile or package Electron. All Electron patch groups are now
+applied, including nested Squirrel/Mantle/ReactiveObjC dependencies. Other
+Chromium dependencies still need explicit source/Bazel declarations before
+full native translation. Other four source graphs also remain. No GN/Ninja
+build runs inside Bazel actions.
+
+Next concrete producers: `//third_party/electron_node:libnode` has 171 C/C++
+units; `//electron:electron_lib` has 315. Node's `run_node_js2c` still needs
+`generate_config_gypi` and `node_js2c_original_fs` actions; only the real JS2C
+host tool is imported so far. Electron's `electron_js2c` depends on eight
+locked npm/webpack bundles and their TypeScript definition/buildflag producers.
+The Chromium importer then needs matching V8/Blink/content libraries, snapshot
+producers and runtime packaging. No target currently links a source-built
+Electron executable.
+
+The native BoringSSL overlay mirrors Electron's extra crypto source list. Its
+GN list includes obsolete `decrepit/ripemd/internal.h`; that nonexistent header
+is excluded, and the real `decrepit/macros.h` dependency is declared explicitly.
 
 ## Reproduce Linux metadata
 
@@ -32,7 +48,8 @@ From this repository, materialize source repositories and native generators:
 
 ```sh
 bazel build //source:chromium_patches //source:v8_patches \
-  //source:embedder_javascript @electron_node_sources//:electron_patches.json \
+  //source:embedder_javascript //source:dependency_patches \
+  @electron_node_sources//:electron_patches.json \
   @electron_cast_core_sources//:proto/proto.gni \
   @electron_glslang_sources//:BUILD.gn
 electron_output_base=$(bazel info output_base)
@@ -49,17 +66,30 @@ electron_deps_cache=/tmp/chromium-migration-source
 electron_gn=/tmp/chromium-gn/gn
 electron_llvm_root="$electron_repositories/llvm++llvm_toolchain_minimal+llvm-toolchain-minimal-linux-amd64"
 electron_chromium_tools=/home/dev/bcr_overlays/tools
-# rules_rs nightly/2025-09-25, reporting rustc1.92.0-nightly caccb4d03.
+# rules_rs nightly/2025-09-25, reporting rustc 1.92.0-nightly caccb4d03.
 electron_rust_root=/tmp/chromium-ci-root-bazel/4885d5fc792b2938a031e6df2b5a1a5e/external/rules_rs++toolchains+rustc_linux_x86_64_nightly_2025_09_25
 
-python3 tools/prepare_source.py \
-  --chromium="$electron_repositories/+electron+electron_chromium_sources" \
-  --electron="$electron_repositories/+electron+electron_sources" \
-  --node="$electron_repositories/+electron+electron_node_sources" \
-  --v8="$electron_repositories/+electron+electron_v8_sources" \
-  --deps-cache="$electron_deps_cache" --destination="$electron_source_root" \
-  --dependency="third_party/cast_core/public/src=$electron_repositories/+electron+electron_cast_core_sources" \
-  --dependency="third_party/glslang/src=$electron_repositories/+electron+electron_glslang_sources"
+python3 - "$electron_repositories" "$electron_deps_cache" "$electron_source_root" <<'PY'
+import json, subprocess, sys
+from pathlib import Path
+repositories, cache, destination = map(Path, sys.argv[1:])
+args = ['python3', 'tools/prepare_source.py',
+        '--chromium=' + str(repositories / '+electron+electron_chromium_sources'),
+        '--electron=' + str(repositories / '+electron+electron_sources'),
+        '--node=' + str(repositories / '+electron+electron_node_sources'),
+        '--v8=' + str(repositories / '+electron+electron_v8_sources'),
+        '--deps-cache=' + str(cache), '--destination=' + str(destination),
+        '--patch-fingerprints=source/patch_fingerprints.json']
+for entry in json.loads(Path('source/upstream_pins.json').read_text()):
+    if entry['group'] in {'chromium', 'node', 'v8'}:
+        continue
+    name = 'electron_' + entry['group'].lower().replace('.', '_').replace('-', '_') + '_sources'
+    args.append('--dependency=' + entry['repo'].removeprefix('src/') + '=' + str(repositories / ('+electron+' + name)))
+for path, name in [('third_party/cast_core/public/src', 'electron_cast_core_sources'),
+                   ('third_party/glslang/src', 'electron_glslang_sources')]:
+    args.append('--dependency=' + path + '=' + str(repositories / ('+electron+' + name)))
+subprocess.run(args, check=True)
+PY
 mkdir -p "$electron_source_root/out/bazel-import"
 cat > "$electron_source_root/out/bazel-import/args.gn" <<EOF
 import("//electron/build/args/all.gn")
@@ -103,6 +133,7 @@ python3 tools/capture_source.py --chromium-tools="$electron_chromium_tools" \
   --source-root="$electron_source_root" --llvm-root="$electron_llvm_root" \
   --rust-root="$electron_rust_root" --gn="$electron_gn" \
   --runtime-deps="$electron_capture_dir/runtime.json" \
+  --patch-fingerprints=source/patch_fingerprints.json \
   --output=source/native/linux_amd64.partial.json.gz
 ```
 

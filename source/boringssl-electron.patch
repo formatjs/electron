@@ -1,0 +1,24 @@
+# Match existing sources from Electron boringssl_build_gn.patch.
+--- a/BUILD.bazel
++++ b/BUILD.bazel
+@@ -68,12 +68,18 @@
+ 
+ bssl_cc_library(
+     name = "crypto",
+-    srcs = bcm_sources + crypto_sources,
++    srcs = bcm_sources + crypto_sources + [
++        "decrepit/evp/evp_do_all.cc",
++        "decrepit/xts/xts.cc",
++        "decrepit/blowfish/blowfish.cc",
++        "decrepit/cfb/cfb.cc",
++        "decrepit/ripemd/ripemd.cc",
++    ],
+     hdrs = crypto_headers,
+     asm_srcs = bcm_sources_asm + crypto_sources_asm,
+     copts = ["-DBORINGSSL_IMPLEMENTATION"],
+     includes = ["include"],
+-    internal_hdrs = bcm_internal_headers + crypto_internal_headers,
++    internal_hdrs = bcm_internal_headers + crypto_internal_headers + ["decrepit/macros.h"],
+     linkopts = select({
+         "@platforms//os:windows": [
+             "-defaultlib:advapi32.lib",
