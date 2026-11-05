@@ -8,6 +8,12 @@ py_library(
 )
 
 py_binary(
+    name = "run_source",
+    srcs = ["run_source.py"],
+    main = "run_source.py",
+)
+
+py_binary(
     name = "js2c",
     srcs = ["js2c.py"],
     main = "js2c.py",

@@ -5,3 +5,9 @@ py_test(
     srcs = ["package_test.py"],
     deps = ["//electron/private:packaging"],
 )
+
+py_test(
+    name = "prepare_source_test",
+    srcs = ["prepare_source_test.py"],
+    deps = ["//tools:source_preparation"],
+)

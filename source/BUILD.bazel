@@ -1,5 +1,7 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
-load("//electron:source_rules.bzl", "electron_js2c")
+load("//electron:source_rules.bzl", "electron_fuses_generate", "electron_js2c")
+load("//source/native:fuses_flags.bzl", "DEBUG_FLAGS")
 load(":probes.bzl", "loop_probes")
 
 electron_js2c(
@@ -10,6 +12,7 @@ electron_js2c(
 exports_files([
     "node.BUILD.bazel",
     "uv_sources.bzl",
+    "upstream_pins.json",
 ])
 
 alias(
@@ -34,3 +37,46 @@ cc_test(
 )
 
 loop_probes()
+
+# Materialize patch provenance without analyzing the full source file inventory.
+alias(
+    name = "chromium_patches",
+    actual = "@electron_chromium_sources//:electron_patches.json",
+)
+
+alias(
+    name = "v8_patches",
+    actual = "@electron_v8_sources//:electron_patches.json",
+)
+
+electron_fuses_generate(
+    name = "fuses_generated",
+    debug_flags = DEBUG_FLAGS,
+)
+
+filegroup(
+    name = "fuses_sources",
+    srcs = [":fuses_generated"],
+    output_group = "sources",
+)
+
+filegroup(
+    name = "fuses_headers",
+    srcs = [":fuses_generated"],
+    output_group = "headers",
+)
+
+cc_library(
+    name = "electron_fuses",
+    srcs = [":fuses_sources"],
+    hdrs = [":fuses_headers"],
+    includes = ["fuses_generated"],
+    local_defines = ["NDEBUG=1"],
+    deps = ["@electron_chromium_sources//:fuse_base_headers"],
+)
+
+cc_test(
+    name = "fuses_test",
+    srcs = ["fuses_test.cc"],
+    deps = [":electron_fuses"],
+)

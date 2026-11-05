@@ -1,7 +1,8 @@
 """Pinned official Electron distributions; downloads happen during repository resolution."""
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
-load(":source_repositories.bzl", "electron_node_repository", "electron_sources_repository")
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "new_git_repository")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
+load(":source_repositories.bzl", "electron_node_repository", "electron_patched_upstream", "electron_sources_repository")
 
 _VERSION = "39.0.0"
 _SHA256 = {
@@ -32,12 +33,43 @@ def _impl(ctx):
     for platform, checksum in _SHA256.items():
         filename = "electron-v%s-%s.zip" % (_VERSION, _UPSTREAM[platform])
         http_file(name = "electron_" + platform, urls = ["https://github.com/electron/electron/releases/download/v%s/%s" % (_VERSION, filename)], sha256 = checksum, downloaded_file_path = filename)
+    electron_patched_upstream(
+        name = "electron_chromium_sources",
+        electron = "@electron_sources//:DEPS",
+        patch_group = "chromium",
+        url = "https://github.com/chromium/chromium/archive/refs/tags/142.0.7444.52.tar.gz",
+        sha256 = "dbc3dc2d84dde007c0afb307e0ce1d008a126f57afb69ff6d44744b874714302",
+        strip_prefix = "chromium-142.0.7444.52",
+        revision = "7efca501bfcc84657ba2921a852e98ce1fb37641",
+    )
+    electron_patched_upstream(
+        name = "electron_v8_sources",
+        electron = "@electron_sources//:DEPS",
+        patch_group = "v8",
+        url = "https://github.com/v8/v8/archive/bb294624702efbb17691b642333f06bf5108e600.tar.gz",
+        sha256 = "6923eecf791b219cab0d72527b8e6a1c61c64f81a085d16b0eee96ca1ef8976c",
+        strip_prefix = "v8-bb294624702efbb17691b642333f06bf5108e600",
+        revision = "bb294624702efbb17691b642333f06bf5108e600",
+    )
+    new_git_repository(
+        name = "electron_cast_core_sources",
+        remote = "https://chromium.googlesource.com/cast_core/public",
+        commit = "f5ee589bdaea60418f670fa176be15ccb9a34942",
+        build_file_content = "exports_files([\"proto/proto.gni\"], visibility = [\"//visibility:public\"])",
+    )
+    http_archive(
+        name = "electron_glslang_sources",
+        urls = ["https://github.com/KhronosGroup/glslang/archive/a57276bf558f5cf94d3a9854ebdf5a2236849a5a.tar.gz"],
+        sha256 = "02f4321a3ed01b9a9a9874f76e2d8ad078825818fcc9aae12dbf2c01674fb8af",
+        strip_prefix = "glslang-a57276bf558f5cf94d3a9854ebdf5a2236849a5a",
+        build_file_content = "exports_files([\"BUILD.gn\"], visibility = [\"//visibility:public\"])",
+    )
     _hub(name = "electron_runtime")
     electron_sources_repository(name = "electron_sources")
     electron_node_repository(name = "electron_node_sources", electron = "@electron_sources//:DEPS")
     direct = ["electron_runtime"]
     if any([tag.sources for module in ctx.modules if module.is_root for tag in module.tags.version]):
-        direct += ["electron_sources", "electron_node_sources"]
+        direct += ["electron_sources", "electron_node_sources", "electron_v8_sources", "electron_chromium_sources", "electron_cast_core_sources", "electron_glslang_sources"]
     return ctx.extension_metadata(reproducible = True, root_module_direct_deps = direct, root_module_direct_dev_deps = [])
 
 electron = module_extension(implementation = _impl, tag_classes = {"version": tag_class(attrs = {"version": attr.string(mandatory = True), "sources": attr.bool(default = False)})})

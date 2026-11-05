@@ -5,7 +5,7 @@ Electron Builder, package-manager install scripts, host Node, or network access
 inside build actions. MIT rules; bundled upstream licenses stay intact.
 
 ```sh
-bazel test //tests:package_test //source:loop_interrupt_test
+bazel test //tests:package_test //tests:prepare_source_test //source:loop_interrupt_test //source:fuses_test
 bazel build //examples/hello:dist
 ```
 
@@ -80,6 +80,10 @@ names and runs the generator in the execution configuration.
 `bazel build //source:embedder_javascript` produces Electron embedder builtin
 registration C++; full libnode linkage still needs the matching patched V8.
 
+`//source:fuses_test` also runs actual generated Electron C++ fuse code against
+patched Chromium headers. Chromium's own buildflag generator supplies its header
+configuration, imported from the captured GN graph.
+
 Chromium work at `../bcr_overlays` supplies native Bazel actions and overlays.
 Electron 39.0.0 pins Chromium **142.0.7444.52**; that repo currently pins
 **142.0.7444.59**. Reuse requires an exact Electron-compatible Chromium source
@@ -87,8 +91,14 @@ revision and its patch stacks, not linking an unpatched Chromium/V8 build.
 Electron also patches BoringSSL, DevTools, FFmpeg, V8, NAN, Perfetto,
 Squirrel.Mac, Mantle, ReactiveObjC, WebRTC, reclient configuration and SQLite.
 
-Next source steps: apply all matching patch stacks; capture patched
-`//electron:electron` GN graphs per target; import Node/Electron libraries,
+Bazel now verifies exact Chromium 142.0.7444.52 and V8 archives, applying all
+144 Chromium patches and the V8 patch. Linux GN generation succeeds; the
+checked-in partial graph contains the complete 11,955-target Electron closure
+and 4,570 runtime entries. Its provenance explicitly lists 11 remaining
+dependency patch stacks. This is import metadata, not a built Electron runtime.
+See [source reproduction](source/README.md).
+
+Next source steps: pin and apply remaining patch stacks; import Node/Electron libraries,
 snapshot and JS generators into the existing native Bazel action model;
 provide the resulting runtime ZIP to the same packaging rules. Keep host
 generator runtimes private, stage their declared libraries and ICU beside the

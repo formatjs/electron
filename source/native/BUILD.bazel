@@ -1,0 +1,5 @@
+exports_files([
+    "fuses_flags.bzl",
+    "linux_amd64.partial.json.gz",
+    "linux_amd64.partial.json.summary.json",
+])

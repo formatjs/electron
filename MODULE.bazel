@@ -23,4 +23,13 @@ electron.version(
     sources = True,
     version = "39.0.0",
 )
-use_repo(electron, "electron_node_sources", "electron_runtime", "electron_sources")
+use_repo(
+    electron,
+    "electron_cast_core_sources",
+    "electron_chromium_sources",
+    "electron_glslang_sources",
+    "electron_node_sources",
+    "electron_runtime",
+    "electron_sources",
+    "electron_v8_sources",
+)

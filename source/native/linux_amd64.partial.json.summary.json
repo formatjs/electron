@@ -1,0 +1,44 @@
+{
+  "provenance": {
+    "chromium_revision": "7efca501bfcc84657ba2921a852e98ce1fb37641",
+    "electron_version": "39.0.0",
+    "gn_version": "2285 (81b24e01531e)",
+    "gn_sha256": "c6be2b6774aa536bbeef8f2c2c793f52fa4c27f883c7a01d4260653b0a71e0cf",
+    "capture_tool_sha256": "11df3e5b04a4747f5c74a420419011681c932e0dc30ecc5120d076938cf3f6a7",
+    "deps_sha256": "2bcbc993c76bf81b692d391cd150a849797372b8418df5df8d9a29ac6b058a99",
+    "args_gn": "import(\"//electron/build/args/all.gn\")\nis_debug = false\nis_component_build = false\nis_official_build = false\nsymbol_level = 0\nchrome_pgo_phase = 0\ntarget_os = \"linux\"\ntarget_cpu = \"x64\"\noverride_electron_version = \"39.0.0\"\nclang_base_path = \"$LLVM_ROOT\"\nclang_use_chrome_plugins = false\nrust_sysroot_absolute = \"$RUST_ROOT\"\nrustc_version = \"rustc 1.92.0-nightly (caccb4d03 2025-09-24)\"\nangle_build_tests = false\nclang_version = \"23\"\n",
+    "incomplete_patch_groups": [
+      "boringssl",
+      "devtools_frontend",
+      "ffmpeg",
+      "nan",
+      "perfetto",
+      "squirrel.mac",
+      "Mantle",
+      "ReactiveObjC",
+      "webrtc",
+      "reclient-configs",
+      "sqlite"
+    ],
+    "purpose": "Maintainer GN import metadata; remaining patch stacks and source linkage unfinished"
+  },
+  "graph_sha256": "3924a3179ba43a5fd530dd7abf974cd30a3aef2e256fe28d3cc19e1ea4e6984c",
+  "target_count": 11955,
+  "target_types": {
+    "action": 5416,
+    "action_foreach": 32,
+    "copy": 49,
+    "executable": 37,
+    "generated_file": 280,
+    "group": 1597,
+    "rust_library": 112,
+    "rust_proc_macro": 11,
+    "shared_library": 5,
+    "source_set": 2808,
+    "static_library": 1608
+  },
+  "runtime_files": {
+    "//electron:electron_app": 4570
+  },
+  "generated_files": 2437
+}

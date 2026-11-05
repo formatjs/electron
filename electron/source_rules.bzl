@@ -27,3 +27,24 @@ electron_js2c = rule(
         "_runner": attr.label(default = Label("//electron/private:js2c"), executable = True, cfg = "exec"),
     },
 )
+
+def _fuses_impl(ctx):
+    header = ctx.actions.declare_file(ctx.label.name + "/electron/fuses.h")
+    implementation = ctx.actions.declare_file(ctx.label.name + "/electron/fuses.cc")
+    debug_header = ctx.actions.declare_file(ctx.label.name + "/base/debug/debugging_buildflags.h")
+    definitions = ctx.actions.declare_file(ctx.label.name + ".flags.rsp")
+    ctx.actions.write(definitions, "--flags " + " ".join(ctx.attr.debug_flags))
+    ctx.actions.run(executable = ctx.executable._runner, arguments = [ctx.file._fuses.path, header.path, implementation.path], inputs = [ctx.file._fuses, ctx.file._fuse_defaults], outputs = [header, implementation], mnemonic = "ElectronFuses")
+    ctx.actions.run(executable = ctx.executable._runner, arguments = [ctx.file._buildflags.path, "--output", "base/debug/debugging_buildflags.h", "--rulename", "//base:debugging_buildflags", "--gen-dir", debug_header.dirname + "/../..", "--definitions", definitions.path], inputs = [ctx.file._buildflags, definitions], outputs = [debug_header], mnemonic = "ElectronBuildflags")
+    return [DefaultInfo(files = depset([header, implementation, debug_header])), OutputGroupInfo(headers = depset([header, debug_header]), sources = depset([implementation]))]
+
+electron_fuses_generate = rule(
+    implementation = _fuses_impl,
+    attrs = {
+        "debug_flags": attr.string_list(mandatory = True),
+        "_fuses": attr.label(default = Label("@electron_sources//:build/fuses/build.py"), allow_single_file = True),
+        "_fuse_defaults": attr.label(default = Label("@electron_sources//:build/fuses/fuses.json5"), allow_single_file = True),
+        "_buildflags": attr.label(default = Label("@electron_chromium_sources//:build/write_buildflag_header.py"), allow_single_file = True),
+        "_runner": attr.label(default = Label("//electron/private:run_source"), executable = True, cfg = "exec"),
+    },
+)
