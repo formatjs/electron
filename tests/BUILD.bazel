@@ -11,3 +11,20 @@ py_test(
     srcs = ["prepare_source_test.py"],
     deps = ["//tools:source_preparation"],
 )
+
+py_test(
+    name = "node_builtins_test",
+    srcs = ["node_builtins_test.py"],
+    args = [
+        "$(location //source:node_javascript)",
+        "$(location //source:node_config)",
+    ],
+    data = [
+        "//source:node_config",
+        "//source:node_javascript",
+    ],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)

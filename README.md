@@ -5,7 +5,7 @@ Electron Builder, package-manager install scripts, host Node, or network access
 inside build actions. MIT rules; bundled upstream licenses stay intact.
 
 ```sh
-bazel test //tests:package_test //tests:prepare_source_test //source:loop_interrupt_test //source:fuses_test //source:crypto_compat_test //source:node_defines_test
+bazel test //tests:package_test //tests:prepare_source_test //tests:node_builtins_test //source:loop_interrupt_test //source:fuses_test //source:crypto_compat_test //source:node_defines_test
 bazel build //examples/hello:dist
 ```
 
@@ -80,6 +80,13 @@ LLVM, patched libuv and BCR simdutf. It stages declared JS under stable builtin
 names and runs the generator in the execution configuration.
 `bazel build //source:embedder_javascript` produces Electron embedder builtin
 registration C++; full libnode linkage still needs the matching patched V8.
+
+`//source:node_javascript` now generates all 370 Node builtin JS/MJS modules,
+including 14 original-fs modules produced by Electron's own script. Node's
+real config translator consumes captured Linux AMD64 target settings and V8
+features; its output matches the upstream GN-driven invocation byte-for-byte.
+Integration tests verify original-fs isolation and embedded process.config.
+This target currently supports the captured Linux AMD64 configuration only.
 
 `//source:fuses_test` also runs actual generated Electron C++ fuse code against
 patched Chromium headers. Chromium's own buildflag generator supplies its header

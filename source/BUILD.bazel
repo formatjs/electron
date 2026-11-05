@@ -1,7 +1,8 @@
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
-load("//electron:source_rules.bzl", "electron_fuses_generate", "electron_js2c", "electron_node_defines")
+load("//electron:source_rules.bzl", "electron_fuses_generate", "electron_js2c", "electron_node_config", "electron_node_defines", "electron_original_fs")
 load("//source/native:fuses_flags.bzl", "DEBUG_FLAGS")
+load("//source/native:node_inputs.bzl", "NODE_BUILTIN_INPUTS", "ORIGINAL_FS_INPUTS")
 load(":probes.bzl", "loop_probes")
 
 electron_js2c(
@@ -107,6 +108,33 @@ filegroup(
 )
 
 electron_node_defines(name = "node_defines")
+
+electron_original_fs(
+    name = "node_original_fs",
+    srcs = {"@electron_node_sources//:" + path: path for path in ORIGINAL_FS_INPUTS},
+)
+
+electron_node_config(
+    name = "node_config",
+    settings = "//source/native:node_config_linux_amd64.json",
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    visibility = ["//tests:__pkg__"],
+)
+
+electron_js2c(
+    name = "node_javascript",
+    srcs = {("@electron_node_sources//deps/v8/tools:" + path.removeprefix("deps/v8/tools/") if path.startswith("deps/v8/tools/") else "@electron_node_sources//:" + path): path for path in NODE_BUILTIN_INPUTS},
+    config = ":node_config",
+    original_fs = ":node_original_fs",
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    visibility = ["//tests:__pkg__"],
+)
 
 cc_test(
     name = "node_defines_test",

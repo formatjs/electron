@@ -11,7 +11,12 @@ Runtime packages still use official Electron binaries. Native source work:
 - Patched libuv builds/links for five platforms; Linux test executes its
   Electron-specific loop-interrupt API. Windows uses MSVC.
 - Real patched JS2C builds and emits embedder builtin C++ with separate host
-  execution configuration. Electron fuse and Chromium buildflag generators
+  execution configuration. Full Node builtin generation also produces all
+  370 registered modules, including 14 real original-fs outputs and target
+  config.gypi. The config output matches upstream's GN-driven script
+  byte-for-byte. This configuration is Linux AMD64 only; independent original-fs
+  and embedder producers also execute under a Windows ARM64 target configuration.
+  Electron fuse and Chromium buildflag generators
   produce actual Electron C++; native fuse-wire/default test passes. Full
   patched BoringSSL crypto/TLS compiles and passes RIPEMD160, cipher lookup
   and AES-CFB roundtrip checks. Crypto/TLS also cross-links all five platforms;
@@ -30,17 +35,23 @@ full native translation. Other four source graphs also remain. No GN/Ninja
 build runs inside Bazel actions.
 
 Next concrete producers: `//third_party/electron_node:libnode` has 171 C/C++
-units; `//electron:electron_lib` has 315. Node's `run_node_js2c` still needs
-`generate_config_gypi` and `node_js2c_original_fs` actions; only the real JS2C
-host tool is imported so far. Electron's `electron_js2c` depends on eight
+units; `//electron:electron_lib` has 315. Node's `run_node_js2c`,
+`generate_config_gypi` and `node_js2c_original_fs` now have native Bazel
+producers. Electron's `electron_js2c` still depends on eight
 locked npm/webpack bundles and their TypeScript definition/buildflag producers.
 The Chromium importer then needs matching V8/Blink/content libraries, snapshot
 producers and runtime packaging. No target currently links a source-built
 Electron executable.
 
+`bazel test //tests:node_builtins_test` runs the actual full Node producer
+chain. It checks regular fs and isolated original-fs registration/payloads,
+native module ABI 140, NAPI 10, V8 sandbox/pointer compression and target
+configuration embedded as JSON. No GN process runs inside these actions.
+
 The native BoringSSL overlay mirrors Electron's extra crypto source list. Its
 GN list includes obsolete `decrepit/ripemd/internal.h`; that nonexistent header
 is excluded, and the real `decrepit/macros.h` dependency is declared explicitly.
+
 
 ## Reproduce Linux metadata
 
@@ -141,3 +152,18 @@ Cast Core uses an exact Git commit: its Gitiles archive stream returned
 different SHA256 values for the same URL. GLSLang uses Chromium DEPS revision
 `a57276bf558f5cf94d3a9854ebdf5a2236849a5a`, rather than ANGLE's standalone
 revision. Both are real source repositories, with no placeholder GN files.
+
+After recapturing the graph, refresh Node settings and exact builtin inventory:
+
+```sh
+"$electron_gn" args "$electron_source_root/out/bazel-import" --list --short \
+  --root="$electron_source_root" \
+  > "$electron_capture_dir/node-gn-args.txt"
+python3 tools/capture_node_inputs.py \
+  --graph=source/native/linux_amd64.partial.json.gz \
+  --gn-args="$electron_capture_dir/node-gn-args.txt" \
+  --generator="$electron_source_root/third_party/electron_node/tools/generate_config_gypi.py" \
+  --settings=source/native/node_config_linux_amd64.json \
+  --inventory=source/native/node_inputs.bzl
+buildifier source/native/node_inputs.bzl
+```

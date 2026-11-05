@@ -20,6 +20,16 @@ py_binary(
 )
 
 py_binary(
+    name = "original_fs",
+    srcs = ["original_fs.py"],
+)
+
+py_binary(
+    name = "node_config",
+    srcs = ["node_config.py"],
+)
+
+py_binary(
     name = "package",
     srcs = ["package.py"],
     main = "package.py",

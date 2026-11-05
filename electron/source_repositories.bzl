@@ -29,6 +29,7 @@ def _node_sources_impl(ctx):
     ctx.file("BUILD.bazel", ctx.read(ctx.attr.build_file))
     ctx.file("electron_patches.json", json.encode(patches))
     ctx.file("uv_sources.bzl", ctx.read(ctx.attr.uv_sources))
+    ctx.file("deps/v8/tools/BUILD.bazel", "exports_files(glob([\"*.mjs\"]))\n")
 
 electron_node_repository = repository_rule(
     implementation = _node_sources_impl,
