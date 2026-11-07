@@ -25,7 +25,7 @@ def _family(original):
     return "node"
 
 def electron_libnode():
-    native.exports_files(PROFILE["files"] + ["profile.bzl", "BUILD.bazel"])
+    native.exports_files(PROFILE["files"] + ["profile.bzl", "BUILD.bazel", "native_compat_patches.json"])
     cc_import(name = "atomic_runtime", static_library = PROFILE["native_library_replacements"]["atomic"], target_compatible_with = _COMPATIBLE)
     for family, headers in PROFILE["headers"].items():
         cc_library(name = family + "_headers", hdrs = headers, includes = ["."] + (["third_party/electron_node/src"] if family == "node" else []))

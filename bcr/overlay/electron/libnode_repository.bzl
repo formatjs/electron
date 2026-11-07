@@ -17,7 +17,13 @@ def _impl(ctx):
             if original.startswith(prefix):
                 owner = name
                 relative = original[len(prefix):]
-        ctx.symlink(roots[owner].get_child(relative), path)
+        origin = roots[owner].get_child(relative)
+        if path == "third_party/electron_node/src/api/embed_helpers.cc":
+            ctx.file(path, ctx.read(origin), executable = False)
+        else:
+            ctx.symlink(origin, path)
+    ctx.patch(ctx.attr.lifecycle_patch, strip = 1)
+    ctx.file("native_compat_patches.json", json.encode({"graph_sha256": profile["graph_sha256"], "patches": [str(ctx.attr.lifecycle_patch)], "files": ["third_party/electron_node/src/api/embed_helpers.cc"]}))
     ctx.file("profile.bzl", "PROFILE = json.decode(" + json.encode(contents) + ")\n")
     ctx.file("BUILD.bazel", ctx.read(ctx.attr.build_file))
 
@@ -28,6 +34,7 @@ electron_libnode_repository = repository_rule(
         "node": attr.label(mandatory = True),
         "v8": attr.label(mandatory = True),
         "zstd": attr.label(mandatory = True),
+        "lifecycle_patch": attr.label(default = Label("//source:node_embed_lifecycle.patch")),
         "profile": attr.label(default = Label("//source/native:libnode_inputs.json")),
         "build_file": attr.label(default = Label("//source:libnode.BUILD.bazel")),
     },
