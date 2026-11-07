@@ -133254,6 +133254,10 @@
       "third_party/wayland/src/tests/data/small-server.h",
       "third_party/wayland/src/tests/test-compositor.h",
       "third_party/wayland/src/tests/test-runner.h"
+    ],
+    "third_party/wayland/include": [
+      "third_party/wayland/include/config.h",
+      "third_party/wayland/include/src/wayland-version.h"
     ]
   },
   "files": [
@@ -144480,6 +144484,8 @@
     "third_party/wayland-protocols/unstable/session-management/xx-session-management-v1.xml",
     "third_party/wayland-protocols/unstable/text-input/text-input-extension-unstable-v1.xml",
     "third_party/wayland/generate_configs.py",
+    "third_party/wayland/include/config.h",
+    "third_party/wayland/include/src/wayland-version.h",
     "third_party/wayland/src/cursor/cursor-data.h",
     "third_party/wayland/src/cursor/os-compatibility.c",
     "third_party/wayland/src/cursor/os-compatibility.h",

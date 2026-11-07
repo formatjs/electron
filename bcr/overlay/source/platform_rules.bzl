@@ -51,16 +51,17 @@ def _link_settings(library):
 
 def electron_platform():
     native.exports_files(PROFILE["files"] + [path[2:] for path in PROFILE["generated_files"]] + ["profile.bzl", "BUILD.bazel"])
+    common_headers = {_file("//" + path): True for directory, headers in PROFILE["headers"].items() for path in headers if directory != "third_party/wayland/include"}.keys()
     cc_library(
         name = "tool_headers",
-        hdrs = {_file("//" + path): True for headers in PROFILE["headers"].values() for path in headers}.keys(),
+        hdrs = common_headers,
         includes = [".", "gen"],
         deps = ["@electron_ui_sources//:source_headers", "@electron_platform_sdk//:headers", "@electron_partition_alloc_sources//:raw_ptr"],
         target_compatible_with = _COMPATIBLE,
     )
     cc_library(
         name = "source_headers",
-        hdrs = {_file("//" + path): True for headers in PROFILE["headers"].values() for path in headers}.keys() + [_file(path) for action in PROFILE["actions"].values() for path in action["outputs"] if path.endswith((".h", ".hpp", ".inc", ".inl"))],
+        hdrs = common_headers + [_file(path) for action in PROFILE["actions"].values() for path in action["outputs"] if path.endswith((".h", ".hpp", ".inc", ".inl"))],
         includes = [".", "gen"],
         deps = ["@electron_ui_sources//:source_headers", "@electron_platform_sdk//:headers", "@electron_partition_alloc_sources//:raw_ptr"],
         target_compatible_with = _COMPATIBLE,
@@ -99,7 +100,7 @@ def electron_platform():
     shared = []
     for original, library in PROFILE["libraries"].items():
         settings = dict(
-            hdrs = {_file(path): True for path in library["source_headers"] + library["public_headers"]}.keys(),
+            hdrs = {_file(path): True for path in library["source_headers"] + library["public_headers"]}.keys() + ([_file("//" + path) for path in PROFILE["headers"]["third_party/wayland/include"]] if original.startswith("//third_party/wayland:") else []),
             textual_hdrs = {_file(path): True for path in library["compiler_inputs"]}.keys(),
             local_defines = library["defines"],
             includes = library["includes"],
