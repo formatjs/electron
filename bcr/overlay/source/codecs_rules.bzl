@@ -31,7 +31,7 @@ def electron_codecs():
     native.exports_files(PROFILE["files"] + ["profile.bzl", "BUILD.bazel"])
     cc_library(name = "common_headers", includes = ["."])
     for family, headers in PROFILE["headers"].items():
-        cc_library(name = family.replace("/", "_") + "_headers", hdrs = headers, textual_hdrs = PROFILE["textual_headers"][family], includes = ["."])
+        cc_library(name = family.replace("/", "_") + "_headers", hdrs = headers, textual_hdrs = PROFILE["textual_headers"][family], includes = ["."] + (["third_party/wuffs/src/release/c"] if family == "third_party/wuffs" else []))
     for original, action in PROFILE["actions"].items():
         for index, run in enumerate(action["runs"]):
             outputs = [path[len(_BUILD):] for path in run["outputs"]]
