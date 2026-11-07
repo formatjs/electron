@@ -63,7 +63,6 @@ py_test(
         "$(rootpath @electron_platform_sources//:vk_swiftshader_icd.json)",
         "$(rootpath @electron_platform_runtime//:libffi.so.7)",
         "$(rootpath //source/glib:glib)",
-        "$(rootpath @llvm//tools:llvm-symbolizer)",
     ],
     data = [
         ":platform_graphics_probe",
@@ -74,7 +73,6 @@ py_test(
         "@electron_platform_sources//:libGLESv2.so",
         "@electron_platform_sources//:runtime",
         "@electron_platform_sources//:vk_swiftshader_icd.json",
-        "@llvm//tools:llvm-symbolizer",
     ],
     target_compatible_with = [
         "@platforms//os:linux",

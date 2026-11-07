@@ -1306,29 +1306,41 @@ flowchart TD
 ```
 
 Shared-library version scripts, SONAMEs and ICD manifests remain declared
-products. Native Rust providers supply standard-library inputs instead of GN's
-relative archive paths. The Wayland scanner consumes Chromium's checked-in
-Linux configuration header. Its compilation headers remain independent of
-generated protocol headers. Original generator validators and changed-path/mtime
-byte checks remain enabled, including Dawn's expected-output declarations.
-The native trie generator keeps its original C++ executable provider. Matching
-ICU data is declared beside its binary in the execution configuration. Its source
-and invocation remain unchanged.
+products. C/assembly members of shared targets link eagerly, matching their C++
+objects. The Vulkan loader is entirely C; lazy archive groups discarded its API
+exports. A real loader export/dispatch test reproduces that failure before the
+link fix. Header providers forward compilation context without adding code to
+unrelated DSOs. Rust FFI crates depend directly on their native C++ owners.
 
-Desktop ABI libraries come from 49 checksum-pinned Debian packages matching the
-Chromium SDK. Extraction runs no package hooks; all 53 library files are declared
-runtime data. PCIutils, Wayland, ANGLE, SwiftShader and the Vulkan loader compile
-from source. Execution Node and target Electron's embedded Node remain separate.
+Native GLib, GObject, GModule, GIO and zlib have shared outputs with their original
+SONAMEs. This gives their initialization and allocator state one owner across
+EGL/GLES libraries and the consumer. Desktop ABI data remains 53 declared files
+from 49 checksum-pinned Debian packages matching the Chromium SDK; the native
+outputs take priority over the five corresponding SDK files. These SDK inputs
+are not source-built library claims.
 
-The graphics probe loads the actual EGL/GLES libraries, explicitly selects the
-SwiftShader Vulkan backend, renders a 2×2 framebuffer and checks every RGBA byte.
-Its loader paths contain declared source/runtime files; optional Vulkan layers
-are disabled and cache directories point to test scratch space. The source
-aggregate [built on BB](https://formatjs.buildbuddy.io/invocation/85cc8487-a8b3-48f3-88d9-3bd196ca972e)
-at `a6469fa`. Runtime validation then exposed the desktop SDK’s newer glibc
-requirements. The explicit Linux source platform now matches its glibc 2.31 ABI;
-validation remains pending. Full source profiles remain Linux AMD64; complete
-Electron remains unfinished.
+Native Rust providers supply standard-library inputs instead of GN's relative
+archive paths. The Wayland scanner consumes Chromium's checked-in Linux
+configuration header. Compilation headers stay independent of generated protocol
+headers. Original generator validators and changed-path/mtime byte checks remain
+enabled, including Dawn's expected-output declarations. The native trie generator
+keeps its original C++ executable provider, with ICU data beside its binary in
+the execution configuration. PCIutils, Wayland, ANGLE, SwiftShader and the Vulkan
+loader compile from source. Execution Node and Electron's embedded Node remain
+separate.
+
+The graphics probe loads the actual Vulkan/EGL/GLES libraries, checks the loader
+API, explicitly selects SwiftShader, renders a 2×2 framebuffer and checks every
+RGBA byte. Loader paths contain declared source/runtime files; optional Vulkan
+layers are disabled and caches use test scratch space. Graphics runs first in
+source CI; the complete aggregate and suite remain required afterward.
+
+[e42592d components](https://formatjs.buildbuddy.io/invocation/9a591f26-aab9-495f-8a05-da63df40d687),
+[BCR consumer](https://formatjs.buildbuddy.io/invocation/44781263-425a-4713-a6e2-288114a29449)
+and [cross probes](https://formatjs.buildbuddy.io/invocation/2a544517-a493-4bd2-9e08-ac3beb1bee52)
+passed. Temporary crash instrumentation is removed; cleanup validation follows.
+Source component profiles remain Linux AMD64. Complete Electron remains
+unfinished.
 
 Source capture reads metadata only:
 
