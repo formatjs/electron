@@ -302,6 +302,32 @@ python3 tools/capture_temporal.py \
 buildifier bcr/overlay/source/native/v8_temporal_inputs.bzl
 ```
 
+## V8 number, SIMD and compression dependencies
+
+Twelve captured targets expose Dragonbox, fast_float, Highway, simdutf and
+Chromium zlib, including all four zlib SIMD helper targets and the portable
+compression wrapper. Twenty-nine original C/C++ units retain their captured
+language flags and SIMD definitions. Header-only targets remain header-only;
+source sets keep their object inclusion semantics.
+
+Dragonbox, fast_float and Highway use exact Chromium DEPS revisions and hashed
+archives. Separate source repositories keep archive extraction independent of
+profile edits. A read-only projection declares 179 source/header/license inputs;
+simdutf, zlib and build headers come from the matching Chromium archive.
+`tools/capture_v8_support.py` checks DEPS pins and rejects unknown dependencies,
+source paths and include roots. Its `--help` lists the required source roots.
+
+`@electron//source:v8_support_test` checks shortest-decimal roundtrips through
+Dragonbox and fast_float, including subnormal/minimum/maximum doubles, overflow
+and invalid input. It checks Unicode conversion and malformed UTF-8, Highway CPU
+discovery/aligned memory, zlib/gzip/raw compression roundtrips, undersized output,
+corrupt checksummed streams and CRC32/Adler32 vectors.
+[51e5642 components](https://formatjs.buildbuddy.io/invocation/37462791-7cbe-4105-8610-3bfde508c7bc),
+[BCR consumer](https://formatjs.buildbuddy.io/invocation/11a4a3fd-25ce-4651-8115-0773a0923553)
+and [cross checks](https://formatjs.buildbuddy.io/invocation/7766ab37-94e9-43d4-94f9-3c0f1469505e)
+passed. The new library profiles themselves remain Linux AMD64. Full V8 still
+needs Perfetto, inspector generators, engine objects and snapshots.
+
 ## Native V8 base/task slice
 
 `@electron_v8_sources//:libbase` compiles all 40 captured Linux AMD64 source
