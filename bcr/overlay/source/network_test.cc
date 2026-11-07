@@ -8,6 +8,7 @@
 #include <utility>
 
 #include "base/at_exit.h"
+#include "base/build_time.h"
 #include "base/command_line.h"
 #include "base/feature_list.h"
 #include "base/files/file.h"
@@ -18,6 +19,7 @@
 #include "base/strings/string_number_conversions.h"
 #include "base/task/single_thread_task_executor.h"
 #include "base/threading/thread.h"
+#include "base/time/time_override.h"
 #include "crypto/nss_util.h"
 #include "crypto/sha2.h"
 #include "mojo/core/embedder/embedder.h"
@@ -46,6 +48,9 @@ void Stage(const char* name) {
   std::fprintf(stderr, "network probe stage: %s\n", name);
 }
 
+base::Time TimelyBuildTime() { return base::GetBuildTime() + base::Days(69); }
+base::Time ExpiredBuildTime() { return base::GetBuildTime() + base::Days(70); }
+
 void CheckNetwork() {
   const GURL url("https://b\xc3\xbc" "cher.example:443/a/../b?q=x#f");
   Require(url.is_valid() && url.spec() == "https://xn--bcher-kva.example/b?q=x#f", "IDNA and URL canonicalization");
@@ -53,8 +58,15 @@ void CheckNetwork() {
   Require(net::registry_controlled_domains::GetDomainAndRegistry(GURL("https://a.example.co.uk"), net::registry_controlled_domains::INCLUDE_PRIVATE_REGISTRIES) == "example.co.uk", "generated public suffix lookup");
   net::TransportSecurityState security;
   net::TransportSecurityState::STSState state;
-  Require(security.GetStaticSTSState("example.dev", &state) && state.ShouldUpgradeToSSL(), "generated HSTS preload lookup");
-  Require(!security.GetStaticSTSState("invalid.test", &state), "non-preloaded domain rejected");
+  {
+    base::subtle::ScopedTimeClockOverrides clock(&TimelyBuildTime, nullptr, nullptr);
+    Require(security.GetStaticSTSState("example.dev", &state) && state.ShouldUpgradeToSSL(), "generated HSTS preload lookup");
+    Require(!security.GetStaticSTSState("invalid.test", &state), "non-preloaded domain rejected");
+  }
+  {
+    base::subtle::ScopedTimeClockOverrides clock(&ExpiredBuildTime, nullptr, nullptr);
+    Require(!security.GetStaticSTSState("example.dev", &state), "expired HSTS preload rejected");
+  }
   const auto hash = crypto::SHA256HashString("abc");
   Require(base::HexEncode(hash.data(), hash.size()) == "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD", "native crypto hash vector");
   crypto::EnsureNSSInit();
