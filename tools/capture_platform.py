@@ -146,6 +146,10 @@ def capture(graph, digest, chromium, source_roots, profiles):
         for path in inventory:
             input_file("//" + path)
 
+    headers["khronos_exports"] = ["gpu/command_buffer/client/gles2_c_lib_export.h"]
+    for path in headers["khronos_exports"]:
+        input_file("//" + path)
+
     def dependency_inputs(label):
         paths, visited, pending = set(), set(), list(targets[label].get("deps", []))
         while pending:

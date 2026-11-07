@@ -135079,6 +135079,9 @@
     "third_party/wayland/include": [
       "third_party/wayland/include/config.h",
       "third_party/wayland/include/src/wayland-version.h"
+    ],
+    "khronos_exports": [
+      "gpu/command_buffer/client/gles2_c_lib_export.h"
     ]
   },
   "files": [
@@ -135234,6 +135237,7 @@
     "device/udev_linux/udev_loader.h",
     "device/udev_linux/udev_watcher.cc",
     "device/udev_linux/udev_watcher.h",
+    "gpu/command_buffer/client/gles2_c_lib_export.h",
     "gpu/vulkan/semaphore_handle.cc",
     "gpu/vulkan/semaphore_handle.h",
     "gpu/vulkan/skia_vk_memory_allocator_impl.cc",
