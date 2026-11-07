@@ -19,6 +19,9 @@ actions:
           registry="$(mktemp -d /tmp/electron-registry.XXXXXX)"
           python3 tools/stage_bcr_entry.py --source-registry bcr \
             --target-registry "$registry" --module electron --version 39.0.0
+          bazel test --config=buildbuddy --strategy=TestRunner=remote \
+            --registry="file://$registry" --registry=https://bcr.bazel.build \
+            //tests:hermetic_execution_test
           bazel build --config=buildbuddy --registry="file://$registry" \
             --registry=https://bcr.bazel.build //:source_components
           bazel test --config=buildbuddy --strategy=TestRunner=local \
