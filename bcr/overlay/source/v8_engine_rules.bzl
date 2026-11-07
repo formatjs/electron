@@ -29,7 +29,7 @@ def _library_dep(original):
     return True
 
 def electron_v8_engine():
-    native.exports_files(PROFILE["files"] + ["profile.bzl", "BUILD.bazel"])
+    native.exports_files(PROFILE["files"] + ["profile.bzl", "BUILD.bazel", "native_toolchain_patches.json"])
     cc_library(
         name = "source_headers",
         hdrs = PROFILE["headers"],

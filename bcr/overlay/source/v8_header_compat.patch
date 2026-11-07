@@ -1,0 +1,12 @@
+diff --git a/v8/src/wasm/pgo.h b/v8/src/wasm/pgo.h
+--- a/v8/src/wasm/pgo.h
++++ b/v8/src/wasm/pgo.h
+@@ -9,6 +9,8 @@
+ #error This header should only be included if WebAssembly is enabled.
+ #endif  // !V8_ENABLE_WEBASSEMBLY
+ 
++#include <atomic>
++#include <memory>
+ #include <vector>
+ 
+ #include "src/base/vector.h"

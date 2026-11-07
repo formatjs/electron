@@ -221,6 +221,7 @@ electron_js2c(
 )
 
 exports_files([
+    "v8_header_compat.patch",
     "v8_engine.BUILD.bazel",
     "v8_engine_rules.bzl",
     "perfetto.BUILD.bazel",

@@ -16,7 +16,14 @@ def _impl(ctx):
             if path.startswith(prefix):
                 owner = name
                 relative = path[len(prefix):]
-        ctx.symlink(roots[owner].get_child(relative), path)
+        origin = roots[owner].get_child(relative)
+        if path == "v8/src/wasm/pgo.h":
+            # Patch an owned file; never write through the upstream symlink.
+            ctx.file(path, ctx.read(origin))
+        else:
+            ctx.symlink(origin, path)
+    ctx.patch(ctx.attr.header_patch, strip = 1)
+    ctx.file("native_toolchain_patches.json", json.encode({"graph_sha256": profile["graph_sha256"], "patches": [str(ctx.attr.header_patch)], "files": ["v8/src/wasm/pgo.h"]}))
     ctx.file("profile.bzl", "PROFILE = json.decode(" + json.encode(contents) + ")\n")
     ctx.file("BUILD.bazel", ctx.read(ctx.attr.build_file))
 
@@ -28,5 +35,6 @@ electron_v8_engine_repository = repository_rule(
         "fp16": attr.label(mandatory = True),
         "profile": attr.label(default = Label("//source/native:v8_engine_inputs.json")),
         "build_file": attr.label(default = Label("//source:v8_engine.BUILD.bazel")),
+        "header_patch": attr.label(default = Label("//source:v8_header_compat.patch")),
     },
 )
