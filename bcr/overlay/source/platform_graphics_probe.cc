@@ -17,6 +17,17 @@ void Require(bool condition, const char* check) {
   }
 }
 
+void Stage(const char* stage) {
+  std::fprintf(stderr, "[DEBUG-native-graphics] %s\n", stage);
+}
+
+void* Open(const char* path) {
+  void* library = dlopen(path, RTLD_NOW | RTLD_LOCAL);
+  if (!library) std::fprintf(stderr, "[DEBUG-native-graphics] dlopen: %s\n", dlerror());
+  Require(library != nullptr, "source-built graphics library loading");
+  return library;
+}
+
 template <typename T>
 T Symbol(void* library, const char* name) {
   auto symbol = reinterpret_cast<T>(dlsym(library, name));
@@ -26,9 +37,12 @@ T Symbol(void* library, const char* name) {
 }  // namespace
 
 int main(int argc, char** argv) {
+  Stage("entry");
   Require(argc == 3, "declared graphics library arguments");
-  void* egl = dlopen(argv[1], RTLD_NOW | RTLD_LOCAL);
-  void* gles = dlopen(argv[2], RTLD_NOW | RTLD_LOCAL);
+  void* egl = Open(argv[1]);
+  Stage("egl");
+  void* gles = Open(argv[2]);
+  Stage("gles");
   Require(egl && gles, "source-built graphics library loading");
   auto query = Symbol<decltype(&eglQueryString)>(egl, "eglQueryString");
   auto get = Symbol<decltype(&eglGetProcAddress)>(egl, "eglGetProcAddress");
@@ -38,6 +52,7 @@ int main(int argc, char** argv) {
   auto platform = reinterpret_cast<PFNEGLGETPLATFORMDISPLAYEXTPROC>(
       get("eglGetPlatformDisplayEXT"));
   Require(platform != nullptr, "native ANGLE platform entry");
+  Stage("platform");
   const EGLint display_attributes[] = {
       EGL_PLATFORM_ANGLE_TYPE_ANGLE, EGL_PLATFORM_ANGLE_TYPE_VULKAN_ANGLE,
       EGL_PLATFORM_ANGLE_DEVICE_TYPE_ANGLE,
@@ -49,6 +64,7 @@ int main(int argc, char** argv) {
               Symbol<decltype(&eglInitialize)>(egl, "eglInitialize")(
                   display, &major, &minor) == EGL_TRUE,
           "source SwiftShader display initialization");
+  Stage("display");
   Require(Symbol<decltype(&eglBindAPI)>(egl, "eglBindAPI")(
               EGL_OPENGL_ES_API) == EGL_TRUE,
           "native GLES API binding");
@@ -71,6 +87,7 @@ int main(int argc, char** argv) {
   Require(context != EGL_NO_CONTEXT && surface != EGL_NO_SURFACE &&
               make_current(display, surface, surface, context) == EGL_TRUE,
           "native software rendering context");
+  Stage("context");
   const auto* renderer = Symbol<decltype(&glGetString)>(gles, "glGetString")(
       GL_RENDERER);
   Require(renderer && std::strstr(reinterpret_cast<const char*>(renderer),
@@ -88,6 +105,7 @@ int main(int argc, char** argv) {
                 pixels[pixel * 4 + 2] == 0 && pixels[pixel * 4 + 3] == 255,
             "source software framebuffer bytes");
   }
+  Stage("render");
   Require(make_current(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT) ==
                   EGL_TRUE &&
               Symbol<decltype(&eglDestroySurface)>(egl, "eglDestroySurface")(
@@ -97,6 +115,8 @@ int main(int argc, char** argv) {
               Symbol<decltype(&eglTerminate)>(egl, "eglTerminate")(display) ==
                   EGL_TRUE,
           "native graphics resource teardown");
+  Stage("teardown");
   dlclose(gles);
   dlclose(egl);
+  Stage("done");
 }

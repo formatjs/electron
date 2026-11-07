@@ -18,4 +18,5 @@ with tempfile.TemporaryDirectory(prefix="electron-native-graphics-") as scratch:
         "XDG_DATA_DIRS": scratch, "XDG_CONFIG_DIRS": scratch,
         "XDG_CACHE_HOME": scratch, "TMPDIR": scratch,
     })
+    print(f"[DEBUG-native-graphics] exit {result.returncode}", flush=True)
     raise SystemExit(result.returncode)
