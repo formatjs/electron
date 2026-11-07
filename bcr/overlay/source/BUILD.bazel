@@ -2,6 +2,7 @@ load("@electron_base_sources//:profile.bzl", BASE_PROFILE = "PROFILE")
 load("@electron_codecs_sources//:profile.bzl", CODECS_PROFILE = "PROFILE")
 load("@electron_embedder_sources//:profile.bzl", EMBEDDER_PROFILE = "PROFILE")
 load("@electron_fonts_sources//:profile.bzl", FONTS_PROFILE = "PROFILE")
+load("@electron_gfx_sources//:profile.bzl", GFX_PROFILE = "PROFILE")
 load("@electron_ipcz_sources//:profile.bzl", IPCZ_PROFILE = "PROFILE")
 load("@electron_libnode_sources//:profile.bzl", LIBNODE_PROFILE = "PROFILE")
 load("@electron_mojo_sources//:profile.bzl", MOJO_PROFILE = "PROFILE")
@@ -54,6 +55,41 @@ cc_test(
         "@electron_embedder_sources//:base_i18n",
         "@electron_skia_sources//:skia",
     ],
+)
+
+cc_test(
+    name = "gfx_test",
+    srcs = ["gfx_test.cc"],
+    args = ["$(rootpath @electron_icu_sources//:common/icudtl.dat)"],
+    copts = GFX_PROFILE["libraries"]["//ui/gfx:gfx"]["copts"],
+    data = ["@electron_icu_sources//:common/icudtl.dat"],
+    env = {
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+    },
+    linkstatic = True,
+    local_defines = GFX_PROFILE["libraries"]["//ui/gfx:gfx"]["defines"],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    deps = [
+        "@electron_embedder_sources//:base_i18n",
+        "@electron_gfx_sources//:codec",
+        "@electron_gfx_sources//:data_pack",
+        "@electron_gfx_sources//:geometry_mojom",
+        "@electron_gfx_sources//:gfx",
+        "@electron_gfx_sources//:libdrm",
+        "@electron_gfx_sources//:memory_buffers",
+        "@electron_gfx_sources//:range_mojom",
+        "@electron_network_sources//:mojo_embedder",
+    ],
+)
+
+alias(
+    name = "gfx_libraries",
+    actual = "@electron_gfx_sources//:libraries",
 )
 
 alias(

@@ -2,6 +2,7 @@
 """Shared native C/C++ capture; preserve source configuration and declared inputs."""
 
 from pathlib import Path
+import json
 
 BUILD = "//out/bazel-import/"
 DIAGNOSTIC_INPUTS = {"//build/config/unsafe_buffers_paths.txt", "//build/config/warning_suppression.txt"}
@@ -48,3 +49,20 @@ def capture_library(graph, target, record, input_file, label):
     record["compiler_inputs"] = compiler_inputs
     record["omitted_diagnostic_inputs"] = [path for path in target.get("inputs", []) if path in DIAGNOSTIC_INPUTS]
     return record
+
+
+def load_profiles(directory, profiles):
+    """Share owned target/file identities across captured native closures."""
+    external, shared = {}, {}
+    for name, repository in profiles:
+        profile = json.loads((directory / (name + "_inputs.json")).read_text())
+        owner = "@electron_" + repository + "_sources//:"
+        external.update({label: owner + target for label, target in profile.get("names", {}).items()})
+        external.update({label: owner + target[1:] if target.startswith(":") else target for label, target in profile.get("external", {}).items()})
+        if name == "protobuf":
+            external.update({label: owner + target["name"] for label, target in profile["libraries"].items()})
+        for path in profile.get("files", []):
+            shared.setdefault("//" + path, owner + path)
+        for path in profile.get("producers", {}):
+            shared.setdefault(path, owner + (path[2:] if path in profile.get("generated_files", {}) else path.removeprefix(BUILD)))
+    return external, shared

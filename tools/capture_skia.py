@@ -7,7 +7,7 @@ import hashlib
 import json
 from pathlib import Path
 
-from native_graph import BUILD, capture_library
+from native_graph import BUILD, capture_library, load_profiles
 from capture_temporal import SKIA_CPP
 
 ROOT = "//skia:skia"
@@ -18,18 +18,7 @@ SCRIPTS = {"//" + path for path in ["build/write_buildflag_header.py", "gpu/conf
 
 
 def capture(graph, digest, chromium, skia, dawn, vulkan, profiles):
-    external, shared = {}, {}
-    for name, repository in [("base", "base"), ("embedder", "embedder"), ("ipcz", "ipcz"), ("libnode", "libnode"), ("perfetto", "perfetto_native"), ("protobuf", "protobuf"), ("v8_engine", "v8_engine"), ("v8_support", "v8_support"), ("network", "network"), ("mojo", "mojo"), ("fonts", "fonts"), ("codecs", "codecs")]:
-        profile = json.loads((profiles / (name + "_inputs.json")).read_text())
-        owner = "@electron_" + repository + "_sources//:"
-        external.update({label: owner + target for label, target in profile.get("names", {}).items()})
-        external.update({label: owner + target[1:] if target.startswith(":") else target for label, target in profile.get("external", {}).items()})
-        if name == "protobuf":
-            external.update({label: owner + target["name"] for label, target in profile["libraries"].items()})
-        for path in profile.get("files", []):
-            shared.setdefault("//" + path, owner + path)
-        for path in profile.get("producers", {}):
-            shared.setdefault(path, owner + path.removeprefix(BUILD))
+    external, shared = load_profiles(profiles, [("base", "base"), ("embedder", "embedder"), ("ipcz", "ipcz"), ("libnode", "libnode"), ("perfetto", "perfetto_native"), ("protobuf", "protobuf"), ("v8_engine", "v8_engine"), ("v8_support", "v8_support"), ("network", "network"), ("mojo", "mojo"), ("fonts", "fonts"), ("codecs", "codecs")])
     rust = json.loads((profiles / "temporal_inputs.json").read_text())
     external.update({label: "@electron_rust_sources//:" + crate["name"] for label, crate in rust["rust"].items()})
     if rust["graph_sha256"] != digest or any(rev not in (chromium / "DEPS").read_text() for rev in PINS.values()):
