@@ -49,6 +49,7 @@ cc_library(
     name = "node_resource_fixture",
     testonly = True,
     srcs = ["node_resource_fixture.S"],
+    linkstatic = True,
     target_compatible_with = [
         "@platforms//os:linux",
         "@platforms//cpu:x86_64",
