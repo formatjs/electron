@@ -4,13 +4,16 @@
 #include <cstdlib>
 #include <cstring>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "base/at_exit.h"
 #include "base/files/file.h"
 #include "base/files/file_util.h"
 #include "base/files/memory_mapped_file.h"
+#include "base/files/scoped_temp_dir.h"
 #include "base/i18n/icu_util.h"
+#include "fontconfig/fontconfig.h"
 #include "ft2build.h"
 #include FT_FREETYPE_H
 #include "hb.h"
@@ -107,6 +110,40 @@ void CheckPng() {
   png_image_free(&image);
 }
 
+void CheckFontconfig(const char* path) {
+  Require(std::getenv("FC_FONTATIONS") && std::strcmp(std::getenv("FC_FONTATIONS"), "1") == 0, "original fontations scanner selection");
+  FcConfig* config = FcConfigCreate();
+  Require(config != nullptr, "isolated Fontconfig creation");
+  const FcFontSet* system = FcConfigGetFonts(config, FcSetSystem);
+  Require(!system || system->nfont == 0, "empty system font inventory");
+  Require(FcConfigAppFontAddFile(config, reinterpret_cast<const FcChar8*>(path)), "Rust fontations declared font scan");
+  FcFontSet* application = FcConfigGetFonts(config, FcSetApplication);
+  Require(application && application->nfont == 1, "one declared application font");
+  FcChar8* family;
+  FcChar8* file;
+  FcCharSet* charset;
+  Require(FcPatternGetString(application->fonts[0], FC_FAMILY, 0, &family) == FcResultMatch && family[0] != 0, "Rust font family metadata");
+  Require(FcPatternGetString(application->fonts[0], FC_FILE, 0, &file) == FcResultMatch && base::MakeAbsoluteFilePath(base::FilePath(reinterpret_cast<const char*>(file))) == base::MakeAbsoluteFilePath(base::FilePath(path)), "declared font file identity");
+  Require(FcPatternGetCharSet(application->fonts[0], FC_CHARSET, 0, &charset) == FcResultMatch && FcCharSetHasChar(charset, 'f') && FcCharSetHasChar(charset, 'i'), "Rust font character coverage");
+  FcPattern* query = FcPatternCreate();
+  Require(query && FcPatternAddString(query, FC_FAMILY, family), "font match query");
+  FcResult result;
+  FcPattern* match = FcFontMatch(config, query, &result);
+  Require(match && result == FcResultMatch && FcPatternGetString(match, FC_FILE, 0, &file) == FcResultMatch && base::MakeAbsoluteFilePath(base::FilePath(reinterpret_cast<const char*>(file))) == base::MakeAbsoluteFilePath(base::FilePath(path)), "isolated native font matching");
+  FcPatternDestroy(match);
+  FcPatternDestroy(query);
+  base::ScopedTempDir temporary;
+  Require(temporary.CreateUniqueTempDir(), "invalid font scratch directory");
+  const auto invalid = temporary.GetPath().AppendASCII("invalid.ttf");
+  Require(base::WriteFile(invalid, std::string_view("bad font")), "invalid font fixture write");
+  Require(!FcConfigAppFontAddFile(config, reinterpret_cast<const FcChar8*>(invalid.value().c_str())), "Rust invalid font rejection");
+  Require(FcConfigGetFonts(config, FcSetApplication)->nfont == 1, "invalid font preserves inventory");
+  FcConfigAppFontClear(config);
+  application = FcConfigGetFonts(config, FcSetApplication);
+  Require(!application || application->nfont == 0, "application font cleanup");
+  FcConfigDestroy(config);
+}
+
 void CheckXml() {
   constexpr char document[] = "<root><item id='1'>caf\xc3\xa9 &amp; tea</item><item id='2'/></root>";
   xmlDocPtr parsed = xmlReadMemory(document, sizeof(document) - 1, "declared.xml", "UTF-8", XML_PARSE_NONET);
@@ -132,6 +169,7 @@ int main(int argc, char** argv) {
   base::File data(base::MakeAbsoluteFilePath(base::FilePath(argv[1])), base::File::FLAG_OPEN | base::File::FLAG_READ);
   Require(data.IsValid() && base::i18n::InitializeICUWithFileDescriptor(data.TakePlatformFile(), base::MemoryMappedFile::Region::kWholeFile), "declared ICU initialization");
   CheckFonts(argv[2]);
+  CheckFontconfig(argv[2]);
   CheckPng();
   CheckXml();
 }

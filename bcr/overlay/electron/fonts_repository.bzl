@@ -2,7 +2,7 @@
 
 def _impl(ctx):
     roots = {}
-    for name, anchor in {"chromium": ctx.attr.chromium, "freetype": ctx.attr.freetype, "harfbuzz": ctx.attr.harfbuzz}.items():
+    for name, anchor in {"chromium": ctx.attr.chromium, "freetype": ctx.attr.freetype, "harfbuzz": ctx.attr.harfbuzz, "fontconfig": ctx.attr.fontconfig}.items():
         ctx.read(anchor)
         roots[name] = ctx.path(anchor).dirname
     contents = ctx.read(ctx.attr.profile)
@@ -11,7 +11,7 @@ def _impl(ctx):
         if path.startswith("/") or "\\" in path or any([part in ["", ".", ".."] for part in path.split("/")]):
             fail("Invalid font/XML source path")
         owner, relative = "chromium", path
-        for prefix, name in {"third_party/freetype/src/": "freetype", "third_party/harfbuzz-ng/src/": "harfbuzz"}.items():
+        for prefix, name in {"third_party/freetype/src/": "freetype", "third_party/harfbuzz-ng/src/": "harfbuzz", "third_party/fontconfig/src/": "fontconfig"}.items():
             if path.startswith(prefix):
                 owner, relative = name, path[len(prefix):]
         ctx.symlink(roots[owner].get_child(relative), path)
@@ -24,6 +24,7 @@ electron_fonts_repository = repository_rule(
         "chromium": attr.label(mandatory = True),
         "freetype": attr.label(mandatory = True),
         "harfbuzz": attr.label(mandatory = True),
+        "fontconfig": attr.label(mandatory = True),
         "profile": attr.label(default = Label("//source/native:fonts_inputs.json")),
         "build_file": attr.label(default = Label("//source:fonts.BUILD.bazel")),
     },

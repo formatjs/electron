@@ -43,6 +43,7 @@ cc_test(
         "@electron_icu_sources//:common/icudtl.dat",
     ],
     env = {
+        "FC_FONTATIONS": "1",
         "LANG": "C",
         "LC_ALL": "C",
         "TZ": "UTC",
@@ -55,6 +56,7 @@ cc_test(
     ],
     deps = [
         "@electron_embedder_sources//:base_i18n",
+        "@electron_fonts_sources//:fontconfig",
         "@electron_fonts_sources//:freetype",
         "@electron_fonts_sources//:harfbuzz",
         "@electron_fonts_sources//:png",

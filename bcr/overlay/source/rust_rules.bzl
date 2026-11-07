@@ -103,7 +103,7 @@ def electron_temporal():
             header = ffi.get("header_label", _file(ffi["header"])),
             cc_lib = ffi["owner"] if ffi["owner"].startswith("@") else ":" + ffi["owner"],
             bindgen_flags = ffi["bindgen_flags"],
-            clang_flags = ["-x", "c++", "-std=c++20", "-fparse-all-comments", "-fvisibility=default"],
+            clang_flags = ffi.get("clang_flags", ["-x", "c++", "-std=c++20", "-fparse-all-comments", "-fvisibility=default"]),
             target_compatible_with = _LINUX_AMD64,
         )
         _bindings(name = crate["name"] + "_bindings", src = ":" + crate["name"] + "_generator", cc_lib = ffi["owner"] if ffi["owner"].startswith("@") else ":" + ffi["owner"])

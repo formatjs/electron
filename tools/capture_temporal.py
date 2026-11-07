@@ -5,6 +5,7 @@ import argparse
 import gzip
 import hashlib
 import json
+import re
 from pathlib import Path
 import shlex
 import tomllib
@@ -25,14 +26,21 @@ NATIVE_CPP = {
 }
 NATIVE_CPP["//base/allocator/partition_allocator:raw_ptr"] = "@electron_partition_alloc_sources//:raw_ptr"
 SEVERITY = "//base:logging_log_severity_bindgen"
+FONT_ROOT = "//third_party/fontconfig:fontconfig_fontations_ffi"
+FONT_BINDINGS = {"//third_party/fontconfig:" + name for name in ("fcint_h_bindgen", "fontconfig_h_bindgen")}
 
 
 def name(label):
     return "crate_" + hashlib.sha256(label.encode()).hexdigest()[:16]
 
 
-def capture(graph, source):
+def capture(graph, source, fontconfig=None):
     targets = graph["targets"]
+    if fontconfig:
+        config_source = (source / "third_party/fontconfig/BUILD.gn").read_bytes()
+        config = re.search(r'config\("bindgen_config"\) \{(.*?)\n  \}', config_source.decode(), re.S)
+        if not config or re.findall(r'"([^"\n]+)"', config[1]) != ["include", "BINDGEN_IGNORE_VISIBILITY=1", "FC_NO_MT=1", "FLEXIBLE_ARRAY_MEMBER=1"]:
+            raise ValueError("Unexpected original Fontconfig bindgen config")
     selected, scripts, ffi, visited, provided = {}, {}, {}, set(), set()
 
     def value(target, key):
@@ -53,6 +61,13 @@ def capture(graph, source):
             return
         target = targets[label]
         bare = label.split("(")[0]
+        if bare in FONT_BINDINGS:
+            selected[label] = target
+            ffi[label] = target
+            for dep in target.get("deps", []):
+                if dep in FONT_BINDINGS:
+                    visit(dep)
+            return
         if bare in (ALLOCATOR + "allocator_impls_ffi", ALLOCATOR + "alloc_error_handler_impl_ffi", SEVERITY):
             selected[label] = target
             ffi[label] = target
@@ -72,7 +87,7 @@ def capture(graph, source):
         for dep in target.get("deps", []):
             visit(dep)
 
-    for root in [ROOT] + BASE_ROOTS:
+    for root in [ROOT] + BASE_ROOTS + ([FONT_ROOT] if fontconfig else []):
         visit(root)
     root_files = {"LICENSE", "build/build_config.h", "build/buildflag.h", "build/rust/bindings.rs"}
     packages, crates, cpp, bindings = {}, {}, {}, {}
@@ -101,8 +116,11 @@ def capture(graph, source):
         raise ValueError("Unmapped Temporal Rust dependency: " + label)
 
     def checked_file(path):
-        candidate = source / path
-        if not candidate.is_file() or not candidate.resolve().is_relative_to(source.resolve()):
+        owner, relative = source, path
+        if fontconfig and path.startswith("third_party/fontconfig/src/"):
+            owner, relative = fontconfig, path.removeprefix("third_party/fontconfig/src/")
+        candidate = owner / relative
+        if not candidate.is_file() or not candidate.resolve().is_relative_to(owner.resolve()):
             raise ValueError("Missing or escaping pinned Rust input: " + path)
         return path
 
@@ -168,7 +186,8 @@ def capture(graph, source):
         if not package:
             root_files.update(sources)
         if label in ffi:
-            deps, macros, cc_deps = [], [], []
+            deps = [name(dep) for dep in target.get("deps", []) if dep in FONT_BINDINGS]
+            macros, cc_deps = [], []
         else:
             deps, macros, cc_deps = [], [], []
             for dep in target.get("deps", []):
@@ -193,6 +212,20 @@ def capture(graph, source):
     for label, target in ffi.items():
         suffix = HOST if label.endswith(HOST) else ""
         bare = label.removesuffix(suffix) if suffix else label
+        if bare in FONT_BINDINGS:
+            generator = bare + "_generator"
+            action = targets[generator]
+            copies = [dep for dep in target["deps"] if targets[dep]["type"] == "copy"]
+            if len(copies) != 1 or action["script"] != "//build/rust/gni_impl/run_bindgen.py" or targets[copies[0]]["deps"] != [generator] or targets[copies[0]]["sources"] != action["outputs"]:
+                raise ValueError("Unexpected Fontconfig binding producer")
+            expected = {copies[0], "//build/rust/std:std"} | ({"//third_party/fontconfig:fontconfig_h_bindgen"} if bare.endswith(":fcint_h_bindgen") else set())
+            if set(target["deps"]) != expected or len(action["sources"]) != 1:
+                raise ValueError("Untranslated Fontconfig binding dependency")
+            args = action["args"]
+            begin, end = args.index("--bindgen-flags") + 1, args.index("--")
+            header = checked_file(action["sources"][0][2:])
+            bindings[label] = {"owner": "@electron_fonts_sources//:fontconfig_bindgen_headers", "header": header, "header_label": "@electron_fonts_sources//:" + header, "bindgen_flags": ["--no-layout-tests"] + ["--" + arg for arg in args[begin:end]], "clang_flags": ["-x", "c", "-std=c11", "-fparse-all-comments", "-fvisibility=default", "-DBINDGEN_IGNORE_VISIBILITY=1", "-DFC_NO_MT=1", "-DFLEXIBLE_ARRAY_MEMBER=1"], "gn_args": args, "config_source": "third_party/fontconfig/BUILD.gn", "config_source_sha256": hashlib.sha256(config_source).hexdigest()}
+            continue
         if bare == SEVERITY:
             generator = SEVERITY + "_generator"
             action = targets[generator]
@@ -256,11 +289,12 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--graph", type=Path, required=True)
     parser.add_argument("--source-root", type=Path, required=True)
+    parser.add_argument("--fontconfig-root", type=Path)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--v8-output", type=Path, required=True)
     args = parser.parse_args()
     data = args.graph.read_bytes()
-    profile = capture(json.loads(gzip.decompress(data)), args.source_root)
+    profile = capture(json.loads(gzip.decompress(data)), args.source_root, args.fontconfig_root)
     profile["graph_sha256"] = hashlib.sha256(data).hexdigest()
     args.output.write_text(json.dumps(profile, sort_keys=True, indent=2) + "\n")
     graph = json.loads(gzip.decompress(data))

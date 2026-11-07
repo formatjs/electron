@@ -27,6 +27,16 @@ def electron_fonts():
     cc_library(name = "common_headers", includes = ["."])
     for family, headers in PROFILE["headers"].items():
         cc_library(name = family.replace("/", "_") + "_headers", hdrs = headers, textual_hdrs = PROFILE["textual_headers"][family], includes = ["."])
+    fontconfig = PROFILE["libraries"]["//third_party/fontconfig:fontconfig"]
+    cc_library(
+        name = "fontconfig_bindgen_headers",
+        hdrs = PROFILE["headers"]["third_party/fontconfig"],
+        textual_hdrs = PROFILE["textual_headers"]["third_party/fontconfig"],
+        includes = fontconfig["includes"],
+        defines = fontconfig["defines"],
+        deps = [":freetype", ":xml"],
+        target_compatible_with = _COMPATIBLE,
+    )
     for original, library in PROFILE["libraries"].items():
         settings = dict(
             hdrs = {_file(path): True for path in library["source_headers"] + library["public_headers"]}.keys(),
@@ -38,6 +48,8 @@ def electron_fonts():
             target_compatible_with = _COMPATIBLE,
             deps = [":" + _family(original)] + list({_label(dep): True for dep in library["gn_deps"] if dep not in PROFILE["toolchain_deps"]}),
         )
+        if "uuid" in library["libs"]:
+            settings["deps"] += ["@libuuid//:uuid"]
         if "glib-2.0" in library["libs"]:
             settings["deps"] += ["@glib//glib", "@glib//gmodule", "@glib//gobject"]
         if "gio-2.0" in library["libs"]:
@@ -49,6 +61,6 @@ def electron_fonts():
                 cc_library(name = library["name"] + "_" + language, srcs = [_file(path) for path in sources], copts = flags, alwayslink = library["kind"] == "source_set", **settings)
                 settings["deps"] += [":" + library["name"] + "_" + language]
         cc_library(name = library["name"], srcs = [_file(path) for path in library["srcs"]], copts = library["copts"], alwayslink = library["kind"] == "source_set", **settings)
-    for name, original in {"freetype": "//third_party/freetype:freetype", "harfbuzz": "//third_party/harfbuzz-ng:harfbuzz-ng", "png": "//third_party/libpng:libpng", "xml": "//third_party/libxml:libxml"}.items():
+    for name, original in {"freetype": "//third_party/freetype:freetype", "harfbuzz": "//third_party/harfbuzz-ng:harfbuzz-ng", "png": "//third_party/libpng:libpng", "xml": "//third_party/libxml:libxml", "fontconfig": "//third_party/fontconfig:fontconfig"}.items():
         native.alias(name = name, actual = _label(original))
     native.filegroup(name = "libraries", srcs = [_label(label) for label, library in PROFILE["libraries"].items() if library["srcs"] or library["c_srcs"] or library["asm_srcs"]])

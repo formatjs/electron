@@ -93,6 +93,8 @@
     "https://bcr.bazel.build/modules/libffi/3.4.7.bcr.5/MODULE.bazel": "3098e1f8b6894ef7f24119d210a0d587efcc50775c18c227ade478016029a8b7",
     "https://bcr.bazel.build/modules/libffi/3.4.7.bcr.5/source.json": "59495e412c473c0f8944ddd4890b713606be9bf877624dfd6c8a5b060e1567cf",
     "https://bcr.bazel.build/modules/libpfm/4.11.0/MODULE.bazel": "45061ff025b301940f1e30d2c16bea596c25b176c8b6b3087e92615adbd52902",
+    "https://bcr.bazel.build/modules/libuuid/2.41.2.bcr.1/MODULE.bazel": "2065b034e4a2c426929c2a6518d4e29e845c9a59641fa35bda71a5149cf29a9c",
+    "https://bcr.bazel.build/modules/libuuid/2.41.2.bcr.1/source.json": "cd851e7cac1cb1d7f6dc4132df92fdaa3d351317c0b9ef93e1c1acbf32711115",
     "https://bcr.bazel.build/modules/libxml2/2.15.3/MODULE.bazel": "a6bffafd8aa8b0c13eaa4bf25d55be188ec8548549395f03e98c39bab264adaa",
     "https://bcr.bazel.build/modules/libxml2/2.15.3/source.json": "fd7c420cb14981416c9fadd0db555bd1e249355e0e5b63b2ce15b92996b5fbfb",
     "https://bcr.bazel.build/modules/llvm/0.8.18/MODULE.bazel": "56d507d49c02498731fa5a95fa48a778368f2d23c0f6184a578d057e58830458",
