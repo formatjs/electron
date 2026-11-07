@@ -240,6 +240,11 @@ def capture(graph, digest, chromium, source_roots, profiles):
         elif kind in ("group", "static_library", "source_set", "executable", "shared_library"):
             libraries[label] = capture_library(graph, target, record, input_file, label, SDK_LIBS)
             record["outputs"] = target.get("outputs", [])
+            replaced_rust_flags = [flag for flag in record["gn_ldflags"] if flag.startswith("prebuilt_rustc_sysroot/lib/rustlib/x86_64-unknown-linux-gnu/lib/lib") and flag.endswith(".rlib")]
+            if replaced_rust_flags:
+                record["replaced_rust_toolchain_flags"] = replaced_rust_flags
+            if label == "//third_party/wayland:wayland_scanner":
+                record["native_configuration_headers"] = ["//third_party/wayland/include/config.h"]
             linker_inputs = []
             for flag in record["gn_ldflags"]:
                 if flag.startswith("-Wl,--version-script=../../"):

@@ -42,6 +42,8 @@ def _system_deps(library):
 def _link_settings(library):
     flags = []
     for flag in library["gn_ldflags"]:
+        if flag in library.get("replaced_rust_toolchain_flags", []):
+            continue
         if flag in ["-Werror", "-nostdlib++"] or flag.startswith(("--target=", "--sysroot=")):
             continue
         if flag.startswith("-Wl,--version-script=../../"):
@@ -111,7 +113,12 @@ def electron_platform():
         )
         for language, sources, flags in [("c", library["c_srcs"], library["c_copts"]), ("asm", library["asm_srcs"], library["asm_copts"])]:
             if sources:
-                cc_library(name = library["name"] + "_" + language, srcs = [_file(path) for path in sources], copts = flags, alwayslink = library["kind"] == "source_set", **settings)
+                compiler_inputs = []
+                if language == "c":
+                    for header in library.get("native_configuration_headers", []):
+                        compiler_inputs.append(_file(header))
+                        flags = flags + ["-include", "$(location " + _file(header) + ")"]
+                cc_library(name = library["name"] + "_" + language, srcs = [_file(path) for path in sources], copts = flags, additional_compiler_inputs = compiler_inputs, alwayslink = library["kind"] == "source_set", **settings)
                 settings["deps"] += [":" + library["name"] + "_" + language]
         if library["kind"] == "executable":
             settings.pop("includes")
