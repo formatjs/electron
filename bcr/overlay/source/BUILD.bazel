@@ -1,8 +1,7 @@
-load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
 load("@electron_base_sources//:profile.bzl", BASE_PROFILE = "PROFILE")
 load("@electron_libnode_sources//:profile.bzl", LIBNODE_PROFILE = "PROFILE")
-load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_shared_library.bzl", "cc_shared_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load("//electron:protobuf_probe_rules.bzl", "electron_protobuf_probe")
 load("//electron:source_rules.bzl", "electron_buildflags", "electron_fuses_generate", "electron_js2c", "electron_node_config", "electron_node_defines", "electron_original_fs")
@@ -623,7 +622,6 @@ cc_test(
     data = [
         "libnode_fixture.txt",
         ":libnode_addon_module",
-        ":libnode_addon_shared",
         "@electron_icu_sources//:common/icudtl.dat",
         "@electron_v8_engine_sources//:snapshot_blob.bin",
     ],
@@ -642,12 +640,10 @@ cc_test(
     deps = ["@electron_libnode_sources//:libnode"],
 )
 
-cc_binary(
-    name = "libnode_addon_shared",
+cc_library(
+    name = "libnode_addon_objects",
     srcs = ["libnode_addon.cc"],
     copts = ["-std=c++20"],
-    linkshared = True,
-    linkstatic = True,
     local_defines = ["NAPI_VERSION=10"],
     target_compatible_with = [
         "@platforms//os:linux",
@@ -656,13 +652,12 @@ cc_binary(
     deps = ["@electron_libnode_sources//:node_headers"],
 )
 
-copy_file(
+cc_shared_library(
     name = "libnode_addon_module",
-    src = ":libnode_addon_shared",
-    out = "libnode_addon.node",
-    allow_symlink = True,
+    shared_lib_name = "libnode_addon.node",
     target_compatible_with = [
         "@platforms//os:linux",
         "@platforms//cpu:x86_64",
     ],
+    deps = [":libnode_addon_objects"],
 )
