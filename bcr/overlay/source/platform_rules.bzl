@@ -34,10 +34,10 @@ def _system_deps(library):
         (["xcb"], "@electron_xcb_sources//:libxcb"),
         (["xkbcommon"], "@xkbcommon//:xkbcommon"),
         (["pci"], "@electron_platform_pciutils//:pci"),
-        (PROFILE["sdk_libraries"], "@electron_platform_sdk//:desktop"),
     ]:
         if any([name in libs for name in names]):
             deps.append(target)
+    deps += ["@electron_platform_sdk//:" + name for name in library["libs"] if name in PROFILE["sdk_libraries"] and name != "pci"]
     return deps
 
 def _link_settings(library):

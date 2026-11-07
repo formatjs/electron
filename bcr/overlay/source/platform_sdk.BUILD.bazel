@@ -1,3 +1,4 @@
+load("@electron//electron:source_headers.bzl", "electron_source_headers")
 load("@electron_platform_runtime//:profile.bzl", "LIBRARIES")
 load("@rules_cc//cc:cc_import.bzl", "cc_import")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
@@ -51,9 +52,7 @@ cc_library(
     ],
     deps = [
         ":ffi_headers",
-        "@glib//gio",
-        "@glib//glib",
-        "@glib//gobject",
+        ":glib_headers",
     ],
 )
 
@@ -62,7 +61,37 @@ cc_library(
     deps = [":headers"] + [":shared_" + str(index) for index in range(len(LIBRARIES))],
 )
 
-alias(
-    name = "udev",
-    actual = ":desktop",
+electron_source_headers(
+    name = "glib_headers",
+    deps = [
+        "@glib//gio",
+        "@glib//glib",
+        "@glib//gobject",
+    ],
 )
+
+_SONAMES = {
+    "X11": "libX11.so.6",
+    "Xi": "libXi.so.6",
+    "Xext": "libXext.so.6",
+    "ffi_pic": "libffi.so.7",
+    "gbm": "libgbm.so.1",
+    "dbus-1": "libdbus-1.so.3",
+    "udev": "libudev.so.1",
+    "cairo": "libcairo.so.2",
+    "harfbuzz": "libharfbuzz.so.0",
+    "pango-1.0": "libpango-1.0.so.0",
+    "pangocairo-1.0": "libpangocairo-1.0.so.0",
+    "atk-1.0": "libatk-1.0.so.0",
+    "atk-bridge-2.0": "libatk-bridge-2.0.so.0",
+}
+
+_SHARED = {soname: ":shared_" + str(index) for index, soname in enumerate(LIBRARIES)}
+
+[cc_library(
+    name = name,
+    deps = [
+        ":headers",
+        _SHARED[soname],
+    ],
+) for name, soname in _SONAMES.items()]
