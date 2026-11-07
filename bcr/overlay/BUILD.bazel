@@ -57,6 +57,7 @@ filegroup(
 test_suite(
     name = "source_tests",
     tests = [
+        "//electron/private:nss_integrity_test",
         "//source:base_test",
         "//source:crypto_compat_test",
         "//source:embedder_test",

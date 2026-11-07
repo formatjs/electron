@@ -89,7 +89,7 @@ def _impl(ctx):
     for name in ["nspr", "nss"]:
         archive = "electron_" + name + "_upstream"
         electron_overlay_archive(name = archive, catalog = "@electron_chromium_native_support//:overlays.json", overlay = name)
-        electron_overlay_repository(name = name, archive = "@" + archive + "//__source__:anchor", catalog = "@electron_chromium_native_support//:overlays.json", overlay = name)
+        electron_overlay_repository(name = name, archive = "@" + archive + "//__source__:anchor", catalog = "@electron_chromium_native_support//:overlays.json", overlay = name, patches = [Label("//source:nss_integrity.patch")] if name == "nss" else [])
     for name, github, revision, digest, anchor in [
         ("quiche", "google/quiche", "c0df0d316bd7e4ddf44e5ba094b5c5b061d94b0c", "23e9c360d3a42e8d9cd006e0fcafebe9387e9f72bd722d5a0d0ba92ca349b110", "LICENSE"),
         ("re2", "google/re2", "cd7b2823a8375371f7efe6dae17837c9ab407693", "84f9ced9bb4b1fab2f5c061bf136030d5128e79cfe56b3bc3bde8e20de7e25db", "LICENSE"),

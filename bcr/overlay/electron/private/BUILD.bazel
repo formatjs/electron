@@ -1,6 +1,32 @@
-load("@rules_python//python:defs.bzl", "py_binary")
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+load("@rules_python//python:defs.bzl", "py_binary", "py_test")
 
 package(default_visibility = ["//visibility:public"])
+
+cc_binary(
+    name = "nss_checksum",
+    srcs = ["nss_checksum.cc"],
+    copts = ["-std=c++20"],
+    linkstatic = True,
+    deps = [
+        "@nss//:freebl_static",
+        "@nss//:nssutil3_link",
+    ],
+)
+
+py_binary(
+    name = "nss_integrity",
+    srcs = ["nss_integrity.py"],
+)
+
+py_test(
+    name = "nss_integrity_test",
+    srcs = [
+        "nss_integrity.py",
+        "nss_integrity_test.py",
+    ],
+    main = "nss_integrity_test.py",
+)
 
 py_binary(
     name = "copy_bindings",

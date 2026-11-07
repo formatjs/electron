@@ -1,0 +1,32 @@
+--- a/bazel/actions.bzl
++++ b/bazel/actions.bzl
+@@ -37,20 +37,23 @@
+ 
+ def _sign_impl(ctx):
+-    libraries = _sign_libraries(ctx.attr.tool)
++    libraries = _sign_libraries(ctx.attr._integrity_tool)
+     ctx.actions.run(
+         executable = ctx.executable._driver,
+-        arguments = [ctx.executable.tool.path, ctx.file.library.path, ctx.outputs.out.path] + [file.path for file in libraries],
+-        inputs = [ctx.file.library] + libraries,
++        arguments = [ctx.executable._integrity_tool.path, ctx.file._parameters.path, ctx.file.library.path, ctx.outputs.out.path] + [file.path for file in libraries],
++        inputs = [ctx.file.library, ctx.file._parameters] + libraries,
+         outputs = [ctx.outputs.out],
+-        tools = [ctx.attr.tool[DefaultInfo].files_to_run, ctx.attr._driver[DefaultInfo].files_to_run],
+-        mnemonic = "NssModuleSign",
++        tools = [ctx.attr._integrity_tool[DefaultInfo].files_to_run, ctx.attr._driver[DefaultInfo].files_to_run],
++        env = {"LANG": "C", "LC_ALL": "C", "TZ": "UTC"},
++        mnemonic = "NssModuleIntegrity",
+     )
+     return [DefaultInfo(files = depset([ctx.outputs.out]))]
+ 
+ sign_module = rule(
+     implementation = _sign_impl,
+     attrs = {
+-        "_driver": attr.label(default = "//bazel:sign_driver", executable = True, cfg = "exec"),
++        "_driver": attr.label(default = Label("@electron//electron/private:nss_integrity"), executable = True, cfg = "exec"),
++        "_integrity_tool": attr.label(default = Label("@electron//electron/private:nss_checksum"), executable = True, cfg = "exec"),
++        "_parameters": attr.label(default = "//:cmd/shlibsign/shlibsign.c", allow_single_file = True),
+         "tool": attr.label(executable = True, cfg = "exec", mandatory = True),
+         "library": attr.label(allow_single_file = True, mandatory = True),
+         "out": attr.output(mandatory = True),
