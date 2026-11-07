@@ -28029,6 +28029,11 @@
       "net/third_party/quiche/src/quiche/web_transport/web_transport_priority_scheduler.h"
     ]
   },
+  "native_extra_header_deps": {
+    "net": [
+      "//mojo/public/cpp/bindings:default_construct_tag"
+    ]
+  },
   "generated_files": {
     "//out/bazel-import/obj/net/net_resources_expected_outputs.txt": "gen/net/grit/net_resources.h\ngen/net/net_resources.pak\n"
   },

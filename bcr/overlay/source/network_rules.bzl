@@ -18,6 +18,8 @@ def _file(original):
     return ":" + original[len(_BUILD):] if original.startswith(_BUILD) else "//:" + original[2:]
 
 def _family(original):
+    if original == "//mojo/public/cpp/bindings:default_construct_tag":
+        return "default_construct_tag_headers"
     path = original[2:].split(":")[0]
     selected = ""
     for family in PROFILE["headers"]:
@@ -32,8 +34,9 @@ def electron_network():
     native.exports_files(PROFILE["files"] + [path[2:] for path in PROFILE["generated_files"]] + ["profile.bzl", "BUILD.bazel", "native_compat_patches.json"])
     cc_import(name = "atomic_runtime", static_library = "@llvm//runtimes/compiler-rt:clang_rt.builtins.static", target_compatible_with = _COMPATIBLE)
     cc_library(name = "common_headers", includes = ["."])
+    cc_library(name = "default_construct_tag_headers", hdrs = ["mojo/public/cpp/bindings/default_construct_tag.h"], includes = ["."])
     for family, headers in PROFILE["headers"].items():
-        cc_library(name = family.replace("/", "_") + "_headers", hdrs = headers, includes = ["."])
+        cc_library(name = family.replace("/", "_") + "_headers", hdrs = headers, includes = ["."], deps = [_label(dep) for dep in PROFILE["native_extra_header_deps"].get(family, [])])
     for original, action in PROFILE["actions"].items():
         for index, run in enumerate(action["runs"]):
             outputs = [path[len(_BUILD):] for path in run["outputs"]]

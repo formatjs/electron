@@ -159,7 +159,7 @@ def capture(graph, chromium, quiche, re2, sqlite, profiles):
         if not physical(path).is_file():
             raise ValueError("Missing original network input: " + path)
     used = {dep for label in seen for dep in targets[label].get("deps", []) if dep in external}
-    return dict(root=ROOT, names=names, libraries=libraries, actions=actions, producers=producers, files=sorted(files), headers=headers, generated_files=generated, external={label: external[label] for label in sorted(used)}, toolchain_deps=sorted(TOOLCHAIN))
+    return dict(root=ROOT, names=names, libraries=libraries, actions=actions, producers=producers, files=sorted(files), headers=headers, native_extra_header_deps={"net": ["//mojo/public/cpp/bindings:default_construct_tag"]}, generated_files=generated, external={label: external[label] for label in sorted(used)}, toolchain_deps=sorted(TOOLCHAIN))
 
 
 def main():
