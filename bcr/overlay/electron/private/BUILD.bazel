@@ -45,3 +45,8 @@ py_binary(
     name = "source_action",
     srcs = ["source_action.py"],
 )
+
+py_binary(
+    name = "artifact_file",
+    srcs = ["artifact_file.py"],
+)

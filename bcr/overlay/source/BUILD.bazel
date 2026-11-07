@@ -3,6 +3,7 @@ load("@electron_libnode_sources//:profile.bzl", LIBNODE_PROFILE = "PROFILE")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_shared_library.bzl", "cc_shared_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
+load("//electron:artifact_file.bzl", "electron_artifact_file")
 load("//electron:protobuf_probe_rules.bzl", "electron_protobuf_probe")
 load("//electron:source_rules.bzl", "electron_buildflags", "electron_fuses_generate", "electron_js2c", "electron_node_config", "electron_node_defines", "electron_original_fs")
 load("//electron:v8_rules.bzl", "electron_v8_bytecodes", "electron_v8_regexp", "electron_v8_torque", "electron_v8_torque_tool")
@@ -653,11 +654,21 @@ cc_library(
 )
 
 cc_shared_library(
-    name = "libnode_addon_module",
-    shared_lib_name = "libnode_addon.node",
+    name = "libnode_addon_shared",
+    shared_lib_name = "libnode_addon.so",
     target_compatible_with = [
         "@platforms//os:linux",
         "@platforms//cpu:x86_64",
     ],
     deps = [":libnode_addon_objects"],
+)
+
+electron_artifact_file(
+    name = "libnode_addon_module",
+    src = ":libnode_addon_shared",
+    out = "libnode_addon.node",
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
 )
