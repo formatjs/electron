@@ -122,8 +122,17 @@ different source/output paths and input mtimes, then requires byte equality for
 every output. A manifest records profile provenance and output hashes; output
 groups expose headers and C++ sources for the remaining engine build. Tests
 check generated engine/Intl/Temporal interfaces and malformed-input rejection.
-Hosted compilation and generation must establish this new producer. The full
-V8 library, libnode and Electron executable remain unfinished.
+Torque embeds its V8 root in source locations, so the runner passes `.` from
+each isolated source directory. It also creates every declared output parent;
+the upstream compiler assumes those directories already exist.
+
+[93dc092 source components](https://formatjs.buildbuddy.io/invocation/0a295b37-7dc5-4a45-b395-e8e210eb1620)
+and [BCR consumer](https://formatjs.buildbuddy.io/invocation/e338b62e-75ae-4a3e-b5fd-21279b2f4cd3)
+passed complete generation, byte reproducibility, output hash/interface checks
+and the real parser diagnostic/abort check. Core dumps are disabled for that
+negative test. The cross-compile workflow also passed; this Torque profile
+itself remains Linux AMD64. The full V8 library, libnode and Electron executable
+remain unfinished.
 
 ```sh
 python3 tools/capture_v8_torque.py --graph=bcr/overlay/source/native/linux_amd64.partial.json.gz \
