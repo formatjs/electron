@@ -23,6 +23,7 @@
 #include "ui/color/color_provider.h"
 #include "ui/color/color_recipe.h"
 #include "ui/color/color_transform.h"
+#include "ui/gfx/color_palette.h"
 #include "ui/strings/grit/ui_strings.h"
 #include "ui/webui/resources/grit/webui_resources.h"
 
@@ -63,7 +64,7 @@ void CheckColorPipeline() {
   provider.AddMixer()[ui::kColorPrimaryBackground] = {SK_ColorWHITE};
   provider.AddPostprocessingMixer()[ui::kColorPrimaryBackground] =
       ui::GetColorWithMaxContrast(ui::FromTransformInput());
-  Require(provider.GetColor(ui::kColorPrimaryBackground) == SK_ColorBLACK && provider.GetColor(ui::kColorPrimaryForeground) == SK_ColorWHITE, "native color overrides aliases and postprocessing");
+  Require(provider.GetColor(ui::kColorPrimaryBackground) == gfx::kGoogleGrey900 && provider.GetColor(ui::kColorPrimaryForeground) == SK_ColorWHITE, "native color overrides aliases and postprocessing");
 }
 }  // namespace
 
