@@ -57,6 +57,13 @@ def electron_partition_alloc():
     cc_library(name = "partition_alloc", deps = [":allocator_shim"], target_compatible_with = compatible)
     raw_ptr = PARTITION_ALLOC_LIBRARIES["raw_ptr"]
     cc_library(
+        name = "raw_ptr_headers",
+        hdrs = raw_ptr["public_headers"],
+        includes = ["src"],
+        deps = [":headers", ":buildflags_headers"],
+        target_compatible_with = compatible,
+    )
+    cc_library(
         name = "raw_ptr",
         srcs = raw_ptr["srcs"],
         hdrs = raw_ptr["hdrs"],
@@ -64,7 +71,7 @@ def electron_partition_alloc():
         local_defines = raw_ptr["defines"],
         linkstatic = True,
         target_compatible_with = compatible,
-        deps = [":headers", ":buildflags_headers", ":partition_alloc"],
+        deps = [":raw_ptr_headers", ":partition_alloc"],
     )
     native.filegroup(name = "libraries", srcs = [":" + name for name in PARTITION_ALLOC_LIBRARIES])
     native.exports_files(["src/partition_alloc/write_buildflag_header.py"])

@@ -5,10 +5,11 @@ import argparse
 import gzip
 import hashlib
 import json
+import re
 from pathlib import Path
 
 
-def capture(graph):
+def capture(graph, source):
     root = "//base/allocator/partition_allocator/"
     prefix = root + "src/partition_alloc:"
     groups = {
@@ -69,6 +70,18 @@ def capture(graph):
                 "omitted_toolchain_and_diagnostic_flags": omitted,
             }
     libraries["raw_ptr"]["hdrs"].append("src/partition_alloc/pointers/instance_tracer.h")
+    public_headers, pending = set(), ["partition_alloc/pointers/raw_ptr.h", "partition_alloc/pointers/raw_ref.h"]
+    source_headers = source / "base/allocator/partition_allocator/src"
+    while pending:
+        relative = pending.pop()
+        if relative in public_headers or relative == "partition_alloc/buildflags.h":
+            continue
+        path = source_headers / relative
+        if not path.is_file() or not path.resolve().is_relative_to(source_headers.resolve()):
+            raise ValueError("Missing original raw pointer header: " + relative)
+        public_headers.add(relative)
+        pending.extend(re.findall(r'^\s*#\s*include\s*["<](partition_alloc/[^">]+)[">]', path.read_text(), re.M))
+    libraries["raw_ptr"]["public_headers"] = sorted("src/" + path for path in public_headers)
     action = graph["targets"][prefix + "buildflags"]
     output = "base/allocator/partition_allocator/src/partition_alloc/buildflags.h"
     if action["type"] != "action" or action["script"] != root + "src/partition_alloc/write_buildflag_header.py" or action["deps"] != [prefix + "buildflag_macro"] or action.get("inputs") or action.get("sources"):
@@ -96,10 +109,11 @@ def capture(graph):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--graph", type=Path, required=True)
+    parser.add_argument("--source-root", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     content = args.graph.read_bytes()
-    libraries, headers, flags = capture(json.loads(gzip.decompress(content)))
+    libraries, headers, flags = capture(json.loads(gzip.decompress(content)), args.source_root)
     args.output.write_text('"""PartitionAlloc from Electron 39 Linux AMD64 GN capture."""\n\nPARTITION_ALLOC_PROFILE_SHA256 = ' + repr(hashlib.sha256(content).hexdigest()) + '\n\nPARTITION_ALLOC_LIBRARIES = ' + json.dumps(libraries, indent=4) + '\n\nPARTITION_ALLOC_HEADERS = ' + json.dumps(headers, indent=4) + '\n\nPARTITION_ALLOC_BUILDFLAGS = ' + json.dumps(flags, indent=4) + '\n')
 
 
