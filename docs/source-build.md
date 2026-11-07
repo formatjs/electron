@@ -1121,3 +1121,51 @@ headers and Crashpad's assembly include are declared source inputs. Skia
 recapture remains byte-identical after sharing the profile ownership loader.
 Action analysis found no CMake or foreign-cc actions. Full Electron remains
 unlinked; existing cross probes cover their named platform boundaries.
+
+## Native display closure
+
+`electron_display_sources` translates the complete captured `ui/display:display`
+and `ui/display/mojom:mojom` roots: 118 native units in 22 library/group targets,
+21 original Python actions and three literal GN metadata targets. Existing
+gfx/Skia/Mojo/Base providers retain their source and target identities. Chromium
+provides device event logging, EDID parsing, native display models and the full
+display/gfx Mojo traits. No new upstream source revision is introduced.
+
+```mermaid
+flowchart TD
+  Shared[Native gfx / Skia / Mojo / Base] --> Display[Original display models / utilities]
+  Mojo[Original parser / wire generators] --> Wire[Display / gfx wire types]
+  Display --> Wire
+  Wire --> Probe[Display model / monitor changes / malformed wire checks]
+  Display --> Events[Remaining events / content dependencies]
+```
+
+`display_test` checks native/logical coordinates, work-area insets after scaling
+and relocation, monitor enumeration/change/removal notifications, primary-display
+changes and display wire roundtrips. Original ScreenInfos deserialization must
+reject empty lists, duplicate IDs and missing selected IDs. Test models use
+explicit values; no host display discovery participates. Generator children use
+`-s -P` with an explicit environment and `PYTHONHASHSEED=0`: `-I` would ignore
+the seed. Empty PATH, disabled user site/current-directory imports and
+changed-path/mtime output checks remain active. The shared Mojo projection patches
+only parser diagnostic filenames to source-relative paths; compound `EnableIf`
+AST nodes retain those names in pickles. Feature evaluation and generated wire
+semantics remain original. Physical display/GPU
+execution remains separate coverage. Full profiles remain Linux AMD64.
+
+Recapture from the matching Electron-patched Chromium checkout:
+
+```sh
+python3 tools/capture_display.py \
+  --graph=bcr/overlay/source/native/linux_amd64.partial.json.gz \
+  --chromium-root=/path/to/electron-patched-chromium \
+  --profiles=bcr/overlay/source/native \
+  --output=bcr/overlay/source/native/display_inputs.json
+```
+
+[81686a0 components](https://formatjs.buildbuddy.io/invocation/5469ba93-723a-442d-9f7c-1aee47571ecc),
+[consumer](https://formatjs.buildbuddy.io/invocation/8c32e657-744a-4257-b51d-53ba5f139a24)
+and [cross-compile](https://formatjs.buildbuddy.io/invocation/7c3d5002-aee4-478a-bc66-fb38212ed06e)
+checks passed. The display runtime probe and existing source runtime suite passed.
+Action analysis found no CMake or foreign-cc actions. Complete Blink/content,
+other full source profiles and the Electron executable remain unfinished.
