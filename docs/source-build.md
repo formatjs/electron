@@ -74,30 +74,30 @@ is excluded, and the real `decrepit/macros.h` dependency is declared explicitly.
 
 ## Native Node dependencies
 
-The Linux AMD64 profile now declares Ada, c-ares, HdrHistogram, llhttp, nghttp2,
-simdjson, SQLite and uvwasi from the pinned patched Node tree. All 133 C/C++ units,
+The Linux AMD64 profile declares Ada, c-ares, HdrHistogram, llhttp, nbytes, ncrypto,
+nghttp2, Postject, simdjson, SQLite and uvwasi from the pinned patched Node tree.
+Ten compiled libraries contain 136 C/C++ units; Postject is header-only. All
 effective definitions and language-specific options come from the verified GN
 capture. Hermetic LLVM supplies compiler/sysroot/libc++; omitted global include
 roots and toolchain/diagnostic flags remain recorded. Unsupported dependency
 edges fail import rather than substituting another library version.
 
-`@electron//source:node_dependencies_test` links all eight libraries and checks
+`@electron//source:node_dependencies_test` consumes all eleven libraries and checks
 URL/JSON/HTTP parsing, IPv6 conversion, histogram recording, HTTP/2 settings,
 SQLite FTS5/session configuration and WASI argument transfer.
-[4cdf425 source components](https://formatjs.buildbuddy.io/invocation/2a3b5827-c0ff-4435-ba97-6922950889a4)
-and [BCR consumer](https://formatjs.buildbuddy.io/invocation/af1a822c-1bd7-4b88-acc6-f961b36e278c)
+[9395812 source components](https://formatjs.buildbuddy.io/invocation/6f893782-be77-4e46-a6ff-030d79cdc260)
+and [BCR consumer](https://formatjs.buildbuddy.io/invocation/52bfde1b-8468-476d-9866-109a133c1935)
 both passed compilation and the linked probe. This does not link libnode or
 Electron. Other target profiles remain unsupported for these libraries.
 
-The expanded profile adds nbytes, ncrypto and header-only Postject: 136 compiled
-units across ten libraries plus one header library. ncrypto uses the existing
-Electron-patched BoringSSL provider; its GN include mapping remains recorded.
-The linked probe checks unaligned byte swaps and invalid lengths, the
+ncrypto uses the existing Electron-patched BoringSSL provider; its GN include
+mapping remains recorded. The linked probe also checks unaligned byte swaps
+and invalid lengths, the
 [RFC 5869 A.1 HKDF vector](https://www.rfc-editor.org/rfc/rfc5869.html#appendix-A.1)
 and output-length limits, plus Postject lookup of a declared ELF note and missing
-resources. The note is assembled by the execution toolchain. No host binary
-editing tool or alternate crypto runtime is used. Hosted results must establish
-this expansion before claiming validation.
+resources. The execution toolchain assembles the fixture note, linked statically
+into the main test executable because Postject searches that executable. No host
+binary editing tool or alternate crypto runtime is used.
 
 Regenerate the inventory from the same graph:
 
