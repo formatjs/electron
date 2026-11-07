@@ -1,22 +1,21 @@
 // SPDX-License-Identifier: MIT
 #include <cstddef>
+#include <cerrno>
+#include <csignal>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <initializer_list>
 #include <limits>
+#include <sys/resource.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 #include "partition_alloc/partition_address_space.h"
 #include "partition_alloc/shim/allocator_shim.h"
 
 namespace {
-void Checkpoint(const char* text) {
-  const ssize_t written = write(STDERR_FILENO, text, std::strlen(text));
-  (void)written;
-}
-
 void Require(bool condition, const char* message) {
   if (!condition) {
     std::fprintf(stderr, "check failed: %s\n", message);
@@ -33,29 +32,43 @@ void Pattern(void* memory, size_t length, unsigned char value) {
     Require(static_cast<unsigned char*>(memory)[index] == value, "PartitionAlloc preserved bytes");
   }
 }
+
+void CheckCallocOverflow() {
+  const pid_t child = fork();
+  Require(child >= 0, "PartitionAlloc overflow child starts");
+  if (child == 0) {
+    const rlimit limit = {0, 0};
+    if (setrlimit(RLIMIT_CORE, &limit) != 0) _exit(90);
+    allocator_shim::UncheckedCalloc(std::numeric_limits<size_t>::max(), 2);
+    _exit(91);
+  }
+  int status = 0;
+  pid_t result;
+  do {
+    result = waitpid(child, &status, 0);
+  } while (result < 0 && errno == EINTR);
+  Require(result == child, "PartitionAlloc overflow child waited");
+  Require(WIFSIGNALED(status) && WTERMSIG(status) == SIGILL, "PartitionAlloc calloc overflow traps");
+}
 }  // namespace
 
 int main() {
-  Checkpoint("PARTITION_ALLOC_ENTRY\n");
   void* memory = allocator_shim::UncheckedAlloc(3333);
   Managed(memory);
   std::memset(memory, 0x6b, 3333);
-  Checkpoint("PARTITION_ALLOC_ALLOC\n");
   void* grown = allocator_shim::UncheckedRealloc(memory, 6553);
   Managed(grown);
   Pattern(grown, 3333, 0x6b);
   Require(!allocator_shim::UncheckedRealloc(grown, std::numeric_limits<size_t>::max()), "PartitionAlloc failed realloc returns null");
   Pattern(grown, 3333, 0x6b);
   allocator_shim::UncheckedFree(grown);
-  Checkpoint("PARTITION_ALLOC_REALLOC\n");
 
   memory = allocator_shim::UncheckedCalloc(37, 29);
   Managed(memory);
   Pattern(memory, 37 * 29, 0);
   allocator_shim::UncheckedFree(memory);
-  Require(!allocator_shim::UncheckedCalloc(std::numeric_limits<size_t>::max(), 2), "PartitionAlloc calloc overflow rejected");
+  CheckCallocOverflow();
   Require(!allocator_shim::UncheckedAlloc(std::numeric_limits<size_t>::max()), "PartitionAlloc oversized allocation rejected");
-  Checkpoint("PARTITION_ALLOC_CALLOC\n");
 
   for (size_t alignment : {size_t{16}, size_t{64}, size_t{4096}}) {
     // The implementation takes size, alignment.
@@ -69,18 +82,14 @@ int main() {
     Pattern(grown, 3333, 0x7c);
     allocator_shim::UncheckedAlignedFree(grown);
   }
-  Checkpoint("PARTITION_ALLOC_ALIGNED\n");
 
   memory = std::malloc(128);
   Managed(memory);
   std::free(memory);
-  Checkpoint("PARTITION_ALLOC_LIBC\n");
   auto* value = new uint64_t(0x123456789abcdef0ULL);
   Managed(value);
   Require(*value == 0x123456789abcdef0ULL, "PartitionAlloc C++ new value");
   delete value;
-  Checkpoint("PARTITION_ALLOC_NEW\n");
   allocator_shim::UncheckedFree(nullptr);
-  Checkpoint("PARTITION_ALLOC_DONE\n");
   return 0;
 }

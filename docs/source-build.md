@@ -245,7 +245,10 @@ backup-ref-pointer and thread-isolation settings.
 
 `@electron//source:partition_alloc_test` links the real shim and checks heap
 ownership, allocation/zeroing, realloc preservation and failed-realloc safety,
-overflow rejection and aligned allocation/reallocation. It also checks that
+overflow handling and aligned allocation/reallocation. A child process checks
+the upstream SIGILL trap on calloc multiplication overflow, with core dumps
+disabled; oversized allocation and failed realloc must still return null.
+It also checks that
 ordinary `malloc` and C++ `new` use PartitionAlloc. No replacement allocator or
 allocation stub supplies this prerequisite. Hosted validation remains required;
 Temporal Rust linking itself remains unfinished.
