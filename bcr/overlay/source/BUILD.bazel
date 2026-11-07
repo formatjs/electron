@@ -31,9 +31,17 @@ alias(
 cc_test(
     name = "network_test",
     srcs = ["network_test.cc"],
-    args = ["$(rootpath @electron_icu_sources//:common/icudtl.dat)"],
+    args = [
+        "$(rootpath @electron_icu_sources//:common/icudtl.dat)",
+        "$(rootpath @nss//:libfreeblpriv3.so)",
+        "$(rootpath @nss//:libfreeblpriv3.chk)",
+    ],
     copts = NETWORK_PROFILE["libraries"]["//net:net"]["copts"],
-    data = ["@electron_icu_sources//:common/icudtl.dat"],
+    data = [
+        "@electron_icu_sources//:common/icudtl.dat",
+        "@nss//:libfreeblpriv3.chk",
+        "@nss//:libfreeblpriv3.so",
+    ],
     env = {
         "LANG": "C",
         "LC_ALL": "C",

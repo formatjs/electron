@@ -63,7 +63,7 @@ def _impl(ctx):
         remote, commit = entry["url"].rsplit("@", 1)
         patches = ["@electron//:patches/%s/%s" % (group, patch) for patch in entry["patches"]]
         if group == "boringssl":
-            git_repository(name = name, remote = remote, commit = commit, patches = patches + [Label("//source:boringssl-electron.patch")], patch_strip = 1)
+            git_repository(name = name, remote = remote, commit = commit, patches = patches + [Label("//source:boringssl-electron.patch"), Label("//source:boringssl-chromium.patch")], patch_strip = 1)
         else:
             new_git_repository(name = name, remote = remote, commit = commit, patches = patches, patch_strip = 1, build_file_content = "package(default_visibility = [\"//visibility:public\"])\n" + ("exports_files([\"BUILD.gn\"])\n" if group == "perfetto" else "") + "filegroup(name = \"source_anchor\", srcs = glob([\"*\"], exclude = [\"BUILD.bazel\"]))")
         dependency_repos.append(name)

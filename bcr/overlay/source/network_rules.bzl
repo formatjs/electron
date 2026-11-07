@@ -58,7 +58,7 @@ def electron_network():
         )
     for original, library in PROFILE["libraries"].items():
         settings = dict(
-            hdrs = [_file(path) for path in library["generated_headers"]],
+            hdrs = {_file(path): True for path in library["generated_headers"] + library["public_headers"]}.keys(),
             local_defines = library["defines"],
             includes = library["includes"],
             linkopts = ["-l" + name for name in library["libs"] if name in ["m", "dl", "rt", "pthread", "resolv"]],

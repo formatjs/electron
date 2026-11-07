@@ -2,6 +2,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <dlfcn.h>
+#include <fstream>
 #include <string>
 #include <utility>
 
@@ -11,6 +13,7 @@
 #include "base/files/file.h"
 #include "base/files/file_util.h"
 #include "base/files/memory_mapped_file.h"
+#include "base/files/scoped_temp_dir.h"
 #include "base/i18n/icu_util.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/task/single_thread_task_executor.h"
@@ -26,6 +29,7 @@
 #include "net/http/transport_security_state.h"
 #include "nss.h"
 #include "pk11pub.h"
+#include "lib/freebl/loader.h"
 #include "sql/database.h"
 #include "sql/statement.h"
 #include "url/gurl.h"
@@ -103,10 +107,52 @@ void CheckMojo() {
   Require(MojoUnmapBuffer(original) == MOJO_RESULT_OK && MojoUnmapBuffer(copy) == MOJO_RESULT_OK && MojoClose(buffer) == MOJO_RESULT_OK && MojoClose(duplicate) == MOJO_RESULT_OK, "shared buffer cleanup");
   Require(MojoClose(MOJO_HANDLE_INVALID) == MOJO_RESULT_INVALID_ARGUMENT, "invalid Mojo handle rejected");
 }
+
+void CheckIntegrity(const char* module_argument, const char* checksum_argument) {
+  const auto module = base::MakeAbsoluteFilePath(base::FilePath(module_argument));
+  const auto checksum = base::MakeAbsoluteFilePath(base::FilePath(checksum_argument));
+  Require(!module.empty() && !checksum.empty(), "declared NSS integrity files");
+  void* library = dlopen(module.value().c_str(), RTLD_NOW | RTLD_LOCAL);
+  Require(library != nullptr, "declared NSS implementation load");
+  auto get_vector = reinterpret_cast<FREEBLGetVectorFn*>(dlsym(library, "FREEBL_GetVector"));
+  Require(get_vector != nullptr, "original NSS vector entry point");
+  const auto* vector = get_vector();
+  Require(vector && vector->p_BLAPI_SHVerifyFile(module.value().c_str()), "original NSS accepts generated integrity");
+  base::ScopedTempDir temporary;
+  Require(temporary.CreateUniqueTempDir(), "NSS integrity temporary directory");
+  const auto copied = temporary.GetPath().AppendASCII("module.so");
+  const auto copied_checksum = temporary.GetPath().AppendASCII("module.chk");
+  Require(base::CopyFile(module, copied) && base::CopyFile(checksum, copied_checksum), "NSS integrity file relocation");
+  Require(vector->p_BLAPI_SHVerifyFile(copied.value().c_str()), "original NSS accepts relocated integrity");
+  {
+    std::fstream file(copied.value(), std::ios::in | std::ios::out | std::ios::binary);
+    file.seekg(-1, std::ios::end);
+    char byte;
+    file.read(&byte, 1);
+    byte ^= 1;
+    file.seekp(-1, std::ios::end);
+    file.write(&byte, 1);
+    Require(file.good(), "NSS corruption fixture write");
+  }
+  Require(!vector->p_BLAPI_SHVerifyFile(copied.value().c_str()), "original NSS rejects corrupt module");
+  Require(base::CopyFile(module, copied), "NSS module fixture restoration");
+  {
+    std::fstream file(copied_checksum.value(), std::ios::in | std::ios::out | std::ios::binary);
+    file.seekg(-1, std::ios::end);
+    char byte;
+    file.read(&byte, 1);
+    byte ^= 1;
+    file.seekp(-1, std::ios::end);
+    file.write(&byte, 1);
+    Require(file.good(), "NSS signature fixture write");
+  }
+  Require(!vector->p_BLAPI_SHVerifyFile(copied.value().c_str()), "original NSS rejects corrupt integrity");
+  Require(dlclose(library) == 0, "NSS integrity library cleanup");
+}
 }  // namespace
 
 int main(int argc, char** argv) {
-  Require(argc == 2, "declared ICU argument");
+  Require(argc == 4, "declared ICU and NSS integrity arguments");
   base::AtExitManager at_exit;
   base::CommandLine::Init(argc, argv);
   Require(base::FeatureList::InitInstance("", ""), "default feature initialization");
@@ -116,6 +162,8 @@ int main(int argc, char** argv) {
   Require(data.IsValid() && base::i18n::InitializeICUWithFileDescriptor(data.TakePlatformFile(), base::MemoryMappedFile::Region::kWholeFile), "declared ICU initialization");
   Stage("modules");
   CheckNetwork();
+  Stage("integrity");
+  CheckIntegrity(argv[2], argv[3]);
   Stage("platform");
   base::Thread thread("mojo-io");
   base::Thread::Options options;

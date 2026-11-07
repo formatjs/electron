@@ -27,7 +27,7 @@ def capture(graph, chromium, quiche, re2, sqlite, profiles):
         external.update(profile.get("external", {}))
         if name == "protobuf":
             external.update({label: "@electron_protobuf_sources//:" + target["name"] for label, target in profile["libraries"].items()})
-    external.update({"//third_party/boringssl:boringssl": "@electron_boringssl_sources//:ssl", "//third_party/icu:icu": "@electron_icu_sources//:icu", "//third_party/abseil-cpp:absl": "@electron_protobuf_sources//:abseil", "//third_party/zlib:zlib": "@electron_v8_support_sources//:zlib", "//third_party/compiler-rt:atomic": ":atomic_runtime"})
+    external.update({"//third_party/boringssl:boringssl": "@electron_boringssl_sources//:chromium", "//third_party/icu:icu": "@electron_icu_sources//:icu", "//third_party/abseil-cpp:absl": "@electron_protobuf_sources//:abseil", "//third_party/zlib:zlib": "@electron_v8_support_sources//:zlib", "//third_party/compiler-rt:atomic": ":atomic_runtime"})
     for revision in ("c0df0d316bd7e4ddf44e5ba094b5c5b061d94b0c", "cd7b2823a8375371f7efe6dae17837c9ab407693"):
         if revision not in (chromium / "DEPS").read_text():
             raise ValueError("Network DEPS pin changed")
@@ -123,9 +123,11 @@ def capture(graph, chromium, quiche, re2, sqlite, profiles):
             actions[label] = record
         elif kind in ("static_library", "source_set", "executable", "group"):
             sources = target.get("sources", [])
+            public = target.get("public", [])
+            public = public if isinstance(public, list) else []
             if any(Path(path).suffix not in (".h", ".inc", ".cc", ".cpp", ".c", ".S", ".s") for path in sources):
                 raise ValueError("Untranslated network source language: " + label)
-            for path in sources:
+            for path in sources + public:
                 input_file(path)
             flags, omitted = {}, []
             for language, key in [("cc", "cflags_cc"), ("c", "cflags_c"), ("asm", "asmflags")]:
@@ -149,6 +151,7 @@ def capture(graph, chromium, quiche, re2, sqlite, profiles):
             if set(libs) - {"m", "dl", "rt", "pthread", "resolv", "gio-2.0", "glib-2.0", "gmodule-2.0", "gobject-2.0", "gthread-2.0", "nspr4", "nss3", "nssutil3", "plc4", "plds4", "smime3", "$LLVM_ROOT/lib/clang/23/lib/x86_64-unknown-linux-gnu/libclang_rt.builtins.a"}:
                 raise ValueError("Untranslated network library")
             record.update(srcs=[path for path in sources if path.endswith((".cc", ".cpp"))], c_srcs=[path for path in sources if path.endswith(".c")], asm_srcs=[path for path in sources if path.endswith((".S", ".s"))], generated_headers=[path for path in sources if path.startswith(BUILD) and path.endswith((".h", ".inc"))], copts=flags["cc"], c_copts=flags["c"], asm_copts=flags["asm"], defines=[item.replace('"', '\\"') for item in value(target, "defines")], includes=includes, libs=libs, gn_include_dirs=value(target, "include_dirs"), gn_ldflags=value(target, "ldflags"), omitted_toolchain_and_diagnostic_flags=sorted(set(omitted)))
+            record["public_headers"] = public
             libraries[label] = record
         else:
             raise ValueError("Untranslated network target kind: " + kind)

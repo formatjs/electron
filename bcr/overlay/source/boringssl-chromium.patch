@@ -1,0 +1,17 @@
+--- a/BUILD.bazel
++++ b/BUILD.bazel
+@@ -46,1 +46,2 @@
+ load(":util/util.bzl", "bssl_cc_binary", "bssl_cc_library", "bssl_cc_test")
++load("@rules_cc//cc:cc_library.bzl", "cc_library")
+@@ -205,2 +206,11 @@
+     ],
+ )
++
++cc_library(
++    name = "chromium",
++    hdrs = pki_headers + pki_internal_headers,
++    includes = ["."],
++    include_prefix = "third_party/boringssl/src",
++    deps = [":ssl", ":pki"],
++    visibility = ["//visibility:public"],
++)

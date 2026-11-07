@@ -398,7 +398,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//base/version_info:version_info": {
       "name": "target_f69d39c4c7e97bd6",
@@ -756,7 +757,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//build/config:common_deps": {
       "name": "target_ed70b5b92940cdea",
@@ -780,7 +782,8 @@
       ],
       "gn_include_dirs": [],
       "gn_ldflags": [],
-      "omitted_toolchain_and_diagnostic_flags": []
+      "omitted_toolchain_and_diagnostic_flags": [],
+      "public_headers": []
     },
     "//build/config:common_deps_without_libcxx": {
       "name": "target_62511b5b4d415880",
@@ -800,7 +803,8 @@
       "libs": [],
       "gn_include_dirs": [],
       "gn_ldflags": [],
-      "omitted_toolchain_and_diagnostic_flags": []
+      "omitted_toolchain_and_diagnostic_flags": [],
+      "public_headers": []
     },
     "//build/config:executable_deps": {
       "name": "target_a25bb68e24a3659f",
@@ -822,7 +826,8 @@
       ],
       "gn_include_dirs": [],
       "gn_ldflags": [],
-      "omitted_toolchain_and_diagnostic_flags": []
+      "omitted_toolchain_and_diagnostic_flags": [],
+      "public_headers": []
     },
     "//build/config:toolchain_marker_clang_x64": {
       "name": "target_69e82cc6d4924cdd",
@@ -840,7 +845,8 @@
       "libs": [],
       "gn_include_dirs": [],
       "gn_ldflags": [],
-      "omitted_toolchain_and_diagnostic_flags": []
+      "omitted_toolchain_and_diagnostic_flags": [],
+      "public_headers": []
     },
     "//components/cbor:cbor": {
       "name": "target_18fdbbc956f2620f",
@@ -1200,7 +1206,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//components/miracle_parameter/common:common": {
       "name": "target_0b8264d7eb7b2ad9",
@@ -1556,7 +1563,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//components/network_time/time_tracker:time_tracker": {
       "name": "target_3d42a633c3e954bc",
@@ -1911,7 +1919,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//components/performance_manager/scenario_api:scenario_api": {
       "name": "target_c57b918e9148e3ae",
@@ -2269,7 +2278,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//components/sqlite_proto:sqlite_proto": {
       "name": "target_2c17b3344f800fae",
@@ -2631,7 +2641,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//components/unexportable_keys:unexportable_keys": {
       "name": "target_12f64e8082dc6a5c",
@@ -3003,7 +3014,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//crypto:crypto": {
       "name": "target_1309f2d3a056201c",
@@ -3398,7 +3410,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//mojo/core/embedder:embedder": {
       "name": "target_b03227ebe255126d",
@@ -3777,6 +3790,11 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
+      ],
+      "public_headers": [
+        "//mojo/core/embedder/configuration.h",
+        "//mojo/core/embedder/embedder.h",
+        "//mojo/core/embedder/scoped_ipc_support.h"
       ]
     },
     "//mojo/core/embedder:features": {
@@ -4134,6 +4152,9 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
+      ],
+      "public_headers": [
+        "//mojo/core/embedder/features.h"
       ]
     },
     "//mojo/core:embedder_internal": {
@@ -4503,7 +4524,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//mojo/core:impl_for_embedder": {
       "name": "target_14c17813d8bca5d1",
@@ -4908,6 +4930,31 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
+      ],
+      "public_headers": [
+        "//mojo/core/channel.h",
+        "//mojo/core/configuration.h",
+        "//mojo/core/connection_params.h",
+        "//mojo/core/core_ipcz.h",
+        "//mojo/core/embedder/configuration.h",
+        "//mojo/core/embedder/process_error_callback.h",
+        "//mojo/core/handle_signals_state.h",
+        "//mojo/core/ipcz_api.h",
+        "//mojo/core/ipcz_driver/base_shared_memory_service.h",
+        "//mojo/core/ipcz_driver/driver.h",
+        "//mojo/core/ipcz_driver/envelope.h",
+        "//mojo/core/ipcz_driver/invitation.h",
+        "//mojo/core/ipcz_driver/mojo_message.h",
+        "//mojo/core/ipcz_driver/object.h",
+        "//mojo/core/ipcz_driver/ring_buffer.h",
+        "//mojo/core/ipcz_driver/shared_buffer.h",
+        "//mojo/core/ipcz_driver/shared_buffer_mapping.h",
+        "//mojo/core/ipcz_driver/transmissible_platform_handle.h",
+        "//mojo/core/ipcz_driver/transport.h",
+        "//mojo/core/ipcz_driver/wrapped_platform_handle.h",
+        "//mojo/core/platform_handle_utils.h",
+        "//mojo/core/scoped_ipcz_handle.h",
+        "//mojo/core/channel_linux.h"
       ]
     },
     "//mojo/public/c/system:headers": {
@@ -5216,6 +5263,20 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
+      ],
+      "public_headers": [
+        "//mojo/public/c/system/buffer.h",
+        "//mojo/public/c/system/core.h",
+        "//mojo/public/c/system/data_pipe.h",
+        "//mojo/public/c/system/functions.h",
+        "//mojo/public/c/system/invitation.h",
+        "//mojo/public/c/system/macros.h",
+        "//mojo/public/c/system/message_pipe.h",
+        "//mojo/public/c/system/platform_handle.h",
+        "//mojo/public/c/system/system_export.h",
+        "//mojo/public/c/system/thunks.h",
+        "//mojo/public/c/system/trap.h",
+        "//mojo/public/c/system/types.h"
       ]
     },
     "//mojo/public/c/system:system": {
@@ -5573,7 +5634,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//mojo/public/cpp/bindings:default_construct_tag": {
       "name": "target_a0a574b85b23c3a3",
@@ -5881,7 +5943,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//mojo/public/cpp/platform:platform": {
       "name": "target_ca6d70bb724def92",
@@ -6272,6 +6335,16 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
+      ],
+      "public_headers": [
+        "//mojo/public/cpp/platform/platform_channel.h",
+        "//mojo/public/cpp/platform/platform_channel_endpoint.h",
+        "//mojo/public/cpp/platform/platform_channel_server_endpoint.h",
+        "//mojo/public/cpp/platform/platform_handle.h",
+        "//mojo/public/cpp/platform/platform_handle_internal.h",
+        "//mojo/public/cpp/platform/socket_utils_posix.h",
+        "//mojo/public/cpp/platform/platform_channel_server.h",
+        "//mojo/public/cpp/platform/named_platform_channel.h"
       ]
     },
     "//net/cert:root_store_proto_full": {
@@ -6593,7 +6666,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//net/cert:root_store_proto_full_input_group": {
       "name": "target_70cb27cbc740a591",
@@ -6611,7 +6685,8 @@
       "libs": [],
       "gn_include_dirs": [],
       "gn_ldflags": [],
-      "omitted_toolchain_and_diagnostic_flags": []
+      "omitted_toolchain_and_diagnostic_flags": [],
+      "public_headers": []
     },
     "//net/cert:root_store_proto_lite": {
       "name": "target_ee4fbee20609553b",
@@ -6932,7 +7007,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//net/cert:root_store_proto_lite_input_group": {
       "name": "target_4b26f2c332808ac1",
@@ -6950,7 +7026,8 @@
       "libs": [],
       "gn_include_dirs": [],
       "gn_ldflags": [],
-      "omitted_toolchain_and_diagnostic_flags": []
+      "omitted_toolchain_and_diagnostic_flags": [],
+      "public_headers": []
     },
     "//net/dns/public:public": {
       "name": "target_29a09fb96f80f53b",
@@ -7359,7 +7436,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//net/dns:dns": {
       "name": "target_907728a31a81f45f",
@@ -7815,7 +7893,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//net/dns:dns_client": {
       "name": "target_e8a7401b2d5ed5f4",
@@ -8213,7 +8292,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//net/dns:host_resolver": {
       "name": "target_8afdac9e2f8792ca",
@@ -8610,7 +8690,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//net/dns:host_resolver_manager": {
       "name": "target_3eb0649cf3bdb25a",
@@ -9008,7 +9089,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//net/dns:mdns_client": {
       "name": "target_11729a43bb3c6b7e",
@@ -9406,7 +9488,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//net/http:transport_security_state_generated_files": {
       "name": "target_ae2fc68c459a6e0c",
@@ -9809,7 +9892,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//net/third_party/quiche:net_quic_proto": {
       "name": "target_feb3f72cb1c5428c",
@@ -10178,7 +10262,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//net/third_party/quiche:net_quic_proto_input_group": {
       "name": "target_23bebefd901b5a82",
@@ -10196,7 +10281,8 @@
       "libs": [],
       "gn_include_dirs": [],
       "gn_ldflags": [],
-      "omitted_toolchain_and_diagnostic_flags": []
+      "omitted_toolchain_and_diagnostic_flags": [],
+      "public_headers": []
     },
     "//net/third_party/quiche:net_quic_test_tools_proto": {
       "name": "target_8230d4a8e742ff95",
@@ -10519,7 +10605,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//net/third_party/quiche:net_quic_test_tools_proto_input_group": {
       "name": "target_4ce37201e824583d",
@@ -10537,7 +10624,8 @@
       "libs": [],
       "gn_include_dirs": [],
       "gn_ldflags": [],
-      "omitted_toolchain_and_diagnostic_flags": []
+      "omitted_toolchain_and_diagnostic_flags": [],
+      "public_headers": []
     },
     "//net/third_party/quiche:quiche": {
       "name": "target_f5e49912b5aa4571",
@@ -11234,7 +11322,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//net/third_party/uri_template:uri_template": {
       "name": "target_f685ac7801e25612",
@@ -11590,7 +11679,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//net/tools/huffman_trie:huffman_trie_generator_sources": {
       "name": "target_0273d2c4d63357bb",
@@ -11949,7 +12039,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//net/tools/root_store_tool:root_store_tool": {
       "name": "target_1a38c535b92735f0",
@@ -12323,7 +12414,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//net/tools/transport_security_state_generator:transport_security_state_generator": {
       "name": "target_cbf54ca99cccfb8e",
@@ -12687,7 +12779,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//net/tools/transport_security_state_generator:transport_security_state_generator_sources": {
       "name": "target_b0b3f22d89ac3c00",
@@ -13050,7 +13143,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//net/traffic_annotation:traffic_annotation": {
       "name": "target_61e9565d25d2832a",
@@ -13403,7 +13497,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//net:constants": {
       "name": "target_60ad37b37979b5c6",
@@ -13756,7 +13851,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//net:device_bound_sessions_storage_proto": {
       "name": "target_a29f0baaa501606b",
@@ -14077,7 +14173,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//net:device_bound_sessions_storage_proto_input_group": {
       "name": "target_c6d4c3ed93981e02",
@@ -14095,7 +14192,8 @@
       "libs": [],
       "gn_include_dirs": [],
       "gn_ldflags": [],
-      "omitted_toolchain_and_diagnostic_flags": []
+      "omitted_toolchain_and_diagnostic_flags": [],
+      "public_headers": []
     },
     "//net:isolation_info_proto": {
       "name": "target_4dbbc26bd1a3c4c0",
@@ -14416,7 +14514,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//net:isolation_info_proto_input_group": {
       "name": "target_85dc710ff4f87d1e",
@@ -14434,7 +14533,8 @@
       "libs": [],
       "gn_include_dirs": [],
       "gn_ldflags": [],
-      "omitted_toolchain_and_diagnostic_flags": []
+      "omitted_toolchain_and_diagnostic_flags": [],
+      "public_headers": []
     },
     "//net:net": {
       "name": "target_211be4e8e759f7c4",
@@ -15429,7 +15529,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//net:net_deps": {
       "name": "target_608e18526e5d54cf",
@@ -15825,7 +15926,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//net:net_export_header": {
       "name": "target_a8f579c34f91d38c",
@@ -16133,7 +16235,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//net:net_features": {
       "name": "target_ad8ba7dbad5fa137",
@@ -16490,7 +16593,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//net:net_nqe_proto": {
       "name": "target_9b4f81329dfd210b",
@@ -16813,7 +16917,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//net:net_nqe_proto_input_group": {
       "name": "target_8fb5955ab19f839c",
@@ -16831,7 +16936,8 @@
       "libs": [],
       "gn_include_dirs": [],
       "gn_ldflags": [],
-      "omitted_toolchain_and_diagnostic_flags": []
+      "omitted_toolchain_and_diagnostic_flags": [],
+      "public_headers": []
     },
     "//net:net_public_deps": {
       "name": "target_e6d5eaabe0fbdd6e",
@@ -17211,7 +17317,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//net:net_resources": {
       "name": "target_37b46184a17e5302",
@@ -17522,7 +17629,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//net:preload_decoder": {
       "name": "target_8c389311d553d2c8",
@@ -17877,7 +17985,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//sql:sql": {
       "name": "target_a866aa0adf8cd857",
@@ -18291,7 +18400,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//third_party/re2:re2": {
       "name": "target_588ba68fff29dde3",
@@ -18591,7 +18701,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     },
     "//third_party/sqlite:chromium_sqlite3": {
       "name": "target_dcc16bf90afada3d",
@@ -18941,6 +19052,9 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
+      ],
+      "public_headers": [
+        "//third_party/sqlite/sqlite3.h"
       ]
     },
     "//third_party/sqlite:sqlite": {
@@ -18963,7 +19077,8 @@
       ],
       "gn_include_dirs": [],
       "gn_ldflags": [],
-      "omitted_toolchain_and_diagnostic_flags": []
+      "omitted_toolchain_and_diagnostic_flags": [],
+      "public_headers": []
     },
     "//ui/base/glib:glib": {
       "name": "target_9987354472d4ebe1",
@@ -19324,6 +19439,13 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
+      ],
+      "public_headers": [
+        "//ui/base/glib/glib_cast.h",
+        "//ui/base/glib/glib_integers.h",
+        "//ui/base/glib/scoped_gobject.h",
+        "//ui/base/glib/scoped_gsignal.h",
+        "//ui/base/glib/gsettings.h"
       ]
     },
     "//url:url": {
@@ -19721,7 +19843,8 @@
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
-      ]
+      ],
+      "public_headers": []
     }
   },
   "actions": {
@@ -25270,6 +25393,7 @@
     "third_party/re2/src/util/strutil.cc",
     "third_party/re2/src/util/strutil.h",
     "third_party/re2/src/util/utf.h",
+    "third_party/sqlite/sqlite3.h",
     "third_party/sqlite/sqlite3_shim.c",
     "third_party/sqlite/sqlite3_shim_fixups.h",
     "third_party/sqlite/src/amalgamation/rename_exports.h",
@@ -27917,7 +28041,7 @@
     "//build:chromeos_buildflags": "@electron_base_sources//:target_700c9f3ea0d9460e",
     "//electron/build/config:generate_mas_config": "@electron_base_sources//:target_39b7c87f36858dfe",
     "//third_party/abseil-cpp:absl": "@electron_protobuf_sources//:abseil",
-    "//third_party/boringssl:boringssl": "@electron_boringssl_sources//:ssl",
+    "//third_party/boringssl:boringssl": "@electron_boringssl_sources//:chromium",
     "//third_party/brotli:dec": "@electron_libnode_sources//:target_2541e248822dff8e",
     "//third_party/compiler-rt:atomic": ":atomic_runtime",
     "//third_party/icu:icu": "@electron_icu_sources//:icu",
