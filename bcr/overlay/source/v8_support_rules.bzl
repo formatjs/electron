@@ -14,7 +14,7 @@ def electron_v8_support():
             srcs = library["srcs"],
             copts = library["copts"],
             local_defines = library["defines"],
-            includes = library["includes"] + (["third_party/zlib"] if library["family"] == "zlib" else []),
+            includes = library["includes"] + (["third_party/zlib"] if library["family"] == "zlib" else []) + (["third_party/zlib/google"] if name == "compression_utils_portable" else []),
             linkstatic = True,
             alwayslink = library["kind"] == "source_set",
             target_compatible_with = ["@platforms//os:linux", "@platforms//cpu:x86_64"],
