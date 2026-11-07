@@ -5,6 +5,7 @@ import argparse
 import gzip
 import hashlib
 import json
+import re
 from pathlib import Path
 
 from capture_mojo import SCRIPTS as MOJO_SCRIPTS
@@ -110,11 +111,20 @@ def capture(graph, digest, chromium, libdrm, libsync, profiles):
             libraries[label] = capture_library(graph, target, record, input_file, label)
         else:
             raise ValueError("Untranslated graphics target kind: " + kind)
+    textual_headers = set()
+    for library in libraries.values():
+        for path in library["asm_srcs"]:
+            for include in re.findall(r'^\s*#\s*include\s*["<]([^">]+\.S)[">]', physical(path[2:]).read_text(), re.M):
+                candidate = "third_party/crashpad/crashpad/" + include
+                if not physical(candidate).is_file():
+                    raise ValueError("Missing original assembly include: " + include)
+                textual_headers.add(candidate)
+                input_file("//" + candidate)
     for path in files:
         if not physical(path).is_file():
             raise ValueError("Missing original graphics input: " + path)
     used = {dep for label in seen for dep in targets[label].get("deps", []) if dep in external}
-    return dict(roots=ROOTS, graph_sha256=digest, source_revisions=PINS, names=names, libraries=libraries, actions=actions, metadata=metadata, producers=producers, headers=headers, files=sorted(files), external_files={path: shared[path] for path in sorted(used_shared)}, external={label: external[label] for label in sorted(used)}, generated_files=generated, toolchain_deps=sorted(TOOLCHAIN))
+    return dict(roots=ROOTS, graph_sha256=digest, source_revisions=PINS, names=names, libraries=libraries, actions=actions, metadata=metadata, producers=producers, headers=headers, textual_headers=sorted(textual_headers), files=sorted(files), external_files={path: shared[path] for path in sorted(used_shared)}, external={label: external[label] for label in sorted(used)}, generated_files=generated, toolchain_deps=sorted(TOOLCHAIN))
 
 
 def main():

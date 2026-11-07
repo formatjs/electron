@@ -23507,6 +23507,9 @@
       "cc/cc_export.h"
     ]
   },
+  "textual_headers": [
+    "third_party/crashpad/crashpad/util/misc/arm64_pac_bti.S"
+  ],
   "files": [
     "cc/base/base_export.h",
     "cc/base/completion_event.h",
@@ -24123,6 +24126,7 @@
     "third_party/crashpad/crashpad/util/mach/task_for_pid.h",
     "third_party/crashpad/crashpad/util/misc/address_sanitizer.h",
     "third_party/crashpad/crashpad/util/misc/address_types.h",
+    "third_party/crashpad/crashpad/util/misc/arm64_pac_bti.S",
     "third_party/crashpad/crashpad/util/misc/arraysize.h",
     "third_party/crashpad/crashpad/util/misc/capture_context.h",
     "third_party/crashpad/crashpad/util/misc/capture_context_linux.S",
@@ -25511,22 +25515,22 @@
     "//out/bazel-import/gen/ui/gfx/geometry/mojom/mojom__generate_message_ids.rsp": "../../ui/gfx/geometry/mojom/geometry.mojom\n",
     "//out/bazel-import/gen/ui/gfx/geometry/mojom/mojom__generator.rsp": "../../ui/gfx/geometry/mojom/geometry.mojom\n",
     "//out/bazel-import/gen/ui/gfx/geometry/mojom/mojom__parser_action.rsp": "../../ui/gfx/geometry/mojom/geometry.mojom\n",
-    "//out/bazel-import/gen/ui/gfx/geometry/mojom/mojom.typemap_config": "[\n  {\n    \"traits_headers\": [\n      \"ui/gfx/geometry/mojom/geometry_mojom_traits.h\"\n    ],\n    \"traits_public_deps\": [\n      \":mojom_traits\"\n    ],\n    \"types\": [\n      {\n        \"cpp\": \"::gfx::Point\",\n        \"mojom\": \"gfx.mojom.Point\"\n      },\n      {\n        \"cpp\": \"::gfx::PointF\",\n        \"mojom\": \"gfx.mojom.PointF\"\n      },\n      {\n        \"cpp\": \"::gfx::Point3F\",\n        \"mojom\": \"gfx.mojom.Point3F\"\n      },\n      {\n        \"cpp\": \"::gfx::Size\",\n        \"mojom\": \"gfx.mojom.Size\"\n      },\n      {\n        \"cpp\": \"::gfx::SizeF\",\n        \"mojom\": \"gfx.mojom.SizeF\"\n      },\n      {\n        \"cpp\": \"::gfx::Rect\",\n        \"mojom\": \"gfx.mojom.Rect\"\n      },\n      {\n        \"cpp\": \"::gfx::RectF\",\n        \"mojom\": \"gfx.mojom.RectF\"\n      },\n      {\n        \"cpp\": \"::gfx::Insets\",\n        \"mojom\": \"gfx.mojom.Insets\"\n      },\n      {\n        \"cpp\": \"::gfx::InsetsF\",\n        \"mojom\": \"gfx.mojom.InsetsF\"\n      },\n      {\n        \"cpp\": \"::gfx::QuadF\",\n        \"mojom\": \"gfx.mojom.QuadF\"\n      },\n      {\n        \"cpp\": \"::gfx::Quaternion\",\n        \"mojom\": \"gfx.mojom.Quaternion\"\n      },\n      {\n        \"cpp\": \"::gfx::Vector2d\",\n        \"mojom\": \"gfx.mojom.Vector2d\"\n      },\n      {\n        \"cpp\": \"::gfx::Vector2dF\",\n        \"mojom\": \"gfx.mojom.Vector2dF\"\n      },\n      {\n        \"cpp\": \"::gfx::Vector3dF\",\n        \"mojom\": \"gfx.mojom.Vector3dF\"\n      }\n    ]\n  }\n]",
     "//out/bazel-import/gen/ui/gfx/geometry/mojom/mojom.ts_typemap_config": "[\n\n]",
+    "//out/bazel-import/gen/ui/gfx/geometry/mojom/mojom.typemap_config": "[\n  {\n    \"traits_headers\": [\n      \"ui/gfx/geometry/mojom/geometry_mojom_traits.h\"\n    ],\n    \"traits_public_deps\": [\n      \":mojom_traits\"\n    ],\n    \"types\": [\n      {\n        \"cpp\": \"::gfx::Point\",\n        \"mojom\": \"gfx.mojom.Point\"\n      },\n      {\n        \"cpp\": \"::gfx::PointF\",\n        \"mojom\": \"gfx.mojom.PointF\"\n      },\n      {\n        \"cpp\": \"::gfx::Point3F\",\n        \"mojom\": \"gfx.mojom.Point3F\"\n      },\n      {\n        \"cpp\": \"::gfx::Size\",\n        \"mojom\": \"gfx.mojom.Size\"\n      },\n      {\n        \"cpp\": \"::gfx::SizeF\",\n        \"mojom\": \"gfx.mojom.SizeF\"\n      },\n      {\n        \"cpp\": \"::gfx::Rect\",\n        \"mojom\": \"gfx.mojom.Rect\"\n      },\n      {\n        \"cpp\": \"::gfx::RectF\",\n        \"mojom\": \"gfx.mojom.RectF\"\n      },\n      {\n        \"cpp\": \"::gfx::Insets\",\n        \"mojom\": \"gfx.mojom.Insets\"\n      },\n      {\n        \"cpp\": \"::gfx::InsetsF\",\n        \"mojom\": \"gfx.mojom.InsetsF\"\n      },\n      {\n        \"cpp\": \"::gfx::QuadF\",\n        \"mojom\": \"gfx.mojom.QuadF\"\n      },\n      {\n        \"cpp\": \"::gfx::Quaternion\",\n        \"mojom\": \"gfx.mojom.Quaternion\"\n      },\n      {\n        \"cpp\": \"::gfx::Vector2d\",\n        \"mojom\": \"gfx.mojom.Vector2d\"\n      },\n      {\n        \"cpp\": \"::gfx::Vector2dF\",\n        \"mojom\": \"gfx.mojom.Vector2dF\"\n      },\n      {\n        \"cpp\": \"::gfx::Vector3dF\",\n        \"mojom\": \"gfx.mojom.Vector3dF\"\n      }\n    ]\n  }\n]",
     "//out/bazel-import/gen/ui/gfx/geometry/mojom/mojom_shared__generator.rsp": "../../ui/gfx/geometry/mojom/geometry.mojom\n",
     "//out/bazel-import/gen/ui/gfx/mojom/hdr_metadata.build_metadata": "{\n  \"deps\": [\n    \"../../../mojo/public/mojom/base/base.build_metadata\",\n    \"../../../skia/public/mojom/mojom.build_metadata\"\n  ],\n  \"sources\": [\n    \"../../../../../../ui/gfx/mojom/hdr_metadata.mojom\"\n  ]\n}",
     "//out/bazel-import/gen/ui/gfx/mojom/hdr_metadata__generate_message_ids.rsp": "../../ui/gfx/mojom/hdr_metadata.mojom\n",
     "//out/bazel-import/gen/ui/gfx/mojom/hdr_metadata__generator.rsp": "../../ui/gfx/mojom/hdr_metadata.mojom\n",
     "//out/bazel-import/gen/ui/gfx/mojom/hdr_metadata__parser_action.rsp": "../../ui/gfx/mojom/hdr_metadata.mojom\n",
-    "//out/bazel-import/gen/ui/gfx/mojom/hdr_metadata.typemap_config": "[\n  {\n    \"traits_headers\": [\n      \"ui/gfx/mojom/hdr_metadata_mojom_traits.h\"\n    ],\n    \"traits_sources\": [\n      \"hdr_metadata_mojom_traits.cc\"\n    ],\n    \"types\": [\n      {\n        \"cpp\": \"::gfx::HdrMetadataCta861_3\",\n        \"mojom\": \"gfx.mojom.HdrMetadataCta861_3\"\n      },\n      {\n        \"cpp\": \"::gfx::HdrMetadataSmpteSt2086\",\n        \"mojom\": \"gfx.mojom.HdrMetadataSmpteSt2086\"\n      },\n      {\n        \"cpp\": \"::gfx::HdrMetadataNdwl\",\n        \"mojom\": \"gfx.mojom.HdrMetadataNdwl\"\n      },\n      {\n        \"cpp\": \"::gfx::HdrMetadataExtendedRange\",\n        \"mojom\": \"gfx.mojom.HdrMetadataExtendedRange\"\n      },\n      {\n        \"cpp\": \"::gfx::HdrMetadataAgtm\",\n        \"mojom\": \"gfx.mojom.HdrMetadataAgtm\"\n      },\n      {\n        \"cpp\": \"::gfx::HDRMetadata\",\n        \"mojom\": \"gfx.mojom.HDRMetadata\"\n      }\n    ]\n  }\n]",
     "//out/bazel-import/gen/ui/gfx/mojom/hdr_metadata.ts_typemap_config": "[\n\n]",
+    "//out/bazel-import/gen/ui/gfx/mojom/hdr_metadata.typemap_config": "[\n  {\n    \"traits_headers\": [\n      \"ui/gfx/mojom/hdr_metadata_mojom_traits.h\"\n    ],\n    \"traits_sources\": [\n      \"hdr_metadata_mojom_traits.cc\"\n    ],\n    \"types\": [\n      {\n        \"cpp\": \"::gfx::HdrMetadataCta861_3\",\n        \"mojom\": \"gfx.mojom.HdrMetadataCta861_3\"\n      },\n      {\n        \"cpp\": \"::gfx::HdrMetadataSmpteSt2086\",\n        \"mojom\": \"gfx.mojom.HdrMetadataSmpteSt2086\"\n      },\n      {\n        \"cpp\": \"::gfx::HdrMetadataNdwl\",\n        \"mojom\": \"gfx.mojom.HdrMetadataNdwl\"\n      },\n      {\n        \"cpp\": \"::gfx::HdrMetadataExtendedRange\",\n        \"mojom\": \"gfx.mojom.HdrMetadataExtendedRange\"\n      },\n      {\n        \"cpp\": \"::gfx::HdrMetadataAgtm\",\n        \"mojom\": \"gfx.mojom.HdrMetadataAgtm\"\n      },\n      {\n        \"cpp\": \"::gfx::HDRMetadata\",\n        \"mojom\": \"gfx.mojom.HDRMetadata\"\n      }\n    ]\n  }\n]",
     "//out/bazel-import/gen/ui/gfx/mojom/hdr_metadata_shared__generator.rsp": "../../ui/gfx/mojom/hdr_metadata.mojom\n",
     "//out/bazel-import/gen/ui/gfx/range/mojom/mojom.build_metadata": "{\n  \"deps\": [\n\n  ],\n  \"sources\": [\n    \"../../../../../../../ui/gfx/range/mojom/range.mojom\"\n  ]\n}",
     "//out/bazel-import/gen/ui/gfx/range/mojom/mojom__generate_message_ids.rsp": "../../ui/gfx/range/mojom/range.mojom\n",
     "//out/bazel-import/gen/ui/gfx/range/mojom/mojom__generator.rsp": "../../ui/gfx/range/mojom/range.mojom\n",
     "//out/bazel-import/gen/ui/gfx/range/mojom/mojom__parser_action.rsp": "../../ui/gfx/range/mojom/range.mojom\n",
-    "//out/bazel-import/gen/ui/gfx/range/mojom/mojom.ts_typemap_config": "[\n\n]",
     "//out/bazel-import/gen/ui/gfx/range/mojom/mojom.typemap_config": "[\n  {\n    \"traits_headers\": [\n      \"ui/gfx/range/mojom/range_mojom_traits.h\"\n    ],\n    \"traits_public_deps\": [\n      \":mojom_traits\"\n    ],\n    \"types\": [\n      {\n        \"cpp\": \"::gfx::Range\",\n        \"mojom\": \"gfx.mojom.Range\"\n      },\n      {\n        \"cpp\": \"::gfx::RangeF\",\n        \"mojom\": \"gfx.mojom.RangeF\"\n      }\n    ]\n  }\n]",
+    "//out/bazel-import/gen/ui/gfx/range/mojom/mojom.ts_typemap_config": "[\n\n]",
     "//out/bazel-import/gen/ui/gfx/range/mojom/mojom_shared__generator.rsp": "../../ui/gfx/range/mojom/range.mojom\n"
   },
   "toolchain_deps": [
