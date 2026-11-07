@@ -64,6 +64,7 @@ use_repo(
     "electron_libnode_sources",
     "electron_lss_upstream",
     "electron_mantle_sources",
+    "electron_mojo_sources",
     "electron_nan_sources",
     "electron_network_platform_headers",
     "electron_network_sources",

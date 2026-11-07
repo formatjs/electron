@@ -1,0 +1,5 @@
+load("@electron//source:mojo_rules.bzl", "electron_mojo")
+
+package(default_visibility = ["//visibility:public"])
+
+electron_mojo()

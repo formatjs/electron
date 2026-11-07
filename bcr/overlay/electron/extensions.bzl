@@ -7,6 +7,7 @@ load(":embedder_repository.bzl", "electron_embedder_repository")
 load(":icu_repository.bzl", "electron_icu_repository")
 load(":ipcz_repository.bzl", "electron_ipcz_repository")
 load(":libnode_repository.bzl", "electron_libnode_repository")
+load(":mojo_repository.bzl", "electron_mojo_repository")
 load(":network_repository.bzl", "electron_network_repository")
 load(":overlay_repository.bzl", "electron_overlay_archive", "electron_overlay_repository")
 load(":partition_alloc_repository.bzl", "electron_partition_alloc_repository")
@@ -108,6 +109,7 @@ def _impl(ctx):
         type = "tar.xz",
         build_file_content = 'load("@rules_cc//cc:cc_library.bzl", "cc_library")\ncc_library(name = "gssapi", hdrs = ["usr/include/mit-krb5/gssapi.h", "usr/include/mit-krb5/gssapi/gssapi.h"], includes = ["usr/include/mit-krb5"], visibility = ["//visibility:public"])\n',
     )
+    electron_mojo_repository(name = "electron_mojo_sources", chromium = "@electron_chromium_sources//:DEPS")
     electron_network_repository(
         name = "electron_network_sources",
         chromium = "@electron_chromium_sources//:DEPS",
@@ -199,6 +201,6 @@ def _impl(ctx):
     )
     electron_node_repository(name = "electron_node_sources", electron = "@electron//:DEPS")
     direct = ["electron_embedder_sources", "electron_ced_upstream", "electron_libnode_sources", "electron_zstd_upstream", "electron_base_sources", "electron_lss_upstream", "electron_node_sources", "electron_v8_sources", "electron_chromium_sources", "electron_cast_core_sources", "electron_glslang_sources", "electron_abseil_sources", "electron_icu_sources", "electron_partition_alloc_sources", "electron_rust_sources", "electron_v8_support_sources", "electron_protobuf_sources", "electron_protobuf_javascript_upstream", "electron_perfetto_native_sources", "electron_jsoncpp_upstream", "electron_v8_engine_sources", "electron_fp16_upstream"] + dependency_repos + support_repos
-    return ctx.extension_metadata(reproducible = True, root_module_direct_deps = direct + ["electron_ipcz_sources", "electron_chromium_native_support", "electron_nspr_upstream", "electron_nss_upstream", "nspr", "nss", "electron_quiche_upstream", "electron_re2_upstream", "electron_network_platform_headers", "electron_network_sources"], root_module_direct_dev_deps = [])
+    return ctx.extension_metadata(reproducible = True, root_module_direct_deps = direct + ["electron_mojo_sources", "electron_ipcz_sources", "electron_chromium_native_support", "electron_nspr_upstream", "electron_nss_upstream", "nspr", "nss", "electron_quiche_upstream", "electron_re2_upstream", "electron_network_platform_headers", "electron_network_sources"], root_module_direct_dev_deps = [])
 
 electron = module_extension(implementation = _impl, tag_classes = {"version": tag_class(attrs = {"version": attr.string(mandatory = True)})})
