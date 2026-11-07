@@ -1,4 +1,5 @@
 exports_files([
+    "fonts_inputs.json",
     "mojo_inputs.json",
     "network_inputs.json",
     "ipcz_inputs.json",

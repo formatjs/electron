@@ -1,0 +1,5 @@
+load("@electron//source:fonts_rules.bzl", "electron_fonts")
+
+package(default_visibility = ["//visibility:public"])
+
+electron_fonts()

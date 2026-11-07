@@ -1,5 +1,6 @@
 load("@electron_base_sources//:profile.bzl", BASE_PROFILE = "PROFILE")
 load("@electron_embedder_sources//:profile.bzl", EMBEDDER_PROFILE = "PROFILE")
+load("@electron_fonts_sources//:profile.bzl", FONTS_PROFILE = "PROFILE")
 load("@electron_ipcz_sources//:profile.bzl", IPCZ_PROFILE = "PROFILE")
 load("@electron_libnode_sources//:profile.bzl", LIBNODE_PROFILE = "PROFILE")
 load("@electron_mojo_sources//:profile.bzl", MOJO_PROFILE = "PROFILE")
@@ -23,6 +24,43 @@ load(":bundles.bzl", "electron_bundles")
 load(":probes.bzl", "loop_probes")
 
 package(default_visibility = ["//visibility:public"])
+
+alias(
+    name = "fonts_libraries",
+    actual = "@electron_fonts_sources//:libraries",
+)
+
+cc_test(
+    name = "fonts_test",
+    srcs = ["fonts_test.cc"],
+    args = [
+        "$(rootpath @electron_icu_sources//:common/icudtl.dat)",
+        "$(rootpath @electron_harfbuzz_upstream//:test/shape/data/in-house/fonts/7bbd3175734d5d291e1c15271ec0cbb97b626ebf.ttf)",
+    ],
+    copts = FONTS_PROFILE["libraries"]["//third_party/harfbuzz-ng:harfbuzz-ng"]["copts"],
+    data = [
+        "@electron_harfbuzz_upstream//:test/shape/data/in-house/fonts/7bbd3175734d5d291e1c15271ec0cbb97b626ebf.ttf",
+        "@electron_icu_sources//:common/icudtl.dat",
+    ],
+    env = {
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+    },
+    linkstatic = True,
+    local_defines = FONTS_PROFILE["libraries"]["//third_party/harfbuzz-ng:harfbuzz-ng"]["defines"],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    deps = [
+        "@electron_embedder_sources//:base_i18n",
+        "@electron_fonts_sources//:freetype",
+        "@electron_fonts_sources//:harfbuzz",
+        "@electron_fonts_sources//:png",
+        "@electron_fonts_sources//:xml",
+    ],
+)
 
 alias(
     name = "mojo_libraries",
