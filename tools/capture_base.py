@@ -36,6 +36,7 @@ def capture(graph, chromium, boringssl, icu, perfetto_profile, rust_profile):
         ("//third_party/icu:", "@electron_icu_sources//:icu"),
     ]:
         external.update({label: actual for label in targets if label.startswith(prefix)})
+    external["//base/allocator/partition_allocator:raw_ptr"] = "@electron_partition_alloc_sources//:raw_ptr"
     external.update({"//third_party/zlib:zlib": "@electron_v8_support_sources//:zlib", "//third_party/boringssl:boringssl": "@electron_boringssl_sources//:ssl", "//third_party/protobuf:protoc": "@electron_protobuf_sources//:protoc"})
     seen, pending = set(), [ROOT] + list(NATIVE_CPP)
     while pending:

@@ -12706,7 +12706,7 @@
   "external": {
     "//base/allocator/partition_allocator:allocator_shim": "@electron_partition_alloc_sources//:partition_alloc",
     "//base/allocator/partition_allocator:buildflags": "@electron_partition_alloc_sources//:partition_alloc",
-    "//base/allocator/partition_allocator:raw_ptr": "@electron_partition_alloc_sources//:partition_alloc",
+    "//base/allocator/partition_allocator:raw_ptr": "@electron_partition_alloc_sources//:raw_ptr",
     "//base:logging_log_severity_bindgen": "@electron_rust_sources//:crate_9469dd7e8e2ed140",
     "//base:rust_logger": "@electron_rust_sources//:crate_e97e49e25a992fc4",
     "//third_party/abseil-cpp:absl": "@electron_protobuf_sources//:abseil",

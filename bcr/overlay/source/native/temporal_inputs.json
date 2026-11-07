@@ -3683,7 +3683,7 @@
         "@electron_base_sources//:target_a4bd4f60aad4d31c",
         "@electron_base_sources//:target_c0d8c63cf51403c4",
         "@electron_base_sources//:target_e0c2bfdeb42485bf",
-        "@electron_partition_alloc_sources//:partition_alloc"
+        "@electron_partition_alloc_sources//:raw_ptr"
       ],
       "crate_name": "base_crust_ulogger",
       "crate_root": "base/logging/rust_logger.rs",

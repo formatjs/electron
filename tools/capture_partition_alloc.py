@@ -24,6 +24,7 @@ def capture(graph):
         "allocator_base": {"build_config", "buildflags"},
         "allocator_core": {"allocator_base", "build_config", "buildflags"},
         "allocator_shim": {"allocator_base", "allocator_core", "buildflags"},
+        "raw_ptr": {"build_config", "buildflags", "partition_alloc"},
         "build_config": {"buildflag_macro", "buildflags"},
         "buildflag_macro": set(),
     }
@@ -32,7 +33,7 @@ def capture(graph):
         target = graph["targets"][prefix + name]
         if target["toolchain"] != "//build/toolchain/linux:clang_x64":
             raise ValueError("Expected PartitionAlloc Linux AMD64 toolchain")
-        kind = "static_library" if name.startswith("allocator_") else "source_set"
+        kind = "static_library" if name.startswith("allocator_") or name == "raw_ptr" else "source_set"
         if target["type"] != kind or set(target["deps"]) != toolchain | {prefix + dep for dep in dependencies}:
             raise ValueError("Untranslated PartitionAlloc dependency")
 
@@ -67,6 +68,7 @@ def capture(graph):
                 "gn_ldflags": value("ldflags"),
                 "omitted_toolchain_and_diagnostic_flags": omitted,
             }
+    libraries["raw_ptr"]["hdrs"].append("src/partition_alloc/pointers/instance_tracer.h")
     action = graph["targets"][prefix + "buildflags"]
     output = "base/allocator/partition_allocator/src/partition_alloc/buildflags.h"
     if action["type"] != "action" or action["script"] != root + "src/partition_alloc/write_buildflag_header.py" or action["deps"] != [prefix + "buildflag_macro"] or action.get("inputs") or action.get("sources"):

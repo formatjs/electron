@@ -31,7 +31,7 @@ def electron_partition_alloc():
     _buildflags(name = "buildflags")
     cc_library(
         name = "headers",
-        hdrs = sorted({p: True for p in PARTITION_ALLOC_HEADERS + [p for lib in PARTITION_ALLOC_LIBRARIES.values() for p in lib["hdrs"]]}.keys()),
+        hdrs = sorted({p: True for p in PARTITION_ALLOC_HEADERS + [p for name, lib in PARTITION_ALLOC_LIBRARIES.items() if name != "raw_ptr" for p in lib["hdrs"]]}.keys()),
         includes = ["src"],
         target_compatible_with = compatible,
     )
@@ -55,5 +55,16 @@ def electron_partition_alloc():
             deps = [":headers", ":buildflags_headers"] + ([":allocator_base"] if name != "allocator_base" else []) + ([":allocator_core"] if name == "allocator_shim" else []),
         )
     cc_library(name = "partition_alloc", deps = [":allocator_shim"], target_compatible_with = compatible)
+    raw_ptr = PARTITION_ALLOC_LIBRARIES["raw_ptr"]
+    cc_library(
+        name = "raw_ptr",
+        srcs = raw_ptr["srcs"],
+        hdrs = raw_ptr["hdrs"],
+        copts = raw_ptr["copts"],
+        local_defines = raw_ptr["defines"],
+        linkstatic = True,
+        target_compatible_with = compatible,
+        deps = [":headers", ":buildflags_headers", ":partition_alloc"],
+    )
     native.filegroup(name = "libraries", srcs = [":" + name for name in PARTITION_ALLOC_LIBRARIES])
     native.exports_files(["src/partition_alloc/write_buildflag_header.py"])

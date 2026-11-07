@@ -23,7 +23,7 @@ NATIVE_CPP = {
         "//third_party/rust/serde_json_lenient/v0_2/wrapper:wrapper_functions",
     ]
 }
-NATIVE_CPP["//base/allocator/partition_allocator:raw_ptr"] = "@electron_partition_alloc_sources//:partition_alloc"
+NATIVE_CPP["//base/allocator/partition_allocator:raw_ptr"] = "@electron_partition_alloc_sources//:raw_ptr"
 SEVERITY = "//base:logging_log_severity_bindgen"
 
 
