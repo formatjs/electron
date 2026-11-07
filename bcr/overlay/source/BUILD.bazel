@@ -2,6 +2,7 @@ load("@electron_base_sources//:profile.bzl", BASE_PROFILE = "PROFILE")
 load("@electron_embedder_sources//:profile.bzl", EMBEDDER_PROFILE = "PROFILE")
 load("@electron_ipcz_sources//:profile.bzl", IPCZ_PROFILE = "PROFILE")
 load("@electron_libnode_sources//:profile.bzl", LIBNODE_PROFILE = "PROFILE")
+load("@electron_network_sources//:profile.bzl", NETWORK_PROFILE = "PROFILE")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_shared_library.bzl", "cc_shared_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
@@ -21,6 +22,37 @@ load(":bundles.bzl", "electron_bundles")
 load(":probes.bzl", "loop_probes")
 
 package(default_visibility = ["//visibility:public"])
+
+alias(
+    name = "network_libraries",
+    actual = "@electron_network_sources//:libraries",
+)
+
+cc_test(
+    name = "network_test",
+    srcs = ["network_test.cc"],
+    args = ["$(rootpath @electron_icu_sources//:common/icudtl.dat)"],
+    copts = NETWORK_PROFILE["libraries"]["//net:net"]["copts"],
+    data = ["@electron_icu_sources//:common/icudtl.dat"],
+    env = {
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+    },
+    linkstatic = True,
+    local_defines = NETWORK_PROFILE["libraries"]["//net:net"]["defines"],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    deps = [
+        "@electron_network_sources//:crypto",
+        "@electron_network_sources//:mojo_embedder",
+        "@electron_network_sources//:net",
+        "@electron_network_sources//:sql",
+        "@electron_network_sources//:url",
+    ],
+)
 
 alias(
     name = "ipcz_libraries",

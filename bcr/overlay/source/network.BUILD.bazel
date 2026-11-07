@@ -1,0 +1,5 @@
+load("@electron//source:network_rules.bzl", "electron_network")
+
+package(default_visibility = ["//visibility:public"])
+
+electron_network()
