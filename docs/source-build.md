@@ -302,6 +302,41 @@ python3 tools/capture_temporal.py \
 buildifier bcr/overlay/source/native/v8_temporal_inputs.bzl
 ```
 
+## Matching Protobuf runtime and compiler
+
+Perfetto's generators require a matching protocol tool/runtime. The native
+profile builds Chromium's embedded Protobuf 32.0 rather than substituting the
+newer BCR module. Twelve original targets contain 129 C/C++ units: UTF-8 support,
+full/lite runtimes, protoc, its C++/Java/Python compiler libraries and the original
+JavaScript plugin dependency. That plugin uses Chromium's exact DEPS revision
+`e6d763860001ba1a76a63adcff5efb12b1c96024` with a hashed archive.
+
+The profile declares 1,110 source/header/schema/license files, preserves captured
+compiler flags and keeps `GOOGLE_PROTOBUF_NO_RTTI` and
+`PROTOBUF_INTERNAL_BOUNDS_CHECK_MODE_ABORT` consistent through generated code.
+Abseil comes from the matching Chromium tree. Its public `base` target carries
+the private raw-logging dependency; no visibility override or duplicate source
+copy is needed. Protoc is an explicit execution-platform binary with its plugin
+runfiles. Source sets keep their object inclusion semantics.
+
+`@electron//source:protobuf_test` compiles full and lite schemas using that
+source-built protoc. It checks packed signed values, binary maps, oneof/optional
+presence, full/lite unknown-field preservation, dynamic reflection, truncated
+messages, malformed packed fields and invalid UTF-8.
+[687dc7f components](https://formatjs.buildbuddy.io/invocation/a70db8a5-8eee-417a-9cfd-53c1564ad657),
+[BCR consumer](https://formatjs.buildbuddy.io/invocation/e87c3f3f-4c89-4a11-9d22-0ce75b75d180)
+and [cross checks](https://formatjs.buildbuddy.io/invocation/21521a1e-126f-4532-a745-8c2b84650786)
+passed. These new profiles remain Linux AMD64. Perfetto's own protocol/runtime
+closure and the full V8 engine still need translation.
+
+```sh
+python3 tools/capture_protobuf.py \
+  --graph=bcr/overlay/source/native/linux_amd64.partial.json.gz \
+  --chromium-root=/path/to/matching/patched/chromium \
+  --javascript-root=/path/to/pinned/protobuf-javascript \
+  --output=bcr/overlay/source/native/protobuf_inputs.json
+```
+
 ## V8 number, SIMD and compression dependencies
 
 Twelve captured targets expose Dragonbox, fast_float, Highway, simdutf and
