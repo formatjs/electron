@@ -1,0 +1,91 @@
+load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+load("@rules_cc//cc:cc_import.bzl", "cc_import")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
+package(default_visibility = ["//visibility:public"])
+
+copy_file(
+    name = "linux_config",
+    src = select({
+        "@platforms//cpu:aarch64": "@electron_platform_sdk//:usr/include/aarch64-linux-gnu/pci/config.h",
+        "//conditions:default": "@electron_platform_sdk//:usr/include/x86_64-linux-gnu/pci/config.h",
+    }),
+    out = "lib/config.h",
+    allow_symlink = True,
+)
+
+cc_library(
+    name = "headers",
+    hdrs = [
+        "lib/header.h",
+        "lib/pci.h",
+        "lib/types.h",
+        ":linux_config",
+    ],
+    include_prefix = "pci",
+    strip_include_prefix = "lib",
+)
+
+cc_library(
+    name = "implementation",
+    srcs = ["lib/" + name + ".c" for name in [
+        "init",
+        "access",
+        "generic",
+        "dump",
+        "names",
+        "filter",
+        "names-hash",
+        "names-parse",
+        "names-net",
+        "names-cache",
+        "names-hwdb",
+        "params",
+        "caps",
+        "sysfs",
+        "proc",
+    ]] + select({
+        "@platforms//cpu:x86_64": ["lib/i386-ports.c"],
+        "//conditions:default": [],
+    }),
+    hdrs = glob(["lib/*.h"]) + [":linux_config"],
+    copts = [
+        "-O2",
+        "-fPIC",
+        "-fvisibility=hidden",
+    ],
+    includes = ["lib"],
+    linkopts = ["-lresolv"],
+    deps = select({
+        "@platforms//cpu:aarch64": ["@electron_platform_sdk//:udev"],
+        "//conditions:default": ["@electron_platform_sdk//:udev"],
+    }) + ["@zlib"],
+    alwayslink = True,
+)
+
+cc_binary(
+    name = "libpci.so.3",
+    additional_linker_inputs = ["lib/libpci.ver"],
+    linkopts = [
+        "-Wl,--version-script=$(location lib/libpci.ver)",
+        "-Wl,-soname,libpci.so.3",
+        "-Wl,-z,relro,-z,now,-z,noexecstack",
+    ],
+    linkshared = True,
+    linkstatic = True,
+    deps = [":implementation"],
+)
+
+cc_import(
+    name = "shared",
+    shared_library = ":libpci.so.3",
+)
+
+cc_library(
+    name = "pci",
+    deps = [
+        ":headers",
+        ":shared",
+    ],
+)

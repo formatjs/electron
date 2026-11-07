@@ -1064,3 +1064,8 @@ alias(
     name = "ui_libraries",
     actual = "@electron_ui_sources//:libraries",
 )
+
+alias(
+    name = "platform_libraries",
+    actual = "@electron_platform_sources//:libraries",
+)

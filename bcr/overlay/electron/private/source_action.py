@@ -47,6 +47,10 @@ def generate(manifest, repeat):
         scratch = root / "tmp"
         scratch.mkdir()
         environment = {"PATH": "", "LANG": "C", "LC_ALL": "C", "TZ": "UTC", "TMPDIR": str(scratch), "PYTHONHASHSEED": "0", "PYTHONNOUSERSITE": "1", "PYTHONDONTWRITEBYTECODE": "1"}
+        declared_environment = manifest.get("environment", {})
+        if set(declared_environment) & (environment.keys() | {"PYTHONPATH", "PYTHONHOME", "LD_LIBRARY_PATH", "NODE_PATH", "NODE_OPTIONS"}):
+            raise ValueError("Generator metadata environment cannot replace execution paths or isolation settings")
+        environment.update(declared_environment)
         bootstrap = "import os, runpy, sys; script = sys.argv[1]; sys.argv = sys.argv[1:]; sys.path.insert(0, os.path.dirname(os.path.abspath(script))); runpy.run_path(script, run_name='__main__')"
         # Keep isolated import paths while honoring the declared hash seed.
         result = subprocess.run([sys.executable, "-s", "-P", "-B", "-c", bootstrap, str(logical_path(root, manifest["script"])), *arguments], cwd=build, env=environment)

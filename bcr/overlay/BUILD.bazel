@@ -49,6 +49,7 @@ filegroup(
         "//source:node_libuv",
         "//source:partition_alloc_libraries",
         "//source:perfetto_libraries",
+        "//source:platform_libraries",
         "//source:protobuf_libraries",
         "//source:skia_libraries",
         "//source:temporal_crates",

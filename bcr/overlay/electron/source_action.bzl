@@ -39,6 +39,7 @@ def _impl(ctx):
         "script": ctx.attr.script,
         "args": ctx.attr.args,
         "response": ctx.attr.response,
+        "environment": ctx.attr.environment,
         "verify_reproducible": ctx.attr.verify_reproducible,
     }))
     ctx.actions.run(
@@ -64,6 +65,7 @@ electron_source_action = rule(
         "script": attr.string(mandatory = True),
         "args": attr.string_list(),
         "response": attr.string_list(),
+        "environment": attr.string_dict(),
         "verify_reproducible": attr.bool(default = True),
         "_runner": attr.label(default = Label("//electron/private:source_action"), executable = True, cfg = "exec"),
     },

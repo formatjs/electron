@@ -1,0 +1,5 @@
+load("@electron//source:platform_rules.bzl", "electron_platform")
+
+package(default_visibility = ["//visibility:public"])
+
+electron_platform()
