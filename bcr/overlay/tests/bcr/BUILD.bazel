@@ -1,0 +1,7 @@
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+
+cc_test(
+    name = "loop_consumer_test",
+    srcs = ["loop_consumer_test.c"],
+    deps = ["@electron//source:node_libuv"],
+)

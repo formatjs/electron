@@ -1,6 +1,6 @@
 module(
-    name = "rules_electron",
-    version = "0.1.0",
+    name = "electron_development",
+    version = "39.0.0",
     bazel_compatibility = [">=9.2.0"],
 )
 
@@ -16,6 +16,7 @@ bazel_dep(name = "with_cfg.bzl", version = "0.12.0")
 
 # Same native compiler as formatjs/chromium and hermeticbuild/nodejs.
 bazel_dep(name = "llvm", version = "0.8.26")
+bazel_dep(name = "electron", version = "39.0.0")
 
 register_toolchains("@llvm//toolchain:all")
 
@@ -28,12 +29,11 @@ use_repo(node, "nodejs_toolchains")
 
 register_toolchains("@nodejs_toolchains//:all")
 
-electron_npm = use_extension("//electron:npm_repositories.bzl", "electron_npm")
+electron_npm = use_extension("@electron//electron:npm_repositories.bzl", "electron_npm")
 use_repo(electron_npm, "electron_npm")
 
-electron = use_extension("//electron:extensions.bzl", "electron")
+electron = use_extension("@electron//electron:extensions.bzl", "electron")
 electron.version(
-    sources = True,
     version = "39.0.0",
 )
 use_repo(
@@ -51,8 +51,6 @@ use_repo(
     "electron_perfetto_sources",
     "electron_reactiveobjc_sources",
     "electron_reclient_configs_sources",
-    "electron_runtime",
-    "electron_sources",
     "electron_sqlite_sources",
     "electron_squirrel_mac_sources",
     "electron_v8_sources",

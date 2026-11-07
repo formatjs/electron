@@ -4,3 +4,13 @@ exports_files([
     "LICENSE",
     "README.md",
 ])
+
+alias(
+    name = "source_components",
+    actual = "@electron//:source_components",
+)
+
+test_suite(
+    name = "source_tests",
+    tests = ["@electron//:source_tests"],
+)

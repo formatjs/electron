@@ -1,0 +1,42 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@electron//source/native:v8_base_inputs.bzl", "V8_BASE_LIBRARIES")
+
+package(default_visibility = ["//visibility:public"])
+exports_files(["electron_patches.json", "DEPS", "LICENSE"])
+filegroup(name = "sources", srcs = glob(["**"], exclude = ["BUILD.bazel"]))
+
+cc_library(
+    name = "base_headers",
+    hdrs = glob(["include/**/*.h", "src/base/**/*.h", "src/libplatform/**/*.h", "third_party/glibc/**/*.h", "testing/**/*.h"]),
+    includes = [".", "include"],
+    defines = V8_BASE_LIBRARIES["v8_libbase"]["defines"],
+    deps = ["@electron_abseil_sources//absl/synchronization", "@googletest//:gtest_prod"],
+)
+
+cc_library(
+    name = "libm",
+    linkstatic = True,
+    srcs = V8_BASE_LIBRARIES["libm"]["srcs"],
+    copts = V8_BASE_LIBRARIES["libm"]["copts"],
+    deps = [":base_headers"],
+    target_compatible_with = ["@platforms//os:linux", "@platforms//cpu:x86_64"],
+)
+
+cc_library(
+    name = "libbase",
+    linkstatic = True,
+    srcs = V8_BASE_LIBRARIES["v8_libbase"]["srcs"],
+    copts = V8_BASE_LIBRARIES["v8_libbase"]["copts"],
+    deps = [":base_headers", ":libm"],
+    linkopts = ["-pthread", "-ldl", "-lrt"],
+    target_compatible_with = ["@platforms//os:linux", "@platforms//cpu:x86_64"],
+)
+
+cc_library(
+    name = "platform_tasks",
+    linkstatic = True,
+    srcs = V8_BASE_LIBRARIES["v8_libplatform"]["srcs"],
+    copts = V8_BASE_LIBRARIES["v8_libplatform"]["copts"],
+    deps = [":libbase"],
+    target_compatible_with = ["@platforms//os:linux", "@platforms//cpu:x86_64"],
+)

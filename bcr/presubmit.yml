@@ -1,0 +1,22 @@
+matrix:
+  platform: [ubuntu2404]
+  bazel: ["9.x"]
+tasks:
+  source_archive:
+    name: Verify Electron source archive
+    platform: ${{ platform }}
+    bazel: ${{ bazel }}
+    build_targets: ["@electron//:patches"]
+
+bcr_test_module:
+  module_path: tests/bcr
+  matrix:
+    platform: [ubuntu2404]
+    bazel: ["9.x"]
+  tasks:
+    source_components:
+      name: Build and test Electron source components
+      platform: ${{ platform }}
+      bazel: ${{ bazel }}
+      build_targets: ["@electron//:source_components"]
+      test_targets: ["@electron//:source_tests", "//:loop_consumer_test"]

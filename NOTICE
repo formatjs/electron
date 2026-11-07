@@ -1,0 +1,7 @@
+tools/stage_bcr_entry.py and tests/validate_bcr.py adapt the BCR scaffolding from
+perplexityai/rocksdb at 3cb9c5b1715f2c8cfeaf196facad80aa7b9a1ee5.
+Copyright 2026 Perplexity AI. Licensed under Apache-2.0.
+See licenses/Apache-2.0.txt.
+
+BuildBuddy configuration follows formatjs/chromium at
+b6d5d0dbbb18e0fd9406a49ea1a1ba8400e2a391, licensed under MIT.

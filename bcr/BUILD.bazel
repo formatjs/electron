@@ -1,0 +1,6 @@
+exports_files([
+    "MODULE.bazel",
+    "metadata.json",
+    "presubmit.yml",
+    "source.json",
+])

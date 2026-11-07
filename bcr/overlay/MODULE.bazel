@@ -1,0 +1,46 @@
+module(
+    name = "electron",
+    version = "",
+    bazel_compatibility = [">=9.2.0"],
+)
+
+bazel_dep(name = "rules_license", version = "1.0.0")
+bazel_dep(name = "bazel_skylib", version = "1.9.0")
+bazel_dep(name = "googletest", version = "1.17.0.bcr.2")
+bazel_dep(name = "rules_cc", version = "0.2.26")
+bazel_dep(name = "simdutf", version = "7.7.0")
+bazel_dep(name = "platforms", version = "1.1.0")
+bazel_dep(name = "rules_python", version = "1.9.0")
+bazel_dep(name = "rules_nodejs", version = "6.7.7")
+bazel_dep(name = "with_cfg.bzl", version = "0.12.0")
+
+# Same native compiler as formatjs/chromium and hermeticbuild/nodejs.
+bazel_dep(name = "llvm", version = "0.8.26")
+
+electron_npm = use_extension("//electron:npm_repositories.bzl", "electron_npm")
+use_repo(electron_npm, "electron_npm")
+
+electron = use_extension("//electron:extensions.bzl", "electron")
+electron.version(
+    version = "39.0.0",
+)
+use_repo(
+    electron,
+    "electron_abseil_sources",
+    "electron_boringssl_sources",
+    "electron_cast_core_sources",
+    "electron_chromium_sources",
+    "electron_devtools_frontend_sources",
+    "electron_ffmpeg_sources",
+    "electron_glslang_sources",
+    "electron_mantle_sources",
+    "electron_nan_sources",
+    "electron_node_sources",
+    "electron_perfetto_sources",
+    "electron_reactiveobjc_sources",
+    "electron_reclient_configs_sources",
+    "electron_sqlite_sources",
+    "electron_squirrel_mac_sources",
+    "electron_v8_sources",
+    "electron_webrtc_sources",
+)

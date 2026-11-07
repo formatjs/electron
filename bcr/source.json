@@ -1,0 +1,5 @@
+{
+    "url": "https://github.com/electron/electron/archive/refs/tags/v39.0.0.tar.gz",
+    "integrity": "sha256-mepKWgssGoGC9HjPYDIJqZYAfqQCk0yyATL65kdWBNk=",
+    "strip_prefix": "electron-39.0.0"
+}

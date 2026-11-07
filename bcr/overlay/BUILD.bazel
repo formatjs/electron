@@ -1,0 +1,52 @@
+package(default_visibility = ["//visibility:public"])
+
+exports_files([
+    "DEPS",
+    "BUILD.gn",
+    "LICENSE",
+    "build/fuses/build.py",
+    "build/fuses/fuses.json5",
+])
+
+filegroup(
+    name = "sources",
+    srcs = glob(
+        ["**"],
+        exclude = ["BUILD.bazel"],
+    ),
+)
+
+filegroup(
+    name = "patches",
+    srcs = glob(
+        ["patches/**"],
+        exclude = ["patches/**/.git/**"],
+    ),
+)
+
+filegroup(
+    name = "source_components",
+    srcs = [
+        "//source:chromium_patches",
+        "//source:dependency_patches",
+        "//source:electron_fuses",
+        "//source:electron_natives",
+        "//source:embedder_javascript",
+        "//source:node_javascript",
+        "//source:node_libuv",
+        "//source:v8_patches",
+    ],
+)
+
+test_suite(
+    name = "source_tests",
+    tests = [
+        "//source:crypto_compat_test",
+        "//source:fuses_test",
+        "//source:loop_interrupt_test",
+        "//source:node_defines_test",
+        "//source:v8_tasks_test",
+        "//tests:electron_bundles_test",
+        "//tests:node_builtins_test",
+    ],
+)

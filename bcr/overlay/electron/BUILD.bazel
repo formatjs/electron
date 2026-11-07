@@ -1,0 +1,6 @@
+exports_files([
+    "extensions.bzl",
+    "source_rules.bzl",
+    "source_repositories.bzl",
+    "npm_repositories.bzl",
+])

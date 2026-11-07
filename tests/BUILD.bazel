@@ -1,51 +1,7 @@
 load("@rules_python//python:defs.bzl", "py_test")
-load("//source/native:webpack_inputs.bzl", "ELECTRON_BUNDLES")
-load(":node_tool.bzl", "execution_node")
-
-execution_node(name = "execution_node")
-
-py_test(
-    name = "electron_bundles_test",
-    srcs = ["electron_bundles_test.py"],
-    args = [
-        "$(location :execution_node)",
-        "$(location //source:electron_natives)",
-    ] + ["$(location //source:" + name + ")" for name in ELECTRON_BUNDLES],
-    data = [
-        ":execution_node",
-        "//source:electron_natives",
-    ] + ["//source:" + name for name in ELECTRON_BUNDLES],
-    target_compatible_with = [
-        "@platforms//os:linux",
-        "@platforms//cpu:x86_64",
-    ],
-)
-
-py_test(
-    name = "package_test",
-    srcs = ["package_test.py"],
-    deps = ["//electron/private:packaging"],
-)
 
 py_test(
     name = "prepare_source_test",
     srcs = ["prepare_source_test.py"],
     deps = ["//tools:source_preparation"],
-)
-
-py_test(
-    name = "node_builtins_test",
-    srcs = ["node_builtins_test.py"],
-    args = [
-        "$(location //source:node_javascript)",
-        "$(location //source:node_config)",
-    ],
-    data = [
-        "//source:node_config",
-        "//source:node_javascript",
-    ],
-    target_compatible_with = [
-        "@platforms//os:linux",
-        "@platforms//cpu:x86_64",
-    ],
 )

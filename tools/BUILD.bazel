@@ -1,13 +1,7 @@
-load("@rules_python//python:defs.bzl", "py_binary", "py_library")
+load("@rules_python//python:defs.bzl", "py_library")
 
 py_library(
     name = "source_preparation",
     srcs = ["prepare_source.py"],
     visibility = ["//visibility:public"],
-)
-
-py_binary(
-    name = "smoke",
-    srcs = ["smoke.py"],
-    main = "smoke.py",
 )

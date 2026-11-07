@@ -3,4 +3,18 @@ build --incompatible_strict_action_env
 build --sandbox_default_allow_network=false
 build --compilation_mode=opt
 build --enable_runfiles
+build --@rules_python//python/config_settings:bootstrap_impl=script
 test --test_output=errors
+
+# Hosted workflows supply credentials through their Bazel wrapper.
+build:buildbuddy --build_metadata=REPO_URL=https://github.com/formatjs/electron.git
+build:buildbuddy --build_metadata=VISIBILITY=PUBLIC
+build:buildbuddy --bes_backend=grpcs://formatjs.buildbuddy.io
+build:buildbuddy --bes_results_url=https://formatjs.buildbuddy.io/invocation/
+build:buildbuddy --remote_cache=grpcs://formatjs.buildbuddy.io
+build:buildbuddy --remote_executor=grpcs://formatjs.buildbuddy.io
+build:buildbuddy --remote_download_outputs=toplevel
+build:buildbuddy --rewind_lost_inputs
+build:buildbuddy --jobs=64
+build:buildbuddy --ui_event_filters=-info
+build:buildbuddy --extra_execution_platforms=//platforms:buildbuddy_linux_amd64

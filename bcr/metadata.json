@@ -1,0 +1,22 @@
+{
+    "homepage": "https://www.electronjs.org/",
+    "maintainers": [
+        {
+            "github": "longlho",
+            "github_user_id": 198255,
+            "name": "Long Ho"
+        },
+        {
+            "github": "formatjsproject",
+            "github_user_id": 64374319,
+            "name": "formatjs"
+        }
+    ],
+    "repository": [
+        "github:electron/electron"
+    ],
+    "versions": [
+        "39.0.0"
+    ],
+    "yanked_versions": {}
+}

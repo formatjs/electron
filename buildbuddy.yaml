@@ -1,0 +1,76 @@
+actions:
+  - name: Electron source components
+    container_image: ubuntu-24.04
+    allow_concurrent_runs: false
+    allow_concurrent_runs_on_branches: []
+    timeout: 2h
+    resource_requests:
+      cpu: 8
+      memory: 16GB
+      disk: 100GB
+    triggers:
+      push:
+        branches: [main]
+      pull_request:
+        branches: ["*"]
+        merge_with_base: false
+    steps:
+      - run: |
+          registry="$(mktemp -d /tmp/electron-registry.XXXXXX)"
+          python3 tools/stage_bcr_entry.py --source-registry bcr \
+            --target-registry "$registry" --module electron --version 39.0.0
+          bazel build --config=buildbuddy --registry="file://$registry" \
+            --registry=https://bcr.bazel.build //:source_components
+          bazel test --config=buildbuddy --strategy=TestRunner=local \
+            --registry="file://$registry" --registry=https://bcr.bazel.build \
+            //:source_tests //tests:prepare_source_test
+
+  - name: Electron source cross-compile
+    container_image: ubuntu-24.04
+    allow_concurrent_runs: false
+    allow_concurrent_runs_on_branches: []
+    timeout: 2h
+    resource_requests:
+      cpu: 8
+      memory: 16GB
+      disk: 100GB
+    triggers:
+      push:
+        branches: [main]
+      pull_request:
+        branches: ["*"]
+        merge_with_base: false
+    steps:
+      - run: |
+          registry="$(mktemp -d /tmp/electron-registry.XXXXXX)"
+          python3 tools/stage_bcr_entry.py --source-registry bcr \
+            --target-registry "$registry" --module electron --version 39.0.0
+          bazel build --config=buildbuddy --registry="file://$registry" \
+            --registry=https://bcr.bazel.build @electron//source:cross_probes \
+            --repo_env=BAZEL_MSVC_RUNTIME_VISUAL_STUDIO_EULA=1 \
+            --repo_env=BAZEL_WINDOWS_SDK_EULA=1
+
+  - name: Electron BCR consumer
+    container_image: ubuntu-24.04
+    allow_concurrent_runs: false
+    allow_concurrent_runs_on_branches: []
+    timeout: 2h
+    resource_requests:
+      cpu: 8
+      memory: 16GB
+      disk: 100GB
+    triggers:
+      push:
+        branches: [main]
+      pull_request:
+        branches: ["*"]
+        merge_with_base: false
+    steps:
+      - run: |
+          registry="$(mktemp -d /tmp/electron-registry.XXXXXX)"
+          python3 tools/stage_bcr_entry.py --source-registry bcr \
+            --target-registry "$registry" --module electron --version 39.0.0
+          cd tests/bcr
+          bazel test --config=buildbuddy --strategy=TestRunner=local \
+            --registry="file://$registry" --registry=https://bcr.bazel.build \
+            //:loop_consumer_test @electron//:source_tests
