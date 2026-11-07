@@ -967,3 +967,49 @@ and [cross-compile](https://formatjs.buildbuddy.io/invocation/497602af-9588-4fa5
 checks passed. Metadata action audit found no CMake or foreign-cc actions.
 This complete source profile remains Linux AMD64; full Skia, Blink/content,
 other full source profiles and Electron linking remain unfinished.
+
+
+## JPEG, WebP, GIF and native NASM
+
+`electron_codecs_sources` translates all 213 C units in the captured JPEG, WebP
+and Wuffs GIF roots. JPEG keeps its 27 original SIMD assembly runs and original
+NASM 2.17rc0, built from all 81 captured tool C units on the execution platform.
+The profile contains 26 library/group/tool targets plus the original foreach
+action. Every assembly run retains `--reproducible` and compares object bytes
+across changed paths and input mtimes. Original included C files, source/public
+headers, SIMD inputs, compiler flags and dependency edges remain declared.
+
+JPEG and NASM use exact Chromium fork commits `e14cbfaa85529d47f9f55b0f104a579c1061f9ad`
+and `e2c93c34982b286b27ce8b56dd7159e0b90869a2` through pinned Git fetches.
+WebP and Wuffs use exact DEPS commits with checksum-pinned GitHub archives.
+No host NASM lookup, CMake or foreign-cc action participates. The product archive
+aggregate excludes a second target-platform NASM build; assembly actions request
+the tool through the execution configuration.
+
+```mermaid
+flowchart TD
+  Nasm[Matching NASM sources] --> Tool[Native execution-platform NASM]
+  Assembly[Original JPEG assembly] --> Objects[27 original SIMD objects]
+  Tool --> Objects
+  Objects --> JPEG[Native JPEG]
+  JpegC[Original JPEG C] --> JPEG
+  WebpC[Original WebP C] --> WebP[Native WebP]
+  WuffsC[Original configured Wuffs C] --> GIF[Native GIF decoder]
+  JPEG --> Skia[Skia dependency closure]
+  WebP --> Skia
+  GIF --> Skia
+```
+
+The runtime probe requires JPEG SIMD dispatch and checks a real 32-by-32 RGB
+encode/decode against bounded lossy color error. WebP checks exact lossless RGBA
+bytes, including alpha, and invalid-stream rejection. Wuffs decodes an opaque
+one-pixel GIF through its original image/frame/pixel APIs, checks the pixel and
+end-of-animation result, then rejects a changed signature. Original native codec
+implementations perform every operation.
+
+[a4c1c6a components](https://formatjs.buildbuddy.io/invocation/ac78fd37-9f01-475d-8bb5-449482a50752),
+[consumer](https://formatjs.buildbuddy.io/invocation/3539d526-2758-4b59-8fc0-06b5fc20d11f)
+and [cross-compile](https://formatjs.buildbuddy.io/invocation/534b1402-47d9-4822-b0a5-c9f02074a26d)
+checks passed. This full codec profile remains Linux AMD64; the cross check
+covers existing platform probes. Complete Skia, Blink/content, other full source
+profiles and the Electron executable remain unfinished.
