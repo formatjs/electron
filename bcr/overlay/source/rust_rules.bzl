@@ -1,4 +1,4 @@
-"""Complete captured Temporal crates, build scripts and original allocator FFI."""
+"""Captured Temporal/base/fontations crates, build scripts and original FFI."""
 
 load("@electron_rust_sources//:profile.bzl", "PROFILE")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")

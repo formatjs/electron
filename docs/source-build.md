@@ -303,6 +303,7 @@ passed. This Linux AMD64 slice does not link the full V8 or Electron engine.
 python3 tools/capture_temporal.py \
   --graph=bcr/overlay/source/native/linux_amd64.partial.json.gz \
   --source-root=/path/to/matching/patched/chromium \
+  --fontconfig-root=/path/to/fontconfig-f0ed9c3f43161d3555f6f7a5234b22fe7ca60727 \
   --output=bcr/overlay/source/native/temporal_inputs.json \
   --v8-output=bcr/overlay/source/native/v8_temporal_inputs.bzl
 buildifier bcr/overlay/source/native/v8_temporal_inputs.bzl
@@ -920,7 +921,49 @@ no host font lookup participates.
 [854f6a7 components](https://formatjs.buildbuddy.io/invocation/de381a35-b6b8-46cf-b868-6f1b830dc130),
 [consumer](https://formatjs.buildbuddy.io/invocation/be89e67e-3a77-4364-917e-c8cd913427de)
 and [cross-compile](https://formatjs.buildbuddy.io/invocation/cac878c2-42ac-4798-a252-b1fae8de5225)
-checks passed. These complete dependency roots remain Linux AMD64. Fontconfig's
-Rust fontations integration, complete Skia, Blink/content and Electron linking
-remain unfinished. Existing cross probes do not establish complete rendering
-support on every target.
+checks passed. These complete dependency roots remain Linux AMD64. Fontconfig
+and Rust fontations follow below. Complete Skia, Blink/content and Electron
+linking remain unfinished; existing cross probes do not establish complete
+rendering support on every target.
+
+
+## Fontconfig and Rust fontations
+
+The native font closure now includes all 29 captured Fontconfig C units, with
+its original `ENABLE_FONTATIONS` setting and native BCR `libuuid` 2.41.2.bcr.1.
+Fontconfig source uses DEPS commit `f0ed9c3f43161d3555f6f7a5234b22fe7ca60727`
+and a SHA-256-pinned archive. The full native font/XML closure totals 171 units.
+
+The existing Rust profile adds nine library/proc-macro targets and one original
+libc build script. It now has 95 targets from 71 vendored packages. All previous
+85 Rust records and previous font-library records remain unchanged. Native
+bindgen generates the two original C-header boundaries; Chromium's original
+`build/rust/bindings.rs` namespace wrapper stays in use. Binding filters and
+C parsing settings retain the original Fontconfig configuration. The capture
+records and checks its `BUILD.gn` source hash, including the bindgen-only
+visibility, threading and flexible-array settings. Pinned Rust tools and the
+existing allocator/prelude remain shared; Cargo never resolves dependencies.
+
+```mermaid
+flowchart TD
+  Headers[Original Fontconfig C headers] --> Bindgen[Native pinned bindgen]
+  Bindgen --> Wrapper[Original Rust bindings wrapper]
+  Wrapper --> Fontations[Original Rust fontations / skrifa / read-fonts]
+  Font[Declared font bytes] --> Scan[Original Fontconfig C scanner]
+  Scan --> Fontations
+  Fontations --> Pattern[Native font patterns / charset / matching]
+```
+
+The native probe selects Fontconfig's original fontations scanner through
+`FC_FONTATIONS=1`. An explicit empty configuration starts without system fonts,
+loads only the declared font, checks its family, file identity and character
+coverage, then matches it through the native C API. A malformed font file must
+be rejected without changing the inventory; clearing application fonts must
+leave it empty. The earlier shaping/raster/PNG/XML probes remain included.
+
+[6652729 components](https://formatjs.buildbuddy.io/invocation/3a1191a5-391b-4f00-b679-ceee2aaf82f0),
+[consumer](https://formatjs.buildbuddy.io/invocation/d79263f3-c960-4981-acad-338cd9b5d328)
+and [cross-compile](https://formatjs.buildbuddy.io/invocation/497602af-9588-4fa5-80e6-2ba8096d5835)
+checks passed. Metadata action audit found no CMake or foreign-cc actions.
+This complete source profile remains Linux AMD64; full Skia, Blink/content,
+other full source profiles and Electron linking remain unfinished.

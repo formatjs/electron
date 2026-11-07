@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""Capture Electron's complete Temporal/base Rust closures and original bridges."""
+"""Capture Electron's Temporal/base/fontations Rust closures and original bridges."""
 
 import argparse
 import gzip
@@ -289,7 +289,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--graph", type=Path, required=True)
     parser.add_argument("--source-root", type=Path, required=True)
-    parser.add_argument("--fontconfig-root", type=Path)
+    parser.add_argument("--fontconfig-root", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--v8-output", type=Path, required=True)
     args = parser.parse_args()

@@ -1,4 +1,4 @@
-"""Project only declared Temporal inputs from the matching Chromium archive."""
+"""Project declared Temporal/base/fontations inputs from pinned source archives."""
 
 def _impl(ctx):
     ctx.read(ctx.attr.chromium)
