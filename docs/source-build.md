@@ -621,3 +621,37 @@ python3 tools/capture_webpack_deps.py --electron="$electron_source_root/electron
   --flags=bcr/overlay/source/native/electron_buildflags.bzl
 buildifier bcr/overlay/source/native/webpack_inputs.bzl bcr/overlay/source/native/electron_buildflags.bzl
 ```
+
+## Chromium base prerequisite
+
+Node's original Chromium inspector protocol implementation depends on complete
+`//base:base`. The native capture keeps that implementation and translates its
+425-unit root plus support libraries: 448 C/C++ units total. The profile records
+all source flags and omitted GN toolchain paths. Native LLVM replaces sysroot
+compiler flags; pinned source-built GLib supplies Linux desktop interfaces.
+Linux syscall support matches Chromium's exact `ed31caa` DEPS revision.
+
+```mermaid
+flowchart TD
+  SDK[Pinned Rust SDK] --> CXX[Original CXX compiler and wrappers]
+  CXX --> Bridges[Rust logger and JSON bridges]
+  Generators[Original buildflags and protobuf generators] --> Base[Chromium base]
+  Bridges --> Base
+  GLib[Pinned native GLib] --> Base
+  Existing[PartitionAlloc / ICU / Perfetto / BoringSSL] --> Base
+  Base --> Inspector[Chromium inspector protocol]
+  Inspector --> Node[Patched libnode]
+```
+
+`electron_base_sources` projects declared files read-only. Generated build dates
+use the captured fixed timestamp; version generation consumes declared version
+files. Python generators retain isolated interpreters, empty child `PATH`,
+explicit environments and path/mtime byte checks. CXX configuration comes from
+the pinned target Rust compiler; the CXX executable uses the execution platform.
+Cargo does not resolve dependencies. The combined Temporal/base closure contains
+85 Rust targets from 65 vendored packages; existing Temporal crates stay shared.
+
+The linked probe exercises original Rust JSON parsing, strict/malformed input
+rejection, JSON serialization, Base64 and native GLib task/idle dispatch. Hosted
+validation is pending. This profile remains Linux AMD64; complete libnode and
+Electron linking remain separate work.

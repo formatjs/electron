@@ -3,6 +3,8 @@
 #include <cstdlib>
 #include <string>
 
+#include <glib.h>
+
 #include "base/at_exit.h"
 #include "base/base64.h"
 #include "base/functional/bind.h"
@@ -44,9 +46,15 @@ int main() {
   bool ran = false;
   executor.task_runner()->PostTask(FROM_HERE, base::BindOnce([&] {
     ran = true;
-    loop.Quit();
   }));
+  struct State { base::RunLoop* loop; bool dispatched; } state{&loop, false};
+  g_idle_add([](gpointer data) -> gboolean {
+    auto* state = static_cast<State*>(data);
+    state->dispatched = true;
+    state->loop->Quit();
+    return G_SOURCE_REMOVE;
+  }, &state);
   loop.Run();
-  Require(ran, "native GLib message pump dispatches task");
+  Require(ran && state.dispatched, "native GLib message pump dispatches task and idle source");
   return 0;
 }

@@ -23,7 +23,7 @@ TOOLCHAIN = {"//buildtools/third_party/libc++:" + n for n in ("all_modules", "cu
 TOOLCHAIN.add("//build/config:executable_deps")
 
 
-def capture(graph, chromium, perfetto_profile, rust_profile):
+def capture(graph, chromium, boringssl, perfetto_profile, rust_profile):
     targets = graph["targets"]
     external = {label: "@electron_perfetto_native_sources//:" + name for label, name in perfetto_profile["names"].items()}
     external.update({label: "@electron_rust_sources//:" + record["name"] for label, record in rust_profile["rust"].items()})
@@ -52,7 +52,9 @@ def capture(graph, chromium, perfetto_profile, rust_profile):
         for path in (chromium / directory).rglob("*"):
             if path.is_file() and path.suffix in (".h", ".inc", ".inl"):
                 headers.add(path.relative_to(chromium).as_posix())
+    headers.update("third_party/boringssl/src/" + path.relative_to(boringssl).as_posix() for path in (boringssl / "include").rglob("*.h"))
     headers.add("third_party/lss/linux_syscall_support.h")
+    headers.add("testing/gtest/include/gtest/gtest_prod.h")
     files.update(headers)
     actions, libraries, copies, producers = {}, {}, {}, {}
     for label in sorted(seen):
@@ -156,7 +158,7 @@ def capture(graph, chromium, perfetto_profile, rust_profile):
         else:
             raise ValueError("Untranslated base target kind: " + kind)
     for path in files:
-        if path.startswith(("electron/", "third_party/lss/")):
+        if path.startswith(("electron/", "third_party/lss/", "third_party/boringssl/src/", "testing/gtest/")):
             continue
         if not (chromium / path).is_file():
             raise ValueError("Missing original base input: " + path)
@@ -168,12 +170,13 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--graph", type=Path, required=True)
     parser.add_argument("--chromium-root", type=Path, required=True)
+    parser.add_argument("--boringssl-root", type=Path, required=True)
     parser.add_argument("--perfetto-profile", type=Path, default=Path("bcr/overlay/source/native/perfetto_inputs.json"))
     parser.add_argument("--rust-profile", type=Path, default=Path("bcr/overlay/source/native/temporal_inputs.json"))
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     content = args.graph.read_bytes()
-    result = capture(json.loads(gzip.decompress(content)), args.chromium_root, json.loads(args.perfetto_profile.read_text()), json.loads(args.rust_profile.read_text()))
+    result = capture(json.loads(gzip.decompress(content)), args.chromium_root, args.boringssl_root, json.loads(args.perfetto_profile.read_text()), json.loads(args.rust_profile.read_text()))
     result["graph_sha256"] = hashlib.sha256(content).hexdigest()
     args.output.write_text(json.dumps(result, indent=2) + "\n")
 

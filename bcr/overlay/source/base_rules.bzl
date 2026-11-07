@@ -68,6 +68,7 @@ def electron_base():
             "@electron_boringssl_sources//:ssl",
             "@electron_icu_sources//:icu",
             "@electron_v8_support_sources//:zlib",
+            "@electron_perfetto_native_sources//:perfetto",
         ],
     )
     for original, action in PROFILE["actions"].items():
