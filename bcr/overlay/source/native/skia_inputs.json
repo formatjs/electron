@@ -11801,6 +11801,7 @@
       "gn_deps": [],
       "script": "third_party/dawn/generator/dawn_version_generator.py",
       "inputs": [
+        "//gpu/webgpu/DAWN_VERSION",
         "//out/bazel-import/gen/third_party/dawn/dawn_version_gen.expected_outputs",
         "//third_party/dawn/generator/CMakeLists.txt",
         "//third_party/dawn/generator/OWNERS",
@@ -20091,6 +20092,9 @@
     "//out/bazel-import/gen/third_party/dawn/dawn_gpu_info_gen.expected_outputs": "src/dawn/common/GPUInfo_autogen.h\nsrc/dawn/common/GPUInfo_autogen.cpp\n",
     "//out/bazel-import/gen/third_party/dawn/dawn_version_gen.expected_outputs": "src/dawn/common/Version_autogen.h\n",
     "//out/bazel-import/gen/third_party/dawn/proc_gen.expected_outputs": "src/dawn/dawn_proc.cpp\nsrc/dawn/dawn_thread_dispatch_proc.cpp\n"
+  },
+  "source_metadata": {
+    "gpu/webgpu/DAWN_VERSION": "cee9cb0d67e749bf42f5e90cb3b8a6f525dbb920"
   },
   "metadata_derivations": {
     "//out/bazel-import/gen/third_party/dawn/cpp_headers_gen.expected_outputs": {

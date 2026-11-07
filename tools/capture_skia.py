@@ -53,10 +53,13 @@ def capture(graph, digest, chromium, skia, dawn, vulkan, profiles):
         return chromium / path
 
     files, generated, headers, textual, used_shared = set(), {}, {}, {}, set()
+    source_metadata = {"gpu/webgpu/DAWN_VERSION": PINS["dawn"]}
     producers = {output: label for label in sorted(seen) if targets[label]["type"] in ("action", "action_foreach") for output in targets[label]["outputs"]}
     tools = {BUILD + "clang_x64_for_rust_host_build_tools/cxxbridge": "@electron_rust_sources//:cxxbridge"}
 
     def input_file(path):
+        if path.removeprefix("//") in source_metadata:
+            return
         if path in shared:
             used_shared.add(path)
             return
@@ -130,7 +133,7 @@ def capture(graph, digest, chromium, skia, dawn, vulkan, profiles):
                 metadata_derivations[path] = {"extractor": extractor_label, "source": "third_party/dawn/generator/generator_lib.gni", "source_sha256": hashlib.sha256(declaration).hexdigest()}
                 inputs.add(path)
             for arg in args:
-                if arg.startswith("../../") and physical(arg[6:]).is_file():
+                if arg.startswith("../../") and (physical(arg[6:]).is_file() or arg[6:] in source_metadata):
                     inputs.add("//" + arg[6:])
                 elif BUILD + arg in graph["generated_files"]:
                     inputs.add(BUILD + arg)
@@ -149,7 +152,7 @@ def capture(graph, digest, chromium, skia, dawn, vulkan, profiles):
         if not physical(path).is_file():
             raise ValueError("Missing original Skia input: " + path)
     used = {dep for label in seen for dep in targets[label].get("deps", []) if dep in external}
-    return dict(root=ROOT, graph_sha256=digest, source_revisions=PINS, names=names, libraries=libraries, actions=actions, producers=producers, headers=headers, textual_headers=textual, files=sorted(files), external_files={path: shared[path] for path in sorted(used_shared)}, external={label: external[label] for label in sorted(used)}, generated_files=generated, metadata_derivations=metadata_derivations, toolchain_deps=sorted(TOOLCHAIN))
+    return dict(root=ROOT, graph_sha256=digest, source_revisions=PINS, names=names, libraries=libraries, actions=actions, producers=producers, headers=headers, textual_headers=textual, files=sorted(files), external_files={path: shared[path] for path in sorted(used_shared)}, external={label: external[label] for label in sorted(used)}, generated_files=generated, source_metadata=source_metadata, metadata_derivations=metadata_derivations, toolchain_deps=sorted(TOOLCHAIN))
 
 
 def main():

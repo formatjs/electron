@@ -18,7 +18,7 @@ def _file(original):
     return ":" + original[len(_BUILD):] if original.startswith(_BUILD) else "//:" + original[2:]
 
 def electron_skia():
-    native.exports_files(PROFILE["files"] + [path[2:] for path in PROFILE["generated_files"]] + ["profile.bzl", "BUILD.bazel"])
+    native.exports_files(PROFILE["files"] + PROFILE["source_metadata"].keys() + [path[2:] for path in PROFILE["generated_files"]] + ["profile.bzl", "BUILD.bazel"])
     cc_library(
         name = "source_headers",
         hdrs = [_file("//" + path) for headers in PROFILE["headers"].values() for path in headers] + [_file(path) for action in PROFILE["actions"].values() for path in action["outputs"] if path.endswith(".h")],

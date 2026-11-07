@@ -15,6 +15,10 @@ def _impl(ctx):
             if path.startswith(prefix):
                 owner, relative = name, path[len(prefix):]
         ctx.symlink(roots[owner].get_child(relative), path)
+    for path, content in profile["source_metadata"].items():
+        if path != "gpu/webgpu/DAWN_VERSION":
+            fail("Unexpected Skia source metadata")
+        ctx.file(path, content, executable = False)
     for path, content in profile["generated_files"].items():
         if not path.startswith("//out/bazel-import/") or ".." in path.split("/"):
             fail("Invalid Skia metadata path")
