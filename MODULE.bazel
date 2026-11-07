@@ -4,6 +4,7 @@ module(
     bazel_compatibility = [">=9.2.0"],
 )
 
+bazel_dep(name = "libexpat", version = "2.9.0")
 bazel_dep(name = "libuuid", version = "2.41.2.bcr.1")
 bazel_dep(name = "rules_license", version = "1.0.0")
 bazel_dep(name = "bazel_skylib", version = "1.9.0")
@@ -52,6 +53,7 @@ use_repo(
     "electron_chromium_native_support",
     "electron_chromium_sources",
     "electron_codecs_sources",
+    "electron_dawn_upstream",
     "electron_devtools_frontend_sources",
     "electron_dragonbox_upstream",
     "electron_embedder_sources",
@@ -89,11 +91,14 @@ use_repo(
     "electron_reactiveobjc_sources",
     "electron_reclient_configs_sources",
     "electron_rust_sources",
+    "electron_skia_sources",
+    "electron_skia_upstream",
     "electron_sqlite_sources",
     "electron_squirrel_mac_sources",
     "electron_v8_engine_sources",
     "electron_v8_sources",
     "electron_v8_support_sources",
+    "electron_vulkan_upstream",
     "electron_webp_upstream",
     "electron_webrtc_sources",
     "electron_wuffs_upstream",

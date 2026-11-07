@@ -26,6 +26,8 @@ NATIVE_CPP = {
 }
 NATIVE_CPP["//base/allocator/partition_allocator:raw_ptr"] = "@electron_partition_alloc_sources//:raw_ptr"
 SEVERITY = "//base:logging_log_severity_bindgen"
+SKIA_ROOTS = ["//skia:bridge_rust_side", "//skia:rust_png_ffi"]
+SKIA_CPP = {label: "@electron_skia_sources//:target_" + hashlib.sha256(label.encode()).hexdigest()[:16] for label in ["//skia:bridge_rust_side_cxx_generated", "//skia:path_bridge", "//skia:rust_png_ffi_cpp", "//skia:rust_png_ffi_cxx_generated"]}
 FONT_ROOT = "//third_party/fontconfig:fontconfig_fontations_ffi"
 FONT_BINDINGS = {"//third_party/fontconfig:" + name for name in ("fcint_h_bindgen", "fontconfig_h_bindgen")}
 
@@ -34,8 +36,11 @@ def name(label):
     return "crate_" + hashlib.sha256(label.encode()).hexdigest()[:16]
 
 
-def capture(graph, source, fontconfig=None):
+def capture(graph, source, fontconfig=None, skia=None):
     targets = graph["targets"]
+    native_cpp = dict(NATIVE_CPP)
+    if skia:
+        native_cpp.update(SKIA_CPP)
     if fontconfig:
         config_source = (source / "third_party/fontconfig/BUILD.gn").read_bytes()
         config = re.search(r'config\("bindgen_config"\) \{(.*?)\n  \}', config_source.decode(), re.S)
@@ -57,7 +62,7 @@ def capture(graph, source, fontconfig=None):
         if infrastructure(label):
             provided.add(label)
             return
-        if label in NATIVE_CPP:
+        if label in native_cpp:
             return
         target = targets[label]
         bare = label.split("(")[0]
@@ -87,7 +92,7 @@ def capture(graph, source, fontconfig=None):
         for dep in target.get("deps", []):
             visit(dep)
 
-    for root in [ROOT] + BASE_ROOTS + ([FONT_ROOT] if fontconfig else []):
+    for root in [ROOT] + BASE_ROOTS + ([FONT_ROOT] if fontconfig else []) + (SKIA_ROOTS if skia else []):
         visit(root)
     root_files = {"LICENSE", "build/build_config.h", "build/buildflag.h", "build/rust/bindings.rs"}
     packages, crates, cpp, bindings = {}, {}, {}, {}
@@ -100,8 +105,8 @@ def capture(graph, source, fontconfig=None):
     def resolve(label):
         if infrastructure(label):
             return None
-        if label in NATIVE_CPP:
-            return NATIVE_CPP[label]
+        if label in native_cpp:
+            return native_cpp[label]
         if label in selected:
             return name(label)
         if label in scripts:
@@ -119,6 +124,8 @@ def capture(graph, source, fontconfig=None):
         owner, relative = source, path
         if fontconfig and path.startswith("third_party/fontconfig/src/"):
             owner, relative = fontconfig, path.removeprefix("third_party/fontconfig/src/")
+        if skia and path.startswith("third_party/skia/"):
+            owner, relative = skia, path.removeprefix("third_party/skia/")
         candidate = owner / relative
         if not candidate.is_file() or not candidate.resolve().is_relative_to(owner.resolve()):
             raise ValueError("Missing or escaping pinned Rust input: " + path)
@@ -290,11 +297,12 @@ def main():
     parser.add_argument("--graph", type=Path, required=True)
     parser.add_argument("--source-root", type=Path, required=True)
     parser.add_argument("--fontconfig-root", type=Path, required=True)
+    parser.add_argument("--skia-root", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--v8-output", type=Path, required=True)
     args = parser.parse_args()
     data = args.graph.read_bytes()
-    profile = capture(json.loads(gzip.decompress(data)), args.source_root, args.fontconfig_root)
+    profile = capture(json.loads(gzip.decompress(data)), args.source_root, args.fontconfig_root, args.skia_root)
     profile["graph_sha256"] = hashlib.sha256(data).hexdigest()
     args.output.write_text(json.dumps(profile, sort_keys=True, indent=2) + "\n")
     graph = json.loads(gzip.decompress(data))

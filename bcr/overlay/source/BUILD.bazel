@@ -6,6 +6,7 @@ load("@electron_ipcz_sources//:profile.bzl", IPCZ_PROFILE = "PROFILE")
 load("@electron_libnode_sources//:profile.bzl", LIBNODE_PROFILE = "PROFILE")
 load("@electron_mojo_sources//:profile.bzl", MOJO_PROFILE = "PROFILE")
 load("@electron_network_sources//:profile.bzl", NETWORK_PROFILE = "PROFILE")
+load("@electron_skia_sources//:profile.bzl", SKIA_PROFILE = "PROFILE")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_shared_library.bzl", "cc_shared_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
@@ -25,6 +26,40 @@ load(":bundles.bzl", "electron_bundles")
 load(":probes.bzl", "loop_probes")
 
 package(default_visibility = ["//visibility:public"])
+
+cc_test(
+    name = "skia_test",
+    srcs = ["skia_test.cc"],
+    args = [
+        "$(rootpath @electron_icu_sources//:common/icudtl.dat)",
+        "$(rootpath @electron_harfbuzz_upstream//:test/shape/data/in-house/fonts/7bbd3175734d5d291e1c15271ec0cbb97b626ebf.ttf)",
+    ],
+    copts = SKIA_PROFILE["libraries"]["//skia:skia"]["copts"],
+    data = [
+        "@electron_harfbuzz_upstream//:test/shape/data/in-house/fonts/7bbd3175734d5d291e1c15271ec0cbb97b626ebf.ttf",
+        "@electron_icu_sources//:common/icudtl.dat",
+    ],
+    env = {
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+    },
+    linkstatic = True,
+    local_defines = SKIA_PROFILE["libraries"]["//skia:skia"]["defines"],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    deps = [
+        "@electron_embedder_sources//:base_i18n",
+        "@electron_skia_sources//:skia",
+    ],
+)
+
+alias(
+    name = "skia_libraries",
+    actual = "@electron_skia_sources//:libraries",
+)
 
 alias(
     name = "codecs_libraries",

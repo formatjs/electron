@@ -16,6 +16,7 @@ load(":partition_alloc_repository.bzl", "electron_partition_alloc_repository")
 load(":perfetto_repository.bzl", "electron_perfetto_repository")
 load(":protobuf_repository.bzl", "electron_protobuf_repository")
 load(":rust_repository.bzl", "electron_rust_repository")
+load(":skia_repository.bzl", "electron_skia_repository")
 load(":source_repositories.bzl", "electron_abseil_repository", "electron_node_repository", "electron_patched_upstream")
 load(":v8_engine_repository.bzl", "electron_v8_engine_repository")
 load(":v8_support_repository.bzl", "electron_v8_support_repository")
@@ -73,7 +74,7 @@ def _impl(ctx):
     electron_abseil_repository(name = "electron_abseil_sources", chromium = "@electron_chromium_sources//:DEPS")
     electron_icu_repository(name = "electron_icu_sources", chromium = "@electron_chromium_sources//:DEPS")
     electron_partition_alloc_repository(name = "electron_partition_alloc_sources", chromium = "@electron_chromium_sources//:DEPS")
-    electron_rust_repository(name = "electron_rust_sources", chromium = "@electron_chromium_sources//:DEPS", fontconfig = "@electron_fontconfig_upstream//:COPYING")
+    electron_rust_repository(name = "electron_rust_sources", chromium = "@electron_chromium_sources//:DEPS", fontconfig = "@electron_fontconfig_upstream//:COPYING", skia = "@electron_skia_upstream//:LICENSE")
     http_archive(
         name = "electron_lss_upstream",
         urls = ["https://github.com/citizenfx/linux-syscall-support/archive/ed31caa60f20a4f6569883b2d752ef7522de51e0.tar.gz"],
@@ -109,7 +110,7 @@ def _impl(ctx):
         urls = ["https://commondatastorage.googleapis.com/chrome-linux-sysroot/36a164623d03f525e3dfb783a5e9b8a00e98e1ddd2b5cff4e449bd016dd27e50"],
         sha256 = "36a164623d03f525e3dfb783a5e9b8a00e98e1ddd2b5cff4e449bd016dd27e50",
         type = "tar.xz",
-        build_file_content = 'load("@rules_cc//cc:cc_library.bzl", "cc_library")\ncc_library(name = "gssapi", hdrs = ["usr/include/mit-krb5/gssapi.h", "usr/include/mit-krb5/gssapi/gssapi.h"], includes = ["usr/include/mit-krb5"], visibility = ["//visibility:public"])\n',
+        build_file_content = 'load("@rules_cc//cc:cc_library.bzl", "cc_library")\ncc_library(name = "gssapi", hdrs = ["usr/include/mit-krb5/gssapi.h", "usr/include/mit-krb5/gssapi/gssapi.h"], includes = ["usr/include/mit-krb5"], visibility = ["//visibility:public"])\ncc_library(name = "graphics", hdrs = glob(["usr/include/X11/**/*.h", "usr/include/xcb/**/*.h", "usr/include/GL/**/*.h", "usr/include/EGL/**/*.h", "usr/include/KHR/**/*.h"]), strip_include_prefix = "usr/include", visibility = ["//visibility:public"])\n',
     )
     for name, url, digest, anchor, strip in [
         ("fontconfig", "https://github.com/fontconfig/fontconfig/archive/f0ed9c3f43161d3555f6f7a5234b22fe7ca60727.tar.gz", "8d0a35fa74c30a7ca8774efaa3e2fb73b9aa6caf49354e425011ba61b8e15280", "COPYING", "fontconfig-f0ed9c3f43161d3555f6f7a5234b22fe7ca60727"),
@@ -128,6 +129,13 @@ def _impl(ctx):
         ("wuffs", "google/wuffs-mirror-release-c", "e3f919ccfe3ef542cfc983a82146070258fb57f8", "e849dab1f372f16b782ba7528e7f70281e35425bd2d644c92a36fb95909f98db", "LICENSE"),
     ]:
         http_archive(name = "electron_" + name + "_upstream", urls = ["https://github.com/" + github + "/archive/" + commit + ".tar.gz"], sha256 = digest, strip_prefix = ("libwebp" if name == "webp" else "wuffs-mirror-release-c") + "-" + commit, build_file_content = "exports_files([" + repr(anchor) + "], visibility = [\"//visibility:public\"])\n")
+    for name, github, commit, digest, prefix, anchor in [
+        ("skia", "google/skia", "f4ed99d2443962782cf5f8b4dd27179f131e7cbe", "1f273c735a430bb3c8e770b80d23dea88cea346f705c6028912ab3849c18bbc6", "skia", "LICENSE"),
+        ("dawn", "google/dawn", "cee9cb0d67e749bf42f5e90cb3b8a6f525dbb920", "604b16af14b41e2485df4d9e65f749d649e5c25729a1de43569b41e63249a16e", "dawn", "LICENSE"),
+        ("vulkan", "KhronosGroup/Vulkan-Headers", "a4f8ada9f4f97c45b8c89c57997be9cebaae65d2", "0b0f6517f579181a8d9319adeab6aceb51d2b9497c35c436b95af0dae109a7f1", "Vulkan-Headers", "LICENSE.md"),
+    ]:
+        http_archive(name = "electron_" + name + "_upstream", urls = ["https://github.com/" + github + "/archive/" + commit + ".tar.gz"], sha256 = digest, strip_prefix = prefix + "-" + commit, build_file_content = "exports_files([" + repr(anchor) + "], visibility = [\"//visibility:public\"])\n")
+    electron_skia_repository(name = "electron_skia_sources", chromium = "@electron_chromium_sources//:DEPS", skia = "@electron_skia_upstream//:LICENSE", dawn = "@electron_dawn_upstream//:LICENSE", vulkan = "@electron_vulkan_upstream//:LICENSE.md")
     electron_codecs_repository(name = "electron_codecs_sources", chromium = "@electron_chromium_sources//:DEPS", jpeg = "@electron_jpeg_upstream//:LICENSE.md", webp = "@electron_webp_upstream//:COPYING", wuffs = "@electron_wuffs_upstream//:LICENSE", nasm = "@electron_nasm_upstream//:LICENSE")
     electron_fonts_repository(name = "electron_fonts_sources", chromium = "@electron_chromium_sources//:DEPS", freetype = "@electron_freetype_upstream//:LICENSE.TXT", harfbuzz = "@electron_harfbuzz_upstream//:COPYING", fontconfig = "@electron_fontconfig_upstream//:COPYING")
     electron_mojo_repository(name = "electron_mojo_sources", chromium = "@electron_chromium_sources//:DEPS")
@@ -222,6 +230,6 @@ def _impl(ctx):
     )
     electron_node_repository(name = "electron_node_sources", electron = "@electron//:DEPS")
     direct = ["electron_embedder_sources", "electron_ced_upstream", "electron_libnode_sources", "electron_zstd_upstream", "electron_base_sources", "electron_lss_upstream", "electron_node_sources", "electron_v8_sources", "electron_chromium_sources", "electron_cast_core_sources", "electron_glslang_sources", "electron_abseil_sources", "electron_icu_sources", "electron_partition_alloc_sources", "electron_rust_sources", "electron_v8_support_sources", "electron_protobuf_sources", "electron_protobuf_javascript_upstream", "electron_perfetto_native_sources", "electron_jsoncpp_upstream", "electron_v8_engine_sources", "electron_fp16_upstream"] + dependency_repos + support_repos
-    return ctx.extension_metadata(reproducible = True, root_module_direct_deps = direct + ["electron_codecs_sources", "electron_jpeg_upstream", "electron_webp_upstream", "electron_wuffs_upstream", "electron_nasm_upstream", "electron_fontconfig_upstream", "electron_freetype_upstream", "electron_harfbuzz_upstream", "electron_fonts_sources", "electron_mojo_sources", "electron_ipcz_sources", "electron_chromium_native_support", "electron_nspr_upstream", "electron_nss_upstream", "nspr", "nss", "electron_quiche_upstream", "electron_re2_upstream", "electron_network_platform_headers", "electron_network_sources"], root_module_direct_dev_deps = [])
+    return ctx.extension_metadata(reproducible = True, root_module_direct_deps = direct + ["electron_skia_sources", "electron_skia_upstream", "electron_dawn_upstream", "electron_vulkan_upstream", "electron_codecs_sources", "electron_jpeg_upstream", "electron_webp_upstream", "electron_wuffs_upstream", "electron_nasm_upstream", "electron_fontconfig_upstream", "electron_freetype_upstream", "electron_harfbuzz_upstream", "electron_fonts_sources", "electron_mojo_sources", "electron_ipcz_sources", "electron_chromium_native_support", "electron_nspr_upstream", "electron_nss_upstream", "nspr", "nss", "electron_quiche_upstream", "electron_re2_upstream", "electron_network_platform_headers", "electron_network_sources"], root_module_direct_dev_deps = [])
 
 electron = module_extension(implementation = _impl, tag_classes = {"version": tag_class(attrs = {"version": attr.string(mandatory = True)})})

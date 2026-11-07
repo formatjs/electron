@@ -1,0 +1,5 @@
+load("@electron//source:skia_rules.bzl", "electron_skia")
+
+package(default_visibility = ["//visibility:public"])
+
+electron_skia()

@@ -1,4 +1,5 @@
 exports_files([
+    "skia_inputs.json",
     "codecs_inputs.json",
     "fonts_inputs.json",
     "mojo_inputs.json",

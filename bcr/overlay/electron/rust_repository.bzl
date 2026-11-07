@@ -5,6 +5,8 @@ def _impl(ctx):
     root = ctx.path(ctx.attr.chromium).dirname
     ctx.read(ctx.attr.fontconfig)
     fontconfig = ctx.path(ctx.attr.fontconfig).dirname
+    ctx.read(ctx.attr.skia)
+    skia = ctx.path(ctx.attr.skia).dirname
     contents = ctx.read(ctx.attr.profile)
     profile = json.decode(contents)
     files = {path: True for path in profile["root_files"]}
@@ -15,6 +17,8 @@ def _impl(ctx):
             fail("Invalid projected Rust source path")
         prefix = "third_party/fontconfig/src/"
         origin = fontconfig.get_child(path[len(prefix):]) if path.startswith(prefix) else root.get_child(path)
+        if path.startswith("third_party/skia/"):
+            origin = skia.get_child(path[len("third_party/skia/"):])
         ctx.symlink(origin, path)
     for package, paths in profile["packages"].items():
         relative = [path[len(package) + 1:] for path in paths]
@@ -27,6 +31,7 @@ electron_rust_repository = repository_rule(
     attrs = {
         "chromium": attr.label(mandatory = True),
         "fontconfig": attr.label(mandatory = True),
+        "skia": attr.label(mandatory = True),
         "profile": attr.label(default = Label("//source/native:temporal_inputs.json")),
         "build_file": attr.label(default = Label("//source:rust.BUILD.bazel")),
     },
