@@ -2,20 +2,24 @@
 
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("//source/native:v8_bytecode_inputs.bzl", "BYTECODE_GENERATOR")
 load("//source/native:v8_torque_inputs.bzl", "TORQUE_LIBRARIES", "TORQUE_PROFILE_SHA256", "TORQUE_RUN")
+
+_LINUX_AMD64 = ["@platforms//os:linux", "@platforms//cpu:x86_64"]
+
+def v8_generator_headers(name):
+    """Share the pinned V8 headers across native execution generators."""
+    cc_library(
+        name = name,
+        hdrs = native.glob(["include/**/*.h", "src/**/*.h"]) + native.glob(["src/**/*.inc", "third_party/**/*.h", "testing/**/*.h"], allow_empty = True),
+        includes = [".", "include"],
+        target_compatible_with = _LINUX_AMD64,
+        deps = [":base_headers"],
+    )
 
 def v8_torque_compiler(name):
     """Declare the captured execution compiler inside the patched V8 repository."""
-    headers = name + "_headers"
     base = name + "_base"
-    compatible = ["@platforms//os:linux", "@platforms//cpu:x86_64"]
-    cc_library(
-        name = headers,
-        hdrs = native.glob(["include/**/*.h", "src/**/*.h"]) + native.glob(["src/**/*.inc", "third_party/**/*.h", "testing/**/*.h"], allow_empty = True),
-        includes = [".", "include"],
-        target_compatible_with = compatible,
-        deps = [":base_headers"],
-    )
     library = TORQUE_LIBRARIES["torque_base"]
     cc_library(
         name = base,
@@ -24,8 +28,8 @@ def v8_torque_compiler(name):
         local_defines = library["defines"],
         linkstatic = True,
         alwayslink = True,
-        target_compatible_with = compatible,
-        deps = [":" + headers, ":libbase"],
+        target_compatible_with = _LINUX_AMD64,
+        deps = [":generator_headers", ":libbase"],
     )
     tool = TORQUE_LIBRARIES["torque"]
     cc_binary(
@@ -34,10 +38,55 @@ def v8_torque_compiler(name):
         copts = tool["copts"],
         local_defines = tool["defines"],
         linkstatic = True,
-        target_compatible_with = compatible,
+        target_compatible_with = _LINUX_AMD64,
         deps = [":" + base],
     )
     native.exports_files(TORQUE_RUN["sources"])
+
+def v8_bytecode_compiler(name):
+    """Build captured interpreter support and handler-list execution tool."""
+    main = "src/builtins/generate-bytecodes-builtins-list.cc"
+    cc_library(
+        name = "bytecode_generator_support",
+        srcs = [p for p in BYTECODE_GENERATOR["srcs"] if p != main],
+        copts = BYTECODE_GENERATOR["copts"],
+        local_defines = BYTECODE_GENERATOR["defines"],
+        linkstatic = True,
+        alwayslink = True,
+        target_compatible_with = _LINUX_AMD64,
+        deps = [":generator_headers", ":libbase"],
+    )
+    cc_binary(
+        name = name,
+        srcs = [main],
+        copts = BYTECODE_GENERATOR["copts"],
+        local_defines = BYTECODE_GENERATOR["defines"],
+        linkstatic = True,
+        target_compatible_with = _LINUX_AMD64,
+        deps = [":bytecode_generator_support"],
+    )
+
+def _bytecodes_impl(ctx):
+    prefix = ctx.label.name + "/"
+    if ctx.attr.output_subdir:
+        prefix += _relative(ctx.attr.output_subdir) + "/"
+    output = ctx.actions.declare_file(prefix + BYTECODE_GENERATOR["output"])
+    ctx.actions.run(
+        executable = ctx.attr._tool[DefaultInfo].files_to_run,
+        arguments = [output.path],
+        outputs = [output],
+        env = {"LANG": "C", "LC_ALL": "C", "TZ": "UTC"},
+        mnemonic = "ElectronV8Bytecodes",
+    )
+    return [DefaultInfo(files = depset([output]))]
+
+electron_v8_bytecodes = rule(
+    implementation = _bytecodes_impl,
+    attrs = {
+        "output_subdir": attr.string(),
+        "_tool": attr.label(default = Label("@electron_v8_sources//:bytecode_builtins_list_generator"), executable = True, cfg = "exec"),
+    },
+)
 
 def _relative(path):
     if not path or path.startswith("/") or "\\" in path or ":" in path or any([part in ["", ".", ".."] for part in path.split("/")]):

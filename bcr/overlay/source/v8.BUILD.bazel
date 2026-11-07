@@ -1,12 +1,14 @@
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@electron//source/native:v8_base_inputs.bzl", "V8_BASE_LIBRARIES")
-load("@electron//electron:v8_rules.bzl", "v8_torque_compiler")
+load("@electron//electron:v8_rules.bzl", "v8_bytecode_compiler", "v8_generator_headers", "v8_torque_compiler")
 
 package(default_visibility = ["//visibility:public"])
 exports_files(["electron_patches.json", "DEPS", "LICENSE"])
 filegroup(name = "sources", srcs = glob(["**"], exclude = ["BUILD.bazel"]))
 
+v8_generator_headers(name = "generator_headers")
 v8_torque_compiler(name = "torque")
+v8_bytecode_compiler(name = "bytecode_builtins_list_generator")
 
 cc_library(
     name = "base_headers",

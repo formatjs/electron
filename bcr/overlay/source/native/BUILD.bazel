@@ -1,4 +1,5 @@
 exports_files([
+    "v8_bytecode_inputs.bzl",
     "v8_torque_inputs.bzl",
     "node_deps_inputs.bzl",
     "v8_base_inputs.bzl",

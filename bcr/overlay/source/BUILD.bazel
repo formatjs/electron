@@ -1,16 +1,64 @@
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load("//electron:source_rules.bzl", "electron_buildflags", "electron_fuses_generate", "electron_js2c", "electron_node_config", "electron_node_defines", "electron_original_fs")
-load("//electron:v8_rules.bzl", "electron_v8_torque", "electron_v8_torque_tool")
+load("//electron:v8_rules.bzl", "electron_v8_bytecodes", "electron_v8_torque", "electron_v8_torque_tool")
 load("//source/native:electron_buildflags.bzl", "ELECTRON_BUILD_FLAGS")
 load("//source/native:fuses_flags.bzl", "DEBUG_FLAGS")
 load("//source/native:node_deps_inputs.bzl", "NODE_DEPENDENCIES")
 load("//source/native:node_inputs.bzl", "NODE_BUILTIN_INPUTS", "ORIGINAL_FS_INPUTS")
+load("//source/native:v8_bytecode_inputs.bzl", "BYTECODE_GENERATOR")
 load("//source/native:v8_torque_inputs.bzl", "TORQUE_RUN")
 load(":bundles.bzl", "electron_bundles")
 load(":probes.bzl", "loop_probes")
 
 package(default_visibility = ["//visibility:public"])
+
+electron_v8_bytecodes(
+    name = "v8_bytecodes",
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)
+
+electron_v8_bytecodes(
+    name = "v8_bytecodes_repeat",
+    testonly = True,
+    output_subdir = "output with spaces",
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)
+
+cc_library(
+    name = "v8_bytecode_headers",
+    hdrs = [":v8_bytecodes"],
+    strip_include_prefix = "v8_bytecodes",
+)
+
+cc_test(
+    name = "v8_bytecodes_test",
+    srcs = ["v8_bytecodes_test.cc"],
+    args = [
+        "$(rootpath :v8_bytecodes)",
+        "$(rootpath :v8_bytecodes_repeat)",
+    ],
+    copts = BYTECODE_GENERATOR["copts"],
+    data = [
+        ":v8_bytecodes",
+        ":v8_bytecodes_repeat",
+    ],
+    local_defines = BYTECODE_GENERATOR["defines"],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    deps = [
+        ":v8_bytecode_headers",
+        "@electron_v8_sources//:bytecode_generator_support",
+    ],
+)
 
 electron_v8_torque(
     name = "v8_torque",

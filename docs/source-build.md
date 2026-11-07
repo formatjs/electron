@@ -140,6 +140,29 @@ python3 tools/capture_v8_torque.py --graph=bcr/overlay/source/native/linux_amd64
 buildifier bcr/overlay/source/native/v8_torque_inputs.bzl
 ```
 
+## Bytecode handler generation
+
+`@electron//source:v8_bytecodes` builds the captured three-unit upstream
+generator and emits `builtins-generated/bytecodes-builtins-list.h`. Interpreter
+support is shared with a compiled probe; Torque and bytecode tools share the
+same pinned header provider. All effective definitions and language options
+come from the Electron graph. No GN wrapper, system interpreter or alternate
+V8 profile runs in the generation action.
+
+`@electron//source:v8_bytecodes_test` compiles the actual generated handler
+macro and checks every opcode at all three operand scales against V8's
+interpreter API: handler names, coverage, uniqueness, illegal wide encodings
+and dense wide/extra-wide dispatch indices. A second generation uses a
+different output path containing spaces; the probe compares all bytes.
+Production consumers depend only on the first generation. Hosted validation
+must establish this producer before it feeds the remaining engine libraries.
+
+```sh
+python3 tools/capture_v8_bytecodes.py --graph=bcr/overlay/source/native/linux_amd64.partial.json.gz \
+  --output=bcr/overlay/source/native/v8_bytecode_inputs.bzl
+buildifier bcr/overlay/source/native/v8_bytecode_inputs.bzl
+```
+
 ## Native V8 base/task slice
 
 `@electron_v8_sources//:libbase` compiles all 40 captured Linux AMD64 source
