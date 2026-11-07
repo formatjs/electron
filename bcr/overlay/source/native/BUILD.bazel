@@ -1,4 +1,5 @@
 exports_files([
+    "base_inputs.json",
     "v8_engine_inputs.json",
     "perfetto_inputs.json",
     "protobuf_inputs.json",

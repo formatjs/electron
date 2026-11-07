@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""Capture the complete Electron Temporal closure and original allocator bridge."""
+"""Capture Electron's complete Temporal/base Rust closures and original bridges."""
 
 import argparse
 import gzip
@@ -13,6 +13,18 @@ ROOT = "//third_party/rust/temporal_capi/v0_1:lib"
 VENDOR = "third_party/rust/chromium_crates_io/vendor/"
 ALLOCATOR = "//build/rust/allocator:"
 HOST = "(//build/toolchain/linux:clang_x64_for_rust_host_build_tools)"
+BASE_ROOTS = ["//base:rust_logger", "//third_party/rust/serde_json_lenient/v0_2/wrapper:wrapper", "//third_party/rust/cxxbridge_cmd/v1:cxxbridge" + HOST]
+NATIVE_CPP = {
+    label: "@electron_base_sources//:target_" + hashlib.sha256(label.encode()).hexdigest()[:16]
+    for label in [
+        "//base:debugging_buildflags", "//base:tracing_buildflags", "//build:chromeos_buildflags",
+        "//build/rust:cxx_cppdeps", "//base:rust_logger_cxx_generated",
+        "//third_party/rust/serde_json_lenient/v0_2/wrapper:wrapper_cxx_generated",
+        "//third_party/rust/serde_json_lenient/v0_2/wrapper:wrapper_functions",
+    ]
+}
+NATIVE_CPP["//base/allocator/partition_allocator:raw_ptr"] = "@electron_partition_alloc_sources//:partition_alloc"
+SEVERITY = "//base:logging_log_severity_bindgen"
 
 
 def name(label):
@@ -37,9 +49,11 @@ def capture(graph, source):
         if infrastructure(label):
             provided.add(label)
             return
+        if label in NATIVE_CPP:
+            return
         target = targets[label]
         bare = label.split("(")[0]
-        if bare in (ALLOCATOR + "allocator_impls_ffi", ALLOCATOR + "alloc_error_handler_impl_ffi"):
+        if bare in (ALLOCATOR + "allocator_impls_ffi", ALLOCATOR + "alloc_error_handler_impl_ffi", SEVERITY):
             selected[label] = target
             ffi[label] = target
             return
@@ -58,7 +72,8 @@ def capture(graph, source):
         for dep in target.get("deps", []):
             visit(dep)
 
-    visit(ROOT)
+    for root in [ROOT] + BASE_ROOTS:
+        visit(root)
     root_files = {"LICENSE", "build/build_config.h", "build/buildflag.h", "build/rust/bindings.rs"}
     packages, crates, cpp, bindings = {}, {}, {}, {}
     script_binaries = set(scripts.values())
@@ -70,6 +85,8 @@ def capture(graph, source):
     def resolve(label):
         if infrastructure(label):
             return None
+        if label in NATIVE_CPP:
+            return NATIVE_CPP[label]
         if label in selected:
             return name(label)
         if label in scripts:
@@ -151,12 +168,15 @@ def capture(graph, source):
         if not package:
             root_files.update(sources)
         if label in ffi:
-            deps, macros = [], []
+            deps, macros, cc_deps = [], [], []
         else:
-            deps, macros = [], []
+            deps, macros, cc_deps = [], [], []
             for dep in target.get("deps", []):
                 resolved = resolve(dep)
                 if resolved:
+                    if resolved.startswith("@"):
+                        cc_deps.append(resolved)
+                        continue
                     actual = selected[labels_by_name[resolved]]
                     (macros if actual["type"] == "rust_proc_macro" else deps).append(resolved)
         kind = "cargo_build_script" if label in script_binaries else target["type"]
@@ -168,11 +188,23 @@ def capture(graph, source):
             if any(feature_set != owner_features[0] for feature_set in owner_features):
                 raise ValueError("Shared build script has different captured features")
             features = owner_features[0]
-        crates[label] = {"name": name(label), "kind": kind, "crate_name": target["crate_name"], "crate_root": root, "srcs": sources, "package": package, "edition": edition, "features": features, "rustc_flags": flags, "rustc_env": environment, "rewritten_paths": paths, "deps": sorted(set(deps)), "proc_macro_deps": sorted(set(macros)), "gn_deps": target.get("deps", []), "omitted_toolchain_options": omitted, "gn_rustflags": value(target, "rustflags")}
+        crates[label] = {"name": name(label), "kind": kind, "crate_name": target["crate_name"], "crate_root": root, "srcs": sources, "package": package, "edition": edition, "features": features, "rustc_flags": flags, "rustc_env": environment, "rewritten_paths": paths, "deps": sorted(set(deps)), "cc_deps": sorted(set(cc_deps)), "proc_macro_deps": sorted(set(macros)), "gn_deps": target.get("deps", []), "omitted_toolchain_options": omitted, "gn_rustflags": value(target, "rustflags")}
 
     for label, target in ffi.items():
         suffix = HOST if label.endswith(HOST) else ""
         bare = label.removesuffix(suffix) if suffix else label
+        if bare == SEVERITY:
+            generator = SEVERITY + "_generator"
+            action = targets[generator]
+            copies = [dep for dep in target["deps"] if targets[dep]["type"] == "copy"]
+            if len(copies) != 1 or action["script"] != "//build/rust/gni_impl/run_bindgen.py" or action["sources"] != ["//base/logging/log_severity.h"] or targets[copies[0]]["deps"] != [generator]:
+                raise ValueError("Unexpected logging severity binding producer")
+            args = action["args"]
+            begin, end = args.index("--bindgen-flags") + 1, args.index("--")
+            header = checked_file(action["sources"][0][2:])
+            root_files.add(header)
+            bindings[label] = {"owner": "@electron_base_sources//:severity_headers", "header": header, "header_label": "@electron_base_sources//:" + header, "bindgen_flags": ["--" + arg for arg in args[begin:end]], "gn_args": args}
+            continue
         owner = bare.removesuffix("_ffi") + suffix
         generator = bare + "_generator" + suffix
         action = targets[generator]
@@ -217,7 +249,7 @@ def capture(graph, source):
     cpp_headers = [p for p in packages[temporal_package] if "/bindings/cpp/" in p and p.endswith((".h", ".hpp"))]
     if not cpp_headers:
         raise ValueError("Missing original Temporal C++ bindings")
-    return {"root": name(ROOT), "rust": crates, "cpp": cpp, "ffi": bindings, "packages": packages, "root_files": sorted(root_files), "cpp_headers": cpp_headers, "provided_by_toolchain": sorted(provided), "allocator_buildflags": {"output": "build/rust/allocator/buildflags.h", "rule": ALLOCATOR + "buildflags", "response": flags["response_file_contents"]}}
+    return {"root": name(ROOT), "base_roots": {label: name(label) for label in BASE_ROOTS}, "rust": crates, "cpp": cpp, "ffi": bindings, "packages": packages, "root_files": sorted(root_files), "cpp_headers": cpp_headers, "provided_by_toolchain": sorted(provided), "allocator_buildflags": {"output": "build/rust/allocator/buildflags.h", "rule": ALLOCATOR + "buildflags", "response": flags["response_file_contents"]}}
 
 
 def main():

@@ -1,3 +1,4 @@
+load("@electron_base_sources//:profile.bzl", BASE_PROFILE = "PROFILE")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load("//electron:protobuf_probe_rules.bzl", "electron_protobuf_probe")
@@ -581,4 +582,25 @@ cc_test(
 alias(
     name = "v8_engine_libraries",
     actual = "@electron_v8_engine_sources//:libraries",
+)
+
+alias(
+    name = "base_libraries",
+    actual = "@electron_base_sources//:libraries",
+)
+
+cc_test(
+    name = "base_test",
+    srcs = ["base_test.cc"],
+    copts = BASE_PROFILE["libraries"]["//base:base"]["copts"],
+    linkstatic = True,
+    local_defines = [value for value in BASE_PROFILE["libraries"]["//base:base"]["defines"] if value not in [
+        "BASE_IMPLEMENTATION",
+        "IS_RAW_PTR_IMPL",
+    ]],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    deps = ["@electron_base_sources//:base"],
 )

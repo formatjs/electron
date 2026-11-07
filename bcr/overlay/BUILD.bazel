@@ -27,6 +27,7 @@ filegroup(
 filegroup(
     name = "source_components",
     srcs = [
+        "//source:base_libraries",
         "//source:chromium_patches",
         "//source:dependency_patches",
         "//source:electron_fuses",
@@ -52,6 +53,7 @@ filegroup(
 test_suite(
     name = "source_tests",
     tests = [
+        "//source:base_test",
         "//source:crypto_compat_test",
         "//source:fuses_test",
         "//source:icu_test",

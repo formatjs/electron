@@ -2,7 +2,7 @@
 
 V8_TEMPORAL_PROVIDER = {
     "srcs": [
-        "src/objects/js-temporal-zoneinfo64.cc",
+        "src/objects/js-temporal-zoneinfo64.cc"
     ],
     "copts": [
         "-Wall",
@@ -81,7 +81,7 @@ V8_TEMPORAL_PROVIDER = {
         "-gsimple-template-names",
         "-fno-exceptions",
         "-fno-rtti",
-        "-fvisibility-inlines-hidden",
+        "-fvisibility-inlines-hidden"
     ],
     "defines": [
         "__STDC_CONSTANT_MACROS",
@@ -174,7 +174,7 @@ V8_TEMPORAL_PROVIDER = {
         "U_ENABLE_RESOURCE_TRACING=0",
         "U_STATIC_IMPLEMENTATION",
         "ICU_UTIL_DATA_IMPL=ICU_UTIL_DATA_FILE",
-        "TEMPORAL_CAPI_VERSION_0_1",
+        "TEMPORAL_CAPI_VERSION_0_1"
     ],
     "gn_target": "//v8:v8_base_without_compiler",
     "gn_deps": [
@@ -203,7 +203,7 @@ V8_TEMPORAL_PROVIDER = {
         "//v8:v8_shared_internal_headers",
         "//v8:v8_tracing",
         "//v8:v8_version",
-        "//v8/src/inspector:inspector",
+        "//v8/src/inspector:inspector"
     ],
     "gn_defines": [
         "__STDC_CONSTANT_MACROS",
@@ -296,7 +296,7 @@ V8_TEMPORAL_PROVIDER = {
         "U_ENABLE_RESOURCE_TRACING=0",
         "U_STATIC_IMPLEMENTATION",
         "ICU_UTIL_DATA_IMPL=ICU_UTIL_DATA_FILE",
-        "TEMPORAL_CAPI_VERSION_0_1",
+        "TEMPORAL_CAPI_VERSION_0_1"
     ],
     "omitted_toolchain_options": [
         "-Werror",
@@ -306,7 +306,7 @@ V8_TEMPORAL_PROVIDER = {
         "-nostdinc++",
         "-isystem../../third_party/libc++/src/include",
         "-isystem../../third_party/libc++abi/src/include",
-        "--sysroot=../../build/linux/debian_bullseye_amd64-sysroot",
+        "--sysroot=../../build/linux/debian_bullseye_amd64-sysroot"
     ],
-    "graph_sha256": "9bddb71db9b88497dadad52f3872a62f972da86c16454bf8e2c33063f7add651",
+    "graph_sha256": "9bddb71db9b88497dadad52f3872a62f972da86c16454bf8e2c33063f7add651"
 }

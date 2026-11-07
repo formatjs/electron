@@ -5,6 +5,7 @@ load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load("@rules_rs//rs:cargo_build_script.bzl", "cargo_build_script")
 load("@rules_rs//rs:rules_rust_bindgen.bzl", "rust_bindgen")
+load("@rules_rs//rs:rust_binary.bzl", "rust_binary")
 load("@rules_rs//rs:rust_library.bzl", "rust_library")
 load("@rules_rs//rs:rust_proc_macro.bzl", "rust_proc_macro")
 load("@rules_rust//rust:rust_common.bzl", "BuildInfo")
@@ -70,9 +71,12 @@ def electron_temporal():
     repository_root = Label("@electron_rust_sources//:BUILD.bazel").workspace_root
     native.exports_files(PROFILE["root_files"] + ["BUILD.bazel", "profile.bzl"])
     _allocator_flags(name = "allocator_buildflags")
+    allocator_headers = {"build/build_config.h": True, "build/buildflag.h": True}
+    for library in PROFILE["cpp"].values():
+        allocator_headers.update({path: True for path in library["hdrs"]})
     cc_library(
         name = "allocator_headers",
-        hdrs = [path for path in PROFILE["root_files"] if path.endswith(".h")],
+        hdrs = sorted(allocator_headers),
         includes = ["."],
         target_compatible_with = _LINUX_AMD64,
     )
@@ -96,13 +100,13 @@ def electron_temporal():
         crate = PROFILE["rust"][label]
         rust_bindgen(
             name = crate["name"] + "_generator",
-            header = _file(ffi["header"]),
-            cc_lib = ":" + ffi["owner"],
+            header = ffi.get("header_label", _file(ffi["header"])),
+            cc_lib = ffi["owner"] if ffi["owner"].startswith("@") else ":" + ffi["owner"],
             bindgen_flags = ffi["bindgen_flags"],
             clang_flags = ["-x", "c++", "-std=c++20", "-fparse-all-comments", "-fvisibility=default"],
             target_compatible_with = _LINUX_AMD64,
         )
-        _bindings(name = crate["name"] + "_bindings", src = ":" + crate["name"] + "_generator", cc_lib = ":" + ffi["owner"])
+        _bindings(name = crate["name"] + "_bindings", src = ":" + crate["name"] + "_generator", cc_lib = ffi["owner"] if ffi["owner"].startswith("@") else ":" + ffi["owner"])
     for label, crate in PROFILE["rust"].items():
         environment = dict(crate["rustc_env"])
         if "CARGO_MANIFEST_DIR" in crate["rewritten_paths"]:
@@ -116,7 +120,7 @@ def electron_temporal():
             crate_features = crate["features"],
             rustc_flags = crate["rustc_flags"],
             rustc_env = environment,
-            deps = [":" + name for name in crate["deps"]],
+            deps = [":" + name for name in crate["deps"]] + crate.get("cc_deps", []),
             proc_macro_deps = [":" + name for name in crate["proc_macro_deps"]],
             compile_data = ["//" + crate["package"] + ":files"] if crate["package"] else [],
             target_compatible_with = _LINUX_AMD64,
@@ -134,6 +138,8 @@ def electron_temporal():
             rust_proc_macro(**settings)
         elif crate["kind"] == "rust_library":
             rust_library(**settings)
+        elif crate["kind"] == "executable":
+            rust_binary(**settings)
         else:
             fail("Unsupported Temporal Rust target kind")
     cc_library(
@@ -156,3 +162,10 @@ def electron_temporal():
         deps = [":" + PROFILE["rust"]["//build/rust/allocator:allocator"]["name"]],
     )
     native.filegroup(name = "crates", srcs = [":" + PROFILE["root"]] + [":" + library["name"] for library in PROFILE["cpp"].values()])
+    for alias_name, original in {
+        "base_logger": "//base:rust_logger",
+        "serde_json_wrapper": "//third_party/rust/serde_json_lenient/v0_2/wrapper:wrapper",
+        "cxxbridge": "//third_party/rust/cxxbridge_cmd/v1:cxxbridge(//build/toolchain/linux:clang_x64_for_rust_host_build_tools)",
+        "cxx_runtime": "//third_party/rust/cxx/v1:lib",
+    }.items():
+        native.alias(name = alias_name, actual = ":" + PROFILE["rust"][original]["name"])

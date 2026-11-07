@@ -9,6 +9,7 @@ bazel_dep(name = "bazel_skylib", version = "1.9.0")
 bazel_dep(name = "googletest", version = "1.17.0.bcr.2")
 bazel_dep(name = "rules_cc", version = "0.2.26")
 bazel_dep(name = "rules_rs", version = "0.2.1")
+bazel_dep(name = "glib", version = "2.82.2.bcr.11")
 bazel_dep(name = "simdutf", version = "7.7.0")
 bazel_dep(name = "platforms", version = "1.1.0")
 bazel_dep(name = "rules_python", version = "1.9.0")
@@ -28,6 +29,7 @@ electron.version(
 use_repo(
     electron,
     "electron_abseil_sources",
+    "electron_base_sources",
     "electron_boringssl_sources",
     "electron_cast_core_sources",
     "electron_chromium_sources",
@@ -40,6 +42,7 @@ use_repo(
     "electron_highway_upstream",
     "electron_icu_sources",
     "electron_jsoncpp_upstream",
+    "electron_lss_upstream",
     "electron_mantle_sources",
     "electron_nan_sources",
     "electron_node_sources",
