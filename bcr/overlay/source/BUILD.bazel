@@ -38,6 +38,12 @@ cc_binary(
     name = "platform_graphics_probe",
     srcs = ["platform_graphics_probe.cc"],
     copts = PLATFORM_PROFILE["libraries"]["//ui/gl:gl"]["copts"],
+    dynamic_deps = ["//source/glib:" + name for name in [
+        "glib",
+        "gobject",
+        "gmodule",
+        "gio",
+    ]],
     linkstatic = True,
     local_defines = PLATFORM_PROFILE["libraries"]["//ui/gl:gl"]["defines"],
     target_compatible_with = [
@@ -56,9 +62,12 @@ py_test(
         "$(rootpath @electron_platform_sources//:libGLESv2.so)",
         "$(rootpath @electron_platform_sources//:vk_swiftshader_icd.json)",
         "$(rootpath @electron_platform_runtime//:libffi.so.7)",
+        "$(rootpath //source/glib:glib)",
     ],
     data = [
         ":platform_graphics_probe",
+        "//source/glib",
+        "//source/glib:runtime",
         "@electron_platform_runtime//:libffi.so.7",
         "@electron_platform_sources//:libEGL.so",
         "@electron_platform_sources//:libGLESv2.so",

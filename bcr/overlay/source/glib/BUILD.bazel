@@ -1,0 +1,67 @@
+load("@rules_cc//cc:cc_shared_library.bzl", "cc_shared_library")
+
+package(default_visibility = ["//visibility:public"])
+
+_COMPATIBLE = [
+    "@platforms//os:linux",
+    "@platforms//cpu:x86_64",
+]
+
+cc_shared_library(
+    name = "zlib",
+    shared_lib_name = "libz.so.1",
+    target_compatible_with = _COMPATIBLE,
+    deps = ["@zlib//:z"],
+)
+
+cc_shared_library(
+    name = "glib",
+    dynamic_deps = [":zlib"],
+    shared_lib_name = "libglib-2.0.so.0",
+    target_compatible_with = _COMPATIBLE,
+    deps = ["@glib//glib"],
+)
+
+cc_shared_library(
+    name = "gobject",
+    dynamic_deps = [
+        ":zlib",
+        ":glib",
+    ],
+    shared_lib_name = "libgobject-2.0.so.0",
+    target_compatible_with = _COMPATIBLE,
+    deps = ["@glib//gobject"],
+)
+
+cc_shared_library(
+    name = "gmodule",
+    dynamic_deps = [
+        ":zlib",
+        ":glib",
+    ],
+    shared_lib_name = "libgmodule-2.0.so.0",
+    target_compatible_with = _COMPATIBLE,
+    deps = ["@glib//gmodule"],
+)
+
+cc_shared_library(
+    name = "gio",
+    dynamic_deps = [
+        ":glib",
+        ":gmodule",
+        ":gobject",
+    ],
+    shared_lib_name = "libgio-2.0.so.0",
+    target_compatible_with = _COMPATIBLE,
+    deps = ["@glib//gio"],
+)
+
+filegroup(
+    name = "runtime",
+    srcs = [
+        ":gio",
+        ":glib",
+        ":gmodule",
+        ":gobject",
+    ],
+)

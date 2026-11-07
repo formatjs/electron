@@ -5,6 +5,7 @@ load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_import.bzl", "cc_import")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("//electron:source_action.bzl", "electron_source_action")
+load("//electron:source_headers.bzl", "electron_source_headers")
 load("//electron:source_tool.bzl", "electron_source_tool")
 
 _BUILD = "//out/bazel-import/"
@@ -55,18 +56,22 @@ def _link_settings(library):
 def electron_platform():
     native.exports_files(PROFILE["files"] + [path[2:] for path in PROFILE["generated_files"]] + ["profile.bzl", "BUILD.bazel"])
     common_headers = {_file("//" + path): True for directory, headers in PROFILE["headers"].items() for path in headers if directory != "third_party/wayland/include"}.keys()
+    electron_source_headers(
+        name = "upstream_headers",
+        deps = ["@electron_ui_sources//:source_headers", "@electron_partition_alloc_sources//:raw_ptr"],
+    )
     cc_library(
         name = "tool_headers",
         hdrs = common_headers,
         includes = [".", "gen"],
-        deps = ["@electron_ui_sources//:source_headers", "@electron_platform_sdk//:headers", "@electron_partition_alloc_sources//:raw_ptr"],
+        deps = [":upstream_headers", "@electron_platform_sdk//:headers"],
         target_compatible_with = _COMPATIBLE,
     )
     cc_library(
         name = "source_headers",
         hdrs = common_headers + [_file(path) for action in PROFILE["actions"].values() for path in action["outputs"] if path.endswith((".h", ".hpp", ".inc", ".inl"))],
         includes = [".", "gen"],
-        deps = ["@electron_ui_sources//:source_headers", "@electron_platform_sdk//:headers", "@electron_partition_alloc_sources//:raw_ptr"],
+        deps = [":upstream_headers", "@electron_platform_sdk//:headers"],
         target_compatible_with = _COMPATIBLE,
     )
     for original, action in PROFILE["actions"].items():
@@ -137,6 +142,7 @@ def electron_platform():
             shared.append(":" + soname)
             link = _link_settings(library)
             link["linkopts"] += ["-Wl,-soname," + soname]
+            link["dynamic_deps"] = ["@electron//source/glib:" + name for name in ["zlib", "glib", "gobject", "gmodule", "gio"]]
             cc_binary(name = soname, deps = [":" + internal], linkshared = True, linkstatic = True, target_compatible_with = _COMPATIBLE, **link)
             cc_import(name = library["name"] + "_import", shared_library = ":" + soname, target_compatible_with = _COMPATIBLE)
             cc_library(name = library["name"], deps = [":" + library["name"] + "_import", ":source_headers"], target_compatible_with = _COMPATIBLE)
@@ -144,6 +150,6 @@ def electron_platform():
             cc_library(name = library["name"], srcs = [_file(path) for path in library["srcs"]], copts = library["copts"], alwayslink = library["kind"] == "source_set", **settings)
     icds = [_file(path) for action in PROFILE["actions"].values() if action["script"] in ["third_party/swiftshader/src/Vulkan/write_icd_json.py", "third_party/vulkan-tools/src/scripts/gn/generate_vulkan_icd_json.py"] for path in action["outputs"]]
     native.filegroup(name = "libraries", srcs = [_label(label) for label, library in PROFILE["libraries"].items() if library["kind"] != "executable"] + shared + icds)
-    native.filegroup(name = "runtime", srcs = shared + icds + ["@electron_platform_runtime//:libraries", "@electron_platform_pciutils//:libpci.so.3"])
+    native.filegroup(name = "runtime", srcs = ["@electron//source/glib:runtime"] + shared + icds + ["@electron_platform_runtime//:libraries", "@electron_platform_pciutils//:libpci.so.3"])
     native.alias(name = "ozone", actual = _label("//ui/ozone:ozone"))
     native.alias(name = "gl", actual = _label("//ui/gl:gl"))
