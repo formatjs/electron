@@ -193,6 +193,10 @@ ICU archives through `//source:icu_libraries`; building the dependency-only C++
 provider alone would not request both archives. Full V8/Electron linking
 remains unfinished.
 
+The build-only component phase uses `--remote_download_outputs=minimal` so
+compile-only archives remain in BB CAS. The following test phase retains
+top-level downloads for its executables and declared runtime data.
+
 ```sh
 python3 tools/capture_icu.py --graph=bcr/overlay/source/native/linux_amd64.partial.json.gz \
   --output=bcr/overlay/source/native/icu_inputs.bzl

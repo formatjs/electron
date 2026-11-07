@@ -23,7 +23,8 @@ actions:
           bazel test --config=buildbuddy --strategy=TestRunner=remote \
             --registry="file://$registry" --registry=https://bcr.bazel.build \
             //tests:hermetic_execution_test
-          bazel build --config=buildbuddy --registry="file://$registry" \
+          # Keep compile-only archives in CAS; tests download their declared data.
+          bazel build --config=buildbuddy --remote_download_outputs=minimal --registry="file://$registry" \
             --registry=https://bcr.bazel.build //:source_components
           bazel test --config=buildbuddy --strategy=TestRunner=local \
             --registry="file://$registry" --registry=https://bcr.bazel.build \
