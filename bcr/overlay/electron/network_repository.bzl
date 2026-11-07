@@ -15,12 +15,12 @@ def _impl(ctx):
             if path.startswith(prefix):
                 owner, relative = name, path[len(prefix):]
         origin = roots[owner].get_child(relative)
-        if path == "tools/grit/grit/format/data_pack.py":
+        if path in ["tools/grit/grit/format/data_pack.py", "tools/grit/grit/tool/update_resource_ids/__init__.py"]:
             ctx.file(path, ctx.read(origin), executable = False)
         else:
             ctx.symlink(origin, path)
     ctx.patch(ctx.attr.metadata_patch, strip = 1)
-    ctx.file("native_compat_patches.json", json.encode({"graph_sha256": profile["graph_sha256"], "patches": [str(ctx.attr.metadata_patch)], "files": ["tools/grit/grit/format/data_pack.py"]}))
+    ctx.file("native_compat_patches.json", json.encode({"graph_sha256": profile["graph_sha256"], "patches": [str(ctx.attr.metadata_patch)], "files": ["tools/grit/grit/format/data_pack.py", "tools/grit/grit/tool/update_resource_ids/__init__.py"]}))
     for path, content in profile["generated_files"].items():
         if not path.startswith("//out/bazel-import/") or ".." in path.split("/"):
             fail("Invalid captured network file path")

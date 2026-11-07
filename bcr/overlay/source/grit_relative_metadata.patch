@@ -1,6 +1,7 @@
+diff --git a/tools/grit/grit/format/data_pack.py b/tools/grit/grit/format/data_pack.py
 --- a/tools/grit/grit/format/data_pack.py
 +++ b/tools/grit/grit/format/data_pack.py
-@@ -96,7 +96,8 @@
+@@ -96,5 +96,6 @@
            resource_id = id_map[node.GetTextualIds()[0]]
            data[resource_id] = value
            root.info.append('{},{},{}'.format(
@@ -8,5 +9,12 @@
 +              node.attrs.get('name'), resource_id,
 +              os.path.relpath(node.source) if node.source else node.source))
    return data
- 
- 
+diff --git a/tools/grit/grit/tool/update_resource_ids/__init__.py b/tools/grit/grit/tool/update_resource_ids/__init__.py
+--- a/tools/grit/grit/tool/update_resource_ids/__init__.py
++++ b/tools/grit/grit/tool/update_resource_ids/__init__.py
+@@ -250,4 +250,4 @@
+       repl.append((root_obj['SRCDIR'].lo, root_obj['SRCDIR'].hi,
+                    repr(new_srcdir)))
+       rel_input_dir = os.path.join('$SRCDIR',
+-                                   os.path.relpath(rel_input_dir, new_srcdir))
++                                   os.path.relpath(rel_input_dir, src_dir))

@@ -8,8 +8,14 @@ cc_binary(
     srcs = ["nss_checksum.cc"],
     copts = ["-std=c++20"],
     linkstatic = True,
+    local_defines = ["USE_UTIL_DIRECTLY"],
     deps = [
         "@nss//:freebl_static",
+        "@nss//:gcm-aes-x86_c_lib",
+        "@nss//:hw-acc-crypto-avx",
+        "@nss//:hw-acc-crypto-avx2",
+        "@nss//:intel-gcm-s_lib",
+        "@nss//:intel-gcm-wrap_c_lib",
         "@nss//:nssutil3_link",
     ],
 )
