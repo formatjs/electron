@@ -57,7 +57,7 @@ def generate(manifest, repeat):
 def run(manifest):
     outputs = generate(manifest, False)
     if manifest["verify_reproducible"] and outputs != generate(manifest, True):
-        raise ValueError("Generator output differs across source paths and mtimes")
+        raise ValueError("Generator output differs across source paths and mtimes: " + manifest["script"])
     for actual, logical in manifest["outputs"]:
         Path(actual).write_bytes(outputs[logical])
 
