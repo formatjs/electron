@@ -36,7 +36,7 @@ def electron_network():
     cc_library(name = "common_headers", includes = ["."])
     cc_library(name = "default_construct_tag_headers", hdrs = ["mojo/public/cpp/bindings/default_construct_tag.h"], includes = ["."])
     for family, headers in PROFILE["headers"].items():
-        cc_library(name = family.replace("/", "_") + "_headers", hdrs = headers, includes = ["."], deps = [_label(dep) for dep in PROFILE["native_extra_header_deps"].get(family, [])])
+        cc_library(name = family.replace("/", "_") + "_headers", hdrs = headers, includes = ["."], deps = [_label(dep) for dep in PROFILE["native_extra_header_deps"].get(family, [])] + [":" + other.replace("/", "_") + "_headers" for other in PROFILE["native_extra_header_families"].get(family, [])])
     for original, action in PROFILE["actions"].items():
         for index, run in enumerate(action["runs"]):
             outputs = [path[len(_BUILD):] for path in run["outputs"]]

@@ -28034,6 +28034,12 @@
       "//mojo/public/cpp/bindings:default_construct_tag"
     ]
   },
+  "native_extra_header_families": {
+    "net": [
+      "components/unexportable_keys",
+      "components/network_time/time_tracker"
+    ]
+  },
   "generated_files": {
     "//out/bazel-import/obj/net/net_resources_expected_outputs.txt": "gen/net/grit/net_resources.h\ngen/net/net_resources.pak\n"
   },
