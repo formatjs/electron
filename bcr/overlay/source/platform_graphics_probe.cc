@@ -1,5 +1,10 @@
 // SPDX-License-Identifier: MIT
 #include <dlfcn.h>
+#include <unwind.h>
+#include <unistd.h>
+
+#include <csignal>
+#include <cstdint>
 
 #include <cstdio>
 #include <cstdlib>
@@ -21,6 +26,26 @@ void Stage(const char* stage) {
   std::fprintf(stderr, "[DEBUG-native-graphics] %s\n", stage);
 }
 
+_Unwind_Reason_Code Frame(_Unwind_Context* context, void* data) {
+  auto* count = static_cast<unsigned*>(data);
+  if ((*count)++ >= 24) return _URC_END_OF_STACK;
+  const auto address = static_cast<uintptr_t>(_Unwind_GetIP(context));
+  Dl_info info = {};
+  if (dladdr(reinterpret_cast<void*>(address), &info) && info.dli_fname) {
+    std::fprintf(stderr, "[DEBUG-native-graphics] frame %s 0x%lx\n",
+                 info.dli_fname, static_cast<unsigned long>(
+                     address - reinterpret_cast<uintptr_t>(info.dli_fbase)));
+  }
+  return _URC_NO_REASON;
+}
+
+void Crash(int signal) {
+  std::fprintf(stderr, "[DEBUG-native-graphics] signal %d\n", signal);
+  unsigned count = 0;
+  _Unwind_Backtrace(Frame, &count);
+  _exit(128 + signal);
+}
+
 void* Open(const char* path) {
   void* library = dlopen(path, RTLD_NOW | RTLD_LOCAL);
   if (!library) std::fprintf(stderr, "[DEBUG-native-graphics] dlopen: %s\n", dlerror());
@@ -37,6 +62,7 @@ T Symbol(void* library, const char* name) {
 }  // namespace
 
 int main(int argc, char** argv) {
+  std::signal(SIGSEGV, Crash);
   Stage("entry");
   Require(argc == 3, "declared graphics library arguments");
   void* egl = Open(argv[1]);
@@ -59,6 +85,7 @@ int main(int argc, char** argv) {
       EGL_PLATFORM_ANGLE_DEVICE_TYPE_SWIFTSHADER_ANGLE, EGL_NONE};
   EGLDisplay display = platform(EGL_PLATFORM_ANGLE_ANGLE, nullptr,
                                 display_attributes);
+  Stage("display_handle");
   EGLint major = 0, minor = 0;
   Require(display != EGL_NO_DISPLAY &&
               Symbol<decltype(&eglInitialize)>(egl, "eglInitialize")(
