@@ -72,6 +72,29 @@ The native BoringSSL overlay mirrors Electron's extra crypto source list. Its
 GN list includes obsolete `decrepit/ripemd/internal.h`; that nonexistent header
 is excluded, and the real `decrepit/macros.h` dependency is declared explicitly.
 
+## Native Node dependencies
+
+The Linux AMD64 profile now declares Ada, c-ares, HdrHistogram, llhttp, nghttp2,
+simdjson, SQLite and uvwasi from the pinned patched Node tree. All 133 C/C++ units,
+effective definitions and language-specific options come from the verified GN
+capture. Hermetic LLVM supplies compiler/sysroot/libc++; omitted global include
+roots and toolchain/diagnostic flags remain recorded. Unsupported dependency
+edges fail import rather than substituting another library version.
+
+`@electron//source:node_dependencies_test` links all eight libraries and checks
+URL/JSON/HTTP parsing, IPv6 conversion, histogram recording, HTTP/2 settings,
+SQLite FTS5/session configuration and WASI argument transfer. Hosted compilation
+and execution must establish this new profile; it does not link libnode or
+Electron. Other target profiles remain unsupported for these libraries.
+
+Regenerate the inventory from the same graph:
+
+```sh
+python3 tools/capture_node_deps.py --graph=bcr/overlay/source/native/linux_amd64.partial.json.gz \
+  --output=bcr/overlay/source/native/node_deps_inputs.bzl
+buildifier bcr/overlay/source/native/node_deps_inputs.bzl
+```
+
 ## Native V8 base/task slice
 
 `@electron_v8_sources//:libbase` compiles all 40 captured Linux AMD64 source

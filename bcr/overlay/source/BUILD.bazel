@@ -3,6 +3,7 @@ load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load("//electron:source_rules.bzl", "electron_buildflags", "electron_fuses_generate", "electron_js2c", "electron_node_config", "electron_node_defines", "electron_original_fs")
 load("//source/native:electron_buildflags.bzl", "ELECTRON_BUILD_FLAGS")
 load("//source/native:fuses_flags.bzl", "DEBUG_FLAGS")
+load("//source/native:node_deps_inputs.bzl", "NODE_DEPENDENCIES")
 load("//source/native:node_inputs.bzl", "NODE_BUILTIN_INPUTS", "ORIGINAL_FS_INPUTS")
 load(":bundles.bzl", "electron_bundles")
 load(":probes.bzl", "loop_probes")
@@ -15,6 +16,7 @@ electron_js2c(
 )
 
 exports_files([
+    "node_deps.bzl",
     "v8.BUILD.bazel",
     "node.BUILD.bazel",
     "uv_sources.bzl",
@@ -36,6 +38,36 @@ alias(
 alias(
     name = "node_libuv",
     actual = "@electron_node_sources//:libuv",
+)
+
+alias(
+    name = "node_dependencies",
+    actual = "@electron_node_sources//:node_deps",
+)
+
+cc_test(
+    name = "node_dependencies_test",
+    srcs = ["node_dependencies_test.cc"],
+    copts = [
+        "-std=c++20",
+        "-fno-exceptions",
+    ],
+    linkopts = ["-lm"],
+    local_defines = NODE_DEPENDENCIES["ada"]["defines"],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    deps = ["@electron_node_sources//:node_deps_" + library for library in [
+        "ada",
+        "cares",
+        "histogram",
+        "llhttp",
+        "nghttp2",
+        "simdjson",
+        "sqlite",
+        "uvwasi",
+    ]],
 )
 
 cc_test(

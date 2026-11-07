@@ -1,10 +1,13 @@
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load(":uv_sources.bzl", "UV_SOURCES")
+load("@electron//source:node_deps.bzl", "node_dependency_libraries")
 
 package(default_visibility = ["//visibility:public"])
 exports_files(["electron_patches.json", "LICENSE"])
 filegroup(name = "sources", srcs = glob(["**"], exclude = ["BUILD.bazel", "uv_sources.bzl"]))
+
+node_dependency_libraries(name = "node_deps")
 
 cc_binary(
     name = "node_js2c",
