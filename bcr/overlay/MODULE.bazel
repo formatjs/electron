@@ -43,6 +43,7 @@ use_repo(
     "electron_glslang_sources",
     "electron_highway_upstream",
     "electron_icu_sources",
+    "electron_ipcz_sources",
     "electron_jsoncpp_upstream",
     "electron_libnode_sources",
     "electron_lss_upstream",

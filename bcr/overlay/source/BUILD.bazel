@@ -1,5 +1,6 @@
 load("@electron_base_sources//:profile.bzl", BASE_PROFILE = "PROFILE")
 load("@electron_embedder_sources//:profile.bzl", EMBEDDER_PROFILE = "PROFILE")
+load("@electron_ipcz_sources//:profile.bzl", IPCZ_PROFILE = "PROFILE")
 load("@electron_libnode_sources//:profile.bzl", LIBNODE_PROFILE = "PROFILE")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_shared_library.bzl", "cc_shared_library")
@@ -20,6 +21,27 @@ load(":bundles.bzl", "electron_bundles")
 load(":probes.bzl", "loop_probes")
 
 package(default_visibility = ["//visibility:public"])
+
+alias(
+    name = "ipcz_libraries",
+    actual = "@electron_ipcz_sources//:libraries",
+)
+
+cc_test(
+    name = "ipcz_test",
+    srcs = ["ipcz_test.cc"],
+    copts = IPCZ_PROFILE["libraries"]["//third_party/ipcz/src:ipcz_chromium"]["copts"],
+    linkstatic = True,
+    local_defines = IPCZ_PROFILE["libraries"]["//third_party/ipcz/src:ipcz_chromium"]["defines"],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    deps = [
+        "@electron_ipcz_sources//:ipcz",
+        "@electron_ipcz_sources//:reference_driver",
+    ],
+)
 
 cc_test(
     name = "temporal_test",

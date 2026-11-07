@@ -1,4 +1,5 @@
 exports_files([
+    "ipcz_inputs.json",
     "embedder_inputs.json",
     "libnode_inputs.json",
     "base_inputs.json",
