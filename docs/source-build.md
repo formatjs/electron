@@ -1224,3 +1224,61 @@ C implementations are declared inputs. The wire probe uses public decoding and
 owned-memory interfaces. Generator byte checks remain enabled. Complete
 Blink/content, other full source profiles and the Electron executable remain
 unfinished.
+
+## Native UI and WebUI closure
+
+`electron_ui_sources` captures the complete `ui/base:base` dependency closure:
+96 native units in 76 library/group targets, 339 original Python actions,
+24 literal GN metadata targets and 15 original copy steps. Existing native
+events/display/gfx/Skia/Mojo/Base providers retain their identities. Original
+TypeScript, ESLint, preprocessing, minification and GRIT producers remain in the
+action graph; explicit ordering dependencies retain validator steps.
+
+```mermaid
+flowchart TD
+  Pins[Exact DEPS Node / prepatched npm archive] --> Tools[Declared execution tools / source groups]
+  Tools --> WebUI[Original typecheck / lint / minify / resource producers]
+  WebUI --> Packs[Original WebUI and locale packs]
+  Native[Original ui/base / color code] --> Probe[Resource relocation / locale reload / color pipeline]
+  Packs --> Probe
+  WebUI --> JS[Real generated module semantics]
+  Native --> Electron[Remaining content / Electron closure]
+```
+
+Chromium's DEPS supplies checksum/generation-pinned WebUI tool sources and Node
+22.11.0 for execution. This bootstrap is separate from Electron's Node 22.20.0
+webpack toolchain and embedded target Node. No package install hooks run. Shared
+canonical source groups retain each declared npm file without repeating npm
+file lists in each action. Directory-based tools receive generated outputs and
+source inputs from their original GN predecessor actions. TypeScript dependency
+configurations retain their original declaration files. GRD manifest inputs
+also declare the original static HTML, SVG, font and third-party resource bytes.
+Captures reproduce across Python hash seeds. Child PATH remains empty; original
+generators retain changed-path/mtime byte equality.
+
+The native probe relocates actual English/French packs, selects each locale with
+an explicit `LANGUAGE` value for Linux GLib, reloads locale strings,
+compares packed WebUI module bytes with original minifier output and checks
+layered native color aliases/postprocessing. A separate probe executes the real
+compiled/minified color module with the pinned Node tool, including invalid-input
+handling. Full source profiles remain Linux AMD64; complete Blink/content and
+the Electron executable remain unfinished.
+
+[2b46400 components](https://formatjs.buildbuddy.io/invocation/589e4e60-43b7-410f-b0c4-afd40ab9c125),
+[BCR consumer](https://formatjs.buildbuddy.io/invocation/c1ddb72f-d5fb-446f-8cb4-ea7e8e39da31)
+and [cross-compile](https://formatjs.buildbuddy.io/invocation/5dfdee24-4f76-42b3-94ef-77682b793feb)
+checks passed. No CMake/foreign-cc actions matched the UI
+action audit. The public tool archive is consumed as pinned sources without
+package installation or host Node discovery.
+
+Reproduce source capture with the matching patched Chromium tree and extracted
+DEPS npm source archive:
+
+```sh
+python3 tools/capture_ui.py \
+  --graph=bcr/overlay/source/native/linux_amd64.partial.json.gz \
+  --chromium-root=/path/to/electron-patched-chromium \
+  --node-modules-root=/path/to/pinned-node_modules \
+  --profiles=bcr/overlay/source/native \
+  --output=bcr/overlay/source/native/ui_inputs.json
+```
