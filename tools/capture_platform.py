@@ -7,6 +7,7 @@ import gzip
 import hashlib
 import json
 import os
+import posixpath
 import re
 from pathlib import Path
 
@@ -138,7 +139,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
     directories = ["ui", "dbus", "components/dbus", "components/url_formatter", "components/headless", "services/service_manager/public", "third_party/angle", "third_party/dawn", "third_party/swiftshader", "third_party/spirv-tools/src", "third_party/spirv-headers/src", "third_party/vulkan-loader/src", "third_party/vulkan-tools/src", "third_party/vulkan-utility-libraries/src", "third_party/vulkan-headers/src", "third_party/wayland/src", "third_party/wayland/include"]
     for directory in directories:
         root = physical(directory)
-        inventory = sorted(directory + "/" + path.relative_to(root).as_posix() for path in source_files(root) if path.is_file() and path.suffix in (".h", ".hh", ".hpp", ".inc", ".inl", ".def", ".gen"))
+        inventory = sorted(directory + "/" + path.relative_to(root).as_posix() for path in source_files(root) if path.is_file() and path.suffix in (".h", ".hh", ".hpp", ".hpp11", ".inc", ".inl", ".def", ".gen"))
         if not inventory:
             raise ValueError("Missing original platform header inventory: " + directory)
         headers[directory] = inventory
@@ -266,6 +267,23 @@ def capture(graph, digest, chromium, source_roots, profiles):
             elif targets[dependency]["type"] in ("group", "generated_file"):
                 pending.extend(targets[dependency].get("deps", []))
         action["ordering_deps"] = sorted(ordering)
+    for library in libraries.values():
+        textual = set()
+        for source in library["srcs"] + library["c_srcs"]:
+            if source.startswith(BUILD):
+                continue
+            for include in re.findall(r'^\s*#\s*include\s*["<]([^"\n>]+\.(?:c|cc|cpp))[">]', physical(source[2:]).read_text(), re.M):
+                candidates = [posixpath.normpath(posixpath.join(posixpath.dirname(source[2:]), include))]
+                candidates += [posixpath.normpath(posixpath.join(directory, include)) for directory in library["includes"]]
+                candidates += [include, posixpath.join("gen", include)]
+                candidate = next((path for path in candidates if not path.startswith(("/", "../")) and (physical(path).is_file() or BUILD + path in producers or BUILD + path in graph["generated_files"])), None)
+                if candidate is None:
+                    raise ValueError("Missing original textual platform implementation: " + include)
+                original = "//" + candidate if physical(candidate).is_file() else BUILD + candidate
+                textual.add(original)
+                input_file(original)
+        if textual:
+            library["textual_headers"] = sorted(textual)
     for path in sorted(files):
         if not physical(path).is_file():
             raise ValueError("Missing original platform input: " + path)

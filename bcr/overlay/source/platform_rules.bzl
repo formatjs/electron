@@ -103,7 +103,7 @@ def electron_platform():
     for original, library in PROFILE["libraries"].items():
         settings = dict(
             hdrs = {_file(path): True for path in library["source_headers"] + library["public_headers"]}.keys() + ([_file("//" + path) for path in PROFILE["headers"]["third_party/wayland/include"]] if original.startswith("//third_party/wayland:") else []),
-            textual_hdrs = {_file(path): True for path in library["compiler_inputs"]}.keys(),
+            textual_hdrs = {_file(path): True for path in library["compiler_inputs"] + library.get("textual_headers", [])}.keys(),
             local_defines = library["defines"],
             includes = library["includes"],
             linkopts = ["-l" + name for name in library["libs"] if name in ["m", "dl", "rt", "pthread", "resolv"]],

@@ -4667,7 +4667,10 @@
         "prebuilt_rustc_sysroot/lib/rustlib/x86_64-unknown-linux-gnu/lib/libminiz_oxide.rlib",
         "prebuilt_rustc_sysroot/lib/rustlib/x86_64-unknown-linux-gnu/lib/libobject.rlib"
       ],
-      "linker_inputs": []
+      "linker_inputs": [],
+      "textual_headers": [
+        "//out/bazel-import/gen/components/url_formatter/spoof_checks/common_words/common_words-inc.cc"
+      ]
     },
     "//components/url_formatter/spoof_checks/top_domains:common": {
       "name": "target_a303296e2f9436e1",
@@ -6386,7 +6389,10 @@
         "prebuilt_rustc_sysroot/lib/rustlib/x86_64-unknown-linux-gnu/lib/libminiz_oxide.rlib",
         "prebuilt_rustc_sysroot/lib/rustlib/x86_64-unknown-linux-gnu/lib/libobject.rlib"
       ],
-      "linker_inputs": []
+      "linker_inputs": [],
+      "textual_headers": [
+        "//out/bazel-import/gen/components/url_formatter/spoof_checks/top_domains/domains-trie-inc.cc"
+      ]
     },
     "//components/viz/common:shared_image_format": {
       "name": "target_e058e994a56dcd69",
@@ -65387,7 +65393,10 @@
         "//out/bazel-import/libvulkan.so.1",
         "//out/bazel-import/libvulkan.so.1.TOC"
       ],
-      "linker_inputs": []
+      "linker_inputs": [],
+      "textual_headers": [
+        "//third_party/vulkan-loader/src/loader/generated/vk_loader_extensions.c"
+      ]
     },
     "//third_party/vulkan-tools/src:VkICD_mock_icd": {
       "name": "target_1e55fc51a98f4528",
@@ -128529,14 +128538,17 @@
       "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/1.0/OpenCL.std.h",
       "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/1.0/spirv.h",
       "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/1.0/spirv.hpp",
+      "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/1.0/spirv.hpp11",
       "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/1.1/GLSL.std.450.h",
       "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/1.1/OpenCL.std.h",
       "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/1.1/spirv.h",
       "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/1.1/spirv.hpp",
+      "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/1.1/spirv.hpp11",
       "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/1.2/GLSL.std.450.h",
       "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/1.2/OpenCL.std.h",
       "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/1.2/spirv.h",
       "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/1.2/spirv.hpp",
+      "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/1.2/spirv.hpp11",
       "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/unified1/AMD_gcn_shader.h",
       "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/unified1/AMD_shader_ballot.h",
       "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/unified1/AMD_shader_explicit_vertex_parameter.h",
@@ -128553,6 +128565,7 @@
       "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/unified1/TOSA.001000.1.h",
       "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/unified1/spirv.h",
       "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/unified1/spirv.hpp",
+      "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/unified1/spirv.hpp11",
       "third_party/swiftshader/third_party/SPIRV-Headers/tools/buildHeaders/header.h",
       "third_party/swiftshader/third_party/SPIRV-Headers/tools/buildHeaders/jsonToSpirv.h",
       "third_party/swiftshader/third_party/SPIRV-Headers/tools/buildHeaders/jsoncpp/dist/json/json-forwards.h",
@@ -134815,14 +134828,17 @@
       "third_party/spirv-headers/src/include/spirv/1.0/OpenCL.std.h",
       "third_party/spirv-headers/src/include/spirv/1.0/spirv.h",
       "third_party/spirv-headers/src/include/spirv/1.0/spirv.hpp",
+      "third_party/spirv-headers/src/include/spirv/1.0/spirv.hpp11",
       "third_party/spirv-headers/src/include/spirv/1.1/GLSL.std.450.h",
       "third_party/spirv-headers/src/include/spirv/1.1/OpenCL.std.h",
       "third_party/spirv-headers/src/include/spirv/1.1/spirv.h",
       "third_party/spirv-headers/src/include/spirv/1.1/spirv.hpp",
+      "third_party/spirv-headers/src/include/spirv/1.1/spirv.hpp11",
       "third_party/spirv-headers/src/include/spirv/1.2/GLSL.std.450.h",
       "third_party/spirv-headers/src/include/spirv/1.2/OpenCL.std.h",
       "third_party/spirv-headers/src/include/spirv/1.2/spirv.h",
       "third_party/spirv-headers/src/include/spirv/1.2/spirv.hpp",
+      "third_party/spirv-headers/src/include/spirv/1.2/spirv.hpp11",
       "third_party/spirv-headers/src/include/spirv/unified1/AMD_gcn_shader.h",
       "third_party/spirv-headers/src/include/spirv/unified1/AMD_shader_ballot.h",
       "third_party/spirv-headers/src/include/spirv/unified1/AMD_shader_explicit_vertex_parameter.h",
@@ -134840,6 +134856,7 @@
       "third_party/spirv-headers/src/include/spirv/unified1/TOSA.001000.1.h",
       "third_party/spirv-headers/src/include/spirv/unified1/spirv.h",
       "third_party/spirv-headers/src/include/spirv/unified1/spirv.hpp",
+      "third_party/spirv-headers/src/include/spirv/unified1/spirv.hpp11",
       "third_party/spirv-headers/src/tools/buildHeaders/header.h",
       "third_party/spirv-headers/src/tools/buildHeaders/jsonToSpirv.h",
       "third_party/spirv-headers/src/tools/buildHeaders/jsoncpp/dist/json/json-forwards.h",
@@ -138951,14 +138968,17 @@
     "third_party/spirv-headers/src/include/spirv/1.0/OpenCL.std.h",
     "third_party/spirv-headers/src/include/spirv/1.0/spirv.h",
     "third_party/spirv-headers/src/include/spirv/1.0/spirv.hpp",
+    "third_party/spirv-headers/src/include/spirv/1.0/spirv.hpp11",
     "third_party/spirv-headers/src/include/spirv/1.1/GLSL.std.450.h",
     "third_party/spirv-headers/src/include/spirv/1.1/OpenCL.std.h",
     "third_party/spirv-headers/src/include/spirv/1.1/spirv.h",
     "third_party/spirv-headers/src/include/spirv/1.1/spirv.hpp",
+    "third_party/spirv-headers/src/include/spirv/1.1/spirv.hpp11",
     "third_party/spirv-headers/src/include/spirv/1.2/GLSL.std.450.h",
     "third_party/spirv-headers/src/include/spirv/1.2/OpenCL.std.h",
     "third_party/spirv-headers/src/include/spirv/1.2/spirv.h",
     "third_party/spirv-headers/src/include/spirv/1.2/spirv.hpp",
+    "third_party/spirv-headers/src/include/spirv/1.2/spirv.hpp11",
     "third_party/spirv-headers/src/include/spirv/spir-v.xml",
     "third_party/spirv-headers/src/include/spirv/unified1/AMD_gcn_shader.h",
     "third_party/spirv-headers/src/include/spirv/unified1/AMD_shader_ballot.h",
@@ -138989,6 +139009,7 @@
     "third_party/spirv-headers/src/include/spirv/unified1/spirv.core.grammar.json",
     "third_party/spirv-headers/src/include/spirv/unified1/spirv.h",
     "third_party/spirv-headers/src/include/spirv/unified1/spirv.hpp",
+    "third_party/spirv-headers/src/include/spirv/unified1/spirv.hpp11",
     "third_party/spirv-headers/src/tools/buildHeaders/header.h",
     "third_party/spirv-headers/src/tools/buildHeaders/jsonToSpirv.h",
     "third_party/spirv-headers/src/tools/buildHeaders/jsoncpp/dist/json/json-forwards.h",
@@ -139965,14 +139986,17 @@
     "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/1.0/OpenCL.std.h",
     "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/1.0/spirv.h",
     "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/1.0/spirv.hpp",
+    "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/1.0/spirv.hpp11",
     "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/1.1/GLSL.std.450.h",
     "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/1.1/OpenCL.std.h",
     "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/1.1/spirv.h",
     "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/1.1/spirv.hpp",
+    "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/1.1/spirv.hpp11",
     "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/1.2/GLSL.std.450.h",
     "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/1.2/OpenCL.std.h",
     "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/1.2/spirv.h",
     "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/1.2/spirv.hpp",
+    "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/1.2/spirv.hpp11",
     "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/spir-v.xml",
     "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/unified1/AMD_gcn_shader.h",
     "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/unified1/AMD_shader_ballot.h",
@@ -140002,6 +140026,7 @@
     "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/unified1/spirv.core.grammar.json",
     "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/unified1/spirv.h",
     "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/unified1/spirv.hpp",
+    "third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/unified1/spirv.hpp11",
     "third_party/swiftshader/third_party/SPIRV-Headers/tools/buildHeaders/header.h",
     "third_party/swiftshader/third_party/SPIRV-Headers/tools/buildHeaders/jsonToSpirv.h",
     "third_party/swiftshader/third_party/SPIRV-Headers/tools/buildHeaders/jsoncpp/dist/json/json-forwards.h",
@@ -146111,6 +146136,7 @@
     "third_party/vulkan-loader/src/loader/extension_manual.c",
     "third_party/vulkan-loader/src/loader/extension_manual.h",
     "third_party/vulkan-loader/src/loader/generated/vk_layer_dispatch_table.h",
+    "third_party/vulkan-loader/src/loader/generated/vk_loader_extensions.c",
     "third_party/vulkan-loader/src/loader/generated/vk_loader_extensions.h",
     "third_party/vulkan-loader/src/loader/generated/vk_object_types.h",
     "third_party/vulkan-loader/src/loader/gpa_helper.c",
