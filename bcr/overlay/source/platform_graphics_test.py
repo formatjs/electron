@@ -20,7 +20,7 @@ with tempfile.TemporaryDirectory(prefix="electron-native-graphics-") as scratch:
         "XDG_DATA_DIRS": scratch, "XDG_CONFIG_DIRS": scratch,
         "XDG_CACHE_HOME": scratch, "TMPDIR": scratch,
     }
-    result = subprocess.run([str(probe), str(egl), str(gles)], env=environment,
+    result = subprocess.run([str(probe), str(egl), str(gles), str(egl.parent / "libvulkan.so.1")], env=environment,
                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
     sys.stdout.write(result.stdout)
     modules = {value.resolve() for value in [probe, egl, gles]}

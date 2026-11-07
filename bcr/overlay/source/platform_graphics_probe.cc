@@ -19,6 +19,7 @@
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
 #include "GLES2/gl2.h"
+#include "vulkan/vulkan.h"
 
 namespace {
 void Require(bool condition, const char* check) {
@@ -85,7 +86,14 @@ int main(int argc, char** argv) {
   sigemptyset(&action.sa_mask);
   sigaction(SIGSEGV, &action, nullptr);
   Stage("entry");
-  Require(argc == 3, "declared graphics library arguments");
+  Require(argc == 4, "declared graphics library arguments");
+  void* vulkan = Open(argv[3]);
+  auto get_instance = reinterpret_cast<PFN_vkGetInstanceProcAddr>(
+      dlsym(vulkan, "vkGetInstanceProcAddr"));
+  Require(get_instance != nullptr, "source Vulkan loader export");
+  Require(get_instance(VK_NULL_HANDLE, "vkCreateInstance") != nullptr,
+          "source Vulkan loader dispatch");
+  Stage("vulkan");
   void* egl = Open(argv[1]);
   Stage("egl");
   void* gles = Open(argv[2]);
@@ -166,5 +174,6 @@ int main(int argc, char** argv) {
   Stage("teardown");
   dlclose(gles);
   dlclose(egl);
+  dlclose(vulkan);
   Stage("done");
 }
