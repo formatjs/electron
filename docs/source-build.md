@@ -177,8 +177,8 @@ The header inventory includes GN's separate public lists and the real
 `stubdata.h` include omitted from those lists. Upstream subset Bazel packages
 are replaced by this captured graph; ICU sources and data remain unchanged.
 
-The profile retains file-backed data. `common/icudtl.dat` is an explicit output
-contract for later runtime packaging, rather than host ICU data or a different
+The profile retains file-backed data. `common/icudtl.dat` is declared runtime
+data for later packaging, rather than host ICU data or a different
 ICU version. `@electron//source:icu_test` disables ambient data-file loading,
 rejects corrupt common data, then initializes from that declared file. It
 checks NFC composition, case-fold preflight/expansion, collation strengths,
@@ -188,7 +188,10 @@ and [BCR consumer](https://formatjs.buildbuddy.io/invocation/23d317a4-9381-4466-
 passed all compilation and these behavior checks; cross-compile CI also passed.
 This captured ICU profile itself remains Linux AMD64. Its repository rule is
 separate from Node/V8 repository implementations so future ICU setup edits do
-not change their definition files. Full V8/Electron linking remains unfinished.
+not change their definition files. `//:source_components` requests both actual
+ICU archives through `//source:icu_libraries`; building the dependency-only C++
+provider alone would not request both archives. Full V8/Electron linking
+remains unfinished.
 
 ```sh
 python3 tools/capture_icu.py --graph=bcr/overlay/source/native/linux_amd64.partial.json.gz \

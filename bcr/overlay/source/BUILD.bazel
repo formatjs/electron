@@ -31,6 +31,14 @@ alias(
     actual = "@electron_icu_sources//:icu",
 )
 
+filegroup(
+    name = "icu_libraries",
+    srcs = [
+        "@electron_icu_sources//:icui18n",
+        "@electron_icu_sources//:icuuc_private",
+    ],
+)
+
 electron_v8_bytecodes(
     name = "v8_bytecodes",
     target_compatible_with = [

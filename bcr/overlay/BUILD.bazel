@@ -32,7 +32,7 @@ filegroup(
         "//source:electron_fuses",
         "//source:electron_natives",
         "//source:embedder_javascript",
-        "//source:icu",
+        "//source:icu_libraries",
         "//source:node_dependencies",
         "//source:node_javascript",
         "//source:node_libuv",
