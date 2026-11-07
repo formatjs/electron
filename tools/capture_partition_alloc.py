@@ -70,8 +70,11 @@ def capture(graph, source):
                 "omitted_toolchain_and_diagnostic_flags": omitted,
             }
     libraries["raw_ptr"]["hdrs"].append("src/partition_alloc/pointers/instance_tracer.h")
-    public_headers, pending = set(), ["partition_alloc/pointers/raw_ptr.h", "partition_alloc/pointers/raw_ref.h"]
     source_headers = source / "base/allocator/partition_allocator/src"
+    public_headers = set()
+    pending = [path.relative_to(source_headers).as_posix() for path in (source_headers / "partition_alloc/pointers").glob("*.h")]
+    if not pending:
+        raise ValueError("Missing original raw pointer header family")
     while pending:
         relative = pending.pop()
         if relative in public_headers or relative == "partition_alloc/buildflags.h":
