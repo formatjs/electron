@@ -6,7 +6,9 @@
 #include <vector>
 
 #include "third_party/libjpeg_turbo/src/jpeglib.h"
+extern "C" {
 #include "third_party/libjpeg_turbo/src/jsimd.h"
+}
 #include "third_party/libwebp/src/src/webp/decode.h"
 #include "third_party/libwebp/src/src/webp/encode.h"
 #include "third_party/wuffs/src/release/c/wuffs-v0.3.c"
