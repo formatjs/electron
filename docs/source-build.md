@@ -1,7 +1,7 @@
 # Electron source import
 
-This overlay builds native Electron source components. No target currently links
-a full Electron executable. Source pins and build inputs live in `bcr/overlay/source`.
+This overlay builds native Electron source components, including the complete
+V8 engine and generated snapshots. No target currently links a full Electron executable. Source pins and build inputs live in `bcr/overlay/source`.
 Stage a local registry first as shown in the root README; add its registry flags
 to every Bazel command below. Native source work:
 
@@ -47,8 +47,8 @@ toolchains; this bootstrap is an official runtime, not source-built Node.
 These bundles currently transpile without typechecking; TypeScript definition
 generation remains unfinished. `@electron//source:electron_natives` runs actual C++ JS2C
 with all eight canonical `electron/js2c/*` module names.
-The Chromium importer then needs matching V8/Blink/content libraries, snapshot
-producers and runtime packaging. No target currently links a source-built
+The remaining Chromium import needs matching Blink/content libraries and
+runtime packaging. No target currently links a source-built
 Electron executable.
 
 `bazel test @electron//tests:node_builtins_test` runs the actual full Node producer
@@ -131,8 +131,8 @@ and [BCR consumer](https://formatjs.buildbuddy.io/invocation/e338b62e-75ae-4a3e-
 passed complete generation, byte reproducibility, output hash/interface checks
 and the real parser diagnostic/abort check. Core dumps are disabled for that
 negative test. The cross-compile workflow also passed; this Torque profile
-itself remains Linux AMD64. The full V8 library, libnode and Electron executable
-remain unfinished.
+itself remains Linux AMD64. Full engine validation is recorded below; libnode
+and the Electron executable remain unfinished.
 
 ```sh
 python3 tools/capture_v8_torque.py --graph=bcr/overlay/source/native/linux_amd64.partial.json.gz \
@@ -221,8 +221,8 @@ This captured ICU profile itself remains Linux AMD64. Its repository rule is
 separate from Node/V8 repository implementations so future ICU setup edits do
 not change their definition files. `//:source_components` requests both actual
 ICU archives through `//source:icu_libraries`; building the dependency-only C++
-provider alone would not request both archives. Full V8/Electron linking
-remains unfinished.
+provider alone would not request both archives. The full engine now consumes
+these archives; final Electron linking remains unfinished.
 
 The build-only component phase uses `--remote_download_outputs=minimal` so
 compile-only archives remain in BB CAS. The following test phase retains
@@ -302,6 +302,61 @@ python3 tools/capture_temporal.py \
 buildifier bcr/overlay/source/native/v8_temporal_inputs.bzl
 ```
 
+## Full V8 engine and snapshots
+
+The complete patched V8 engine now builds, links and executes. Native consumers
+use `@electron_v8_engine_sources//:v8`, `:platform` and declared `:runtime` data.
+Its 34 native targets add 1,453 C++/assembly compilation units; existing
+libbase/libm and execution generators remain shared dependencies. Inspector uses
+original compatibility checks, templates and declared Jinja2/MarkupSafe inputs.
+FP16 uses Chromium's exact DEPS revision and a hashed archive.
+
+```mermaid
+flowchart LR
+  Generators[Native Torque / bytecode / regexp] --> Core[V8 core / compiler / initializers]
+  Inspector[Declared inspector generator] --> Core
+  Core --> Mksnapshot[Native mksnapshot]
+  Mksnapshot --> Snapshot[Startup blob / embedded assembly]
+  Core --> Engine[Linked V8]
+  Snapshot --> Engine
+  Engine --> Probe[JS / Wasm / Intl / Temporal / inspector probe]
+```
+
+The profile projects 3,047 declared files. Generated layout aliases reuse
+all 1,250 Torque outputs and the existing native producer. Snapshot creation
+keeps the captured architecture/OS, predictable mode and seed `314159265`.
+Upstream `mksnapshot` calls `CpuFeatures::Probe(true)`, disabling host CPU
+probing for target code generation. Each native Python action, including
+snapshot generation, requires byte equality across changed staging paths and
+input mtimes. `:runtime` exposes the generated startup blob and matching ICU data.
+
+The hermetic SDK needs explicit `<atomic>`/`<memory>` includes in Wasm `pgo.h`.
+`v8_header_compat.patch` applies only to an owned projection copy; parent patched
+V8 sources stay unchanged. `native_toolchain_patches.json` records that boundary.
+The shared header provider exposes matching native Abseil dependencies instead
+of relying on GN's implicit include-root access. Captured feature flags remain
+intact, including pointer compression, sandbox, Intl and Perfetto.
+
+`@electron//source:v8_engine_test` initializes the actual generated snapshot and
+ICU data, executes a Wasm add function, JS collection operations, Unicode/locale
+behavior and Rust-backed Temporal DST/rejection paths. It dispatches inspector
+`Runtime.evaluate`, checks the decoded result, tests syntax-error reporting and
+checks context state after collection.
+[4516ed7 components](https://formatjs.buildbuddy.io/invocation/4d39e515-418d-4f13-a1ec-2a4b5484c4d0),
+[BCR consumer](https://formatjs.buildbuddy.io/invocation/ec9a0537-868a-4182-9ec0-ded5e613b4ef)
+and [cross checks](https://formatjs.buildbuddy.io/invocation/4340b427-110a-46b5-a4be-84f4828020d0)
+passed. This full engine profile remains Linux AMD64. Patched libnode,
+Electron/Chromium content linking and complete runtime packaging remain open.
+
+```sh
+python3 tools/capture_v8_engine.py \
+  --graph=bcr/overlay/source/native/linux_amd64.partial.json.gz \
+  --v8-root=/path/to/matching/patched/v8 \
+  --chromium-root=/path/to/matching/patched/chromium \
+  --fp16-root=/path/to/pinned/FP16 \
+  --output=bcr/overlay/source/native/v8_engine_inputs.json
+```
+
 ## Complete captured Perfetto closure
 
 The native profile translates all 329 captured Perfetto targets plus matching
@@ -331,8 +386,8 @@ abort-on-invalid-conversion behavior, with core dumps disabled.
 [7177c35 components](https://formatjs.buildbuddy.io/invocation/3072778c-6b5f-4d26-ad16-aa721e45c7f4),
 [BCR consumer](https://formatjs.buildbuddy.io/invocation/781d378c-801e-46f9-a1a9-45bfd2007deb)
 and [cross checks](https://formatjs.buildbuddy.io/invocation/73a5d16b-bf93-4f1a-8e97-25159bb6bb41)
-passed. These native profiles remain Linux AMD64. Inspector, full V8 objects,
-snapshots and final Electron linking remain open.
+passed. These native profiles remain Linux AMD64. The full engine now consumes
+this tracing closure; final Electron linking remains open.
 
 ```sh
 python3 tools/capture_perfetto.py \
@@ -368,7 +423,7 @@ messages, malformed packed fields and invalid UTF-8.
 [BCR consumer](https://formatjs.buildbuddy.io/invocation/e87c3f3f-4c89-4a11-9d22-0ce75b75d180)
 and [cross checks](https://formatjs.buildbuddy.io/invocation/21521a1e-126f-4532-a745-8c2b84650786)
 passed. These new profiles remain Linux AMD64. Perfetto's protocol/runtime
-closure now uses this matching compiler and runtime; full V8 remains open.
+closure now uses this matching compiler and runtime.
 
 ```sh
 python3 tools/capture_protobuf.py \
@@ -401,8 +456,8 @@ corrupt checksummed streams and CRC32/Adler32 vectors.
 [51e5642 components](https://formatjs.buildbuddy.io/invocation/37462791-7cbe-4105-8610-3bfde508c7bc),
 [BCR consumer](https://formatjs.buildbuddy.io/invocation/11a4a3fd-25ce-4651-8115-0773a0923553)
 and [cross checks](https://formatjs.buildbuddy.io/invocation/7766ab37-94e9-43d4-94f9-3c0f1469505e)
-passed. The new library profiles themselves remain Linux AMD64. Full V8 still
-needs inspector generators, engine objects and snapshots.
+passed. The new library profiles themselves remain Linux AMD64. The full engine
+now consumes them; Node/Electron integration remains open.
 
 ## Native V8 base/task slice
 
