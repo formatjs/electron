@@ -255,8 +255,8 @@ allocation stub supplies this prerequisite.
 [5b7f211 source components](https://formatjs.buildbuddy.io/invocation/c0fd8cbf-f5c9-4994-a64a-c6dec789b10b)
 and [BCR consumer](https://formatjs.buildbuddy.io/invocation/e50d8faf-cf75-49ac-8891-b726caf63db5)
 passed archive compilation and all probe boundaries. Cross-compile CI also
-passed; this PartitionAlloc profile itself is Linux AMD64. Temporal Rust
-linking remains unfinished.
+passed; this PartitionAlloc profile itself is Linux AMD64. The following
+Temporal slice now links this allocator through its original Rust bridge.
 
 ```sh
 python3 tools/capture_partition_alloc.py \
@@ -287,8 +287,11 @@ the captured engine flags. `@electron//source:temporal_test` initializes declare
 ICU data with ambient data-file loading disabled, then checks Rust allocation
 ownership and fallible reserve, leap dates, rejection/constraining, calendar
 arithmetic, Japanese calendar data and New York DST/gap behavior through that
-actual provider. Hosted compilation/linking and these behavior checks remain
-required. This Linux AMD64 slice does not link the full V8 or Electron engine.
+actual provider.
+[3278609 source components](https://formatjs.buildbuddy.io/invocation/df7fed7a-c08b-46f4-be2d-dcb6467631df),
+[BCR consumer](https://formatjs.buildbuddy.io/invocation/75b513b8-c73b-4fb4-a035-0122c0ed452d)
+and [cross-compile checks](https://formatjs.buildbuddy.io/invocation/a9818842-360f-4d7f-ad60-29fd3732546c)
+passed. This Linux AMD64 slice does not link the full V8 or Electron engine.
 
 ```sh
 python3 tools/capture_temporal.py \
