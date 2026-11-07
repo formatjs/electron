@@ -762,3 +762,22 @@ expects an asset basename. No host asset search path is needed.
 and [cross-compile](https://formatjs.buildbuddy.io/invocation/f22772db-5323-4a1d-95be-d497d50030c6)
 checks passed. This full profile remains Linux AMD64; full Electron still needs
 linking.
+
+## IPCz
+
+`electron_ipcz_sources` builds all five captured Chromium IPCz source sets: 36
+original C++ units, matching Chromium Base and shared Abseil. Source sets retain
+whole-archive linkage; `IPCZ_STANDALONE` stays absent. Files project read-only
+from Electron's exact Chromium archive. No independent IPCz checkout or
+standalone support implementation substitutes for that configuration.
+
+The integration probe builds four original synchronous reference-driver units
+for testing only. Broker/client nodes exchange a 65,537-byte binary payload,
+preserve required size after insufficient receive capacity, transfer a portal,
+communicate through that portal and report peer closure. Invalid API/handle
+calls and cleanup are checked too.
+[c961819 components](https://formatjs.buildbuddy.io/invocation/f6a3b332-0992-416c-9457-6c23dbbb6324),
+[consumer](https://formatjs.buildbuddy.io/invocation/3afbac9c-cb0e-4445-a246-0b6d499ffcde)
+and [cross-compile](https://formatjs.buildbuddy.io/invocation/99392287-c350-44ac-997e-d3e17c87b1e9)
+checks passed. This full profile remains Linux AMD64. Mojo's core/platform and
+matching networking dependencies remain unfinished.
