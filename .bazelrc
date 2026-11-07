@@ -22,3 +22,5 @@ build:buildbuddy --rewind_lost_inputs
 build:buildbuddy --jobs=64
 build:buildbuddy --ui_event_filters=-info
 build:buildbuddy --extra_execution_platforms=//platforms:buildbuddy_linux_amd64
+
+build --@rules_rust//rust/toolchain/channel=nightly

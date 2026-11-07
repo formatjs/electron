@@ -5,6 +5,7 @@ load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("//source/native:v8_base_inputs.bzl", "V8_BASE_LIBRARIES")
 load("//source/native:v8_bytecode_inputs.bzl", "BYTECODE_GENERATOR")
 load("//source/native:v8_regexp_inputs.bzl", "REGEXP_GENERATOR")
+load("//source/native:v8_temporal_inputs.bzl", "V8_TEMPORAL_PROVIDER")
 load("//source/native:v8_torque_inputs.bzl", "TORQUE_LIBRARIES", "TORQUE_PROFILE_SHA256", "TORQUE_RUN")
 
 _LINUX_AMD64 = ["@platforms//os:linux", "@platforms//cpu:x86_64"]
@@ -209,6 +210,16 @@ def v8_sources():
     v8_torque_compiler(name = "torque")
     v8_bytecode_compiler(name = "bytecode_builtins_list_generator")
     v8_regexp_compiler(name = "gen-regexp-special-case")
+
+    cc_library(
+        name = "temporal_provider",
+        srcs = V8_TEMPORAL_PROVIDER["srcs"],
+        copts = V8_TEMPORAL_PROVIDER["copts"],
+        local_defines = V8_TEMPORAL_PROVIDER["defines"],
+        linkstatic = True,
+        target_compatible_with = _LINUX_AMD64,
+        deps = [":generator_headers", ":libbase", "@electron_icu_sources//:icu", "@electron_rust_sources//:temporal_capi"],
+    )
 
     cc_library(
         name = "base_headers",

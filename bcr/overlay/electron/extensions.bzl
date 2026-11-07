@@ -4,6 +4,7 @@ load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository", "new_git_r
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load(":icu_repository.bzl", "electron_icu_repository")
 load(":partition_alloc_repository.bzl", "electron_partition_alloc_repository")
+load(":rust_repository.bzl", "electron_rust_repository")
 load(":source_repositories.bzl", "electron_abseil_repository", "electron_node_repository", "electron_patched_upstream")
 
 _VERSION = "39.0.0"
@@ -59,8 +60,9 @@ def _impl(ctx):
     electron_abseil_repository(name = "electron_abseil_sources", chromium = "@electron_chromium_sources//:DEPS")
     electron_icu_repository(name = "electron_icu_sources", chromium = "@electron_chromium_sources//:DEPS")
     electron_partition_alloc_repository(name = "electron_partition_alloc_sources", chromium = "@electron_chromium_sources//:DEPS")
+    electron_rust_repository(name = "electron_rust_sources", chromium = "@electron_chromium_sources//:DEPS")
     electron_node_repository(name = "electron_node_sources", electron = "@electron//:DEPS")
-    direct = ["electron_node_sources", "electron_v8_sources", "electron_chromium_sources", "electron_cast_core_sources", "electron_glslang_sources", "electron_abseil_sources", "electron_icu_sources", "electron_partition_alloc_sources"] + dependency_repos
+    direct = ["electron_node_sources", "electron_v8_sources", "electron_chromium_sources", "electron_cast_core_sources", "electron_glslang_sources", "electron_abseil_sources", "electron_icu_sources", "electron_partition_alloc_sources", "electron_rust_sources"] + dependency_repos
     return ctx.extension_metadata(reproducible = True, root_module_direct_deps = direct, root_module_direct_dev_deps = [])
 
 electron = module_extension(implementation = _impl, tag_classes = {"version": tag_class(attrs = {"version": attr.string(mandatory = True)})})

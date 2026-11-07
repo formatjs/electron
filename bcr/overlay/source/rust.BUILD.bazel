@@ -1,0 +1,5 @@
+load("@electron//source:rust_rules.bzl", "electron_temporal")
+
+package(default_visibility = ["//visibility:public"])
+
+electron_temporal()

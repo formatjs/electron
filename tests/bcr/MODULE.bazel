@@ -17,3 +17,17 @@ node.toolchain(node_version = "22.20.0")
 use_repo(node, "nodejs_toolchains")
 
 register_toolchains("@nodejs_toolchains//:all")
+
+bazel_dep(name = "rules_rs", version = "0.2.1")
+
+rust_toolchains = use_extension("@rules_rs//rs/toolchains:module_extension.bzl", "toolchains")
+rust_toolchains.toolchain(
+    edition = "2021",
+    version = "nightly/2025-09-25",
+)
+use_repo(rust_toolchains, "default_rust_toolchains")
+
+register_toolchains("@default_rust_toolchains//...")
+
+rules_rust = use_extension("@rules_rs//rs:rules_rust.bzl", "rules_rust")
+use_repo(rules_rust, "rules_rust")

@@ -2,6 +2,11 @@ load("@rules_python//python:defs.bzl", "py_binary")
 
 package(default_visibility = ["//visibility:public"])
 
+py_binary(
+    name = "copy_bindings",
+    srcs = ["copy_bindings.py"],
+)
+
 exports_files(["webpack.cjs"])
 
 py_binary(

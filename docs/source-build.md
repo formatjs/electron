@@ -265,6 +265,40 @@ python3 tools/capture_partition_alloc.py \
 buildifier bcr/overlay/source/native/partition_alloc_inputs.bzl
 ```
 
+## Temporal Rust and allocator FFI
+
+The captured Temporal closure declares 57 Rust targets from 44 pinned vendor
+packages, including six original build scripts, proc macros and both allocator
+variants. Three C++ bridge variants use Chromium's original allocator/error
+handler sources. Runtime Rust keeps `rust_allocator_uses_allocator_impls_h` and
+real PartitionAlloc-backed FFI; host variants retain their captured settings.
+Native bindgen generates the original `bindings.rs` namespace wrapper inputs.
+
+`hermeticbuild/rules_rs` 0.2.1 supplies native Rust actions. Development and BCR
+consumer configurations register nightly/2025-09-25 and select the nightly
+channel. Compiler target/metadata choices come from those declared providers;
+captured features, editions, codegen and warning options remain explicit.
+Source projection lists every crate input, checks Cargo.toml versions and maps
+generated OUT_DIR/CARGO_MANIFEST_DIR paths. Dependencies come from the captured
+graph; original build scripts run against declared inputs.
+
+The one-unit V8 `ZoneInfo64Provider` uses its real upstream implementation and
+the captured engine flags. `@electron//source:temporal_test` initializes declared
+ICU data with ambient data-file loading disabled, then checks Rust allocation
+ownership and fallible reserve, leap dates, rejection/constraining, calendar
+arithmetic, Japanese calendar data and New York DST/gap behavior through that
+actual provider. Hosted compilation/linking and these behavior checks remain
+required. This Linux AMD64 slice does not link the full V8 or Electron engine.
+
+```sh
+python3 tools/capture_temporal.py \
+  --graph=bcr/overlay/source/native/linux_amd64.partial.json.gz \
+  --source-root=/path/to/matching/patched/chromium \
+  --output=bcr/overlay/source/native/temporal_inputs.json \
+  --v8-output=bcr/overlay/source/native/v8_temporal_inputs.bzl
+buildifier bcr/overlay/source/native/v8_temporal_inputs.bzl
+```
+
 ## Native V8 base/task slice
 
 `@electron_v8_sources//:libbase` compiles all 40 captured Linux AMD64 source
