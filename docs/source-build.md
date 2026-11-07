@@ -251,8 +251,12 @@ allocation-metadata overflow, with core dumps disabled. A valid huge request
 and failed realloc must still return null.
 It also checks that
 ordinary `malloc` and C++ `new` use PartitionAlloc. No replacement allocator or
-allocation stub supplies this prerequisite. Hosted validation remains required;
-Temporal Rust linking itself remains unfinished.
+allocation stub supplies this prerequisite.
+[5b7f211 source components](https://formatjs.buildbuddy.io/invocation/c0fd8cbf-f5c9-4994-a64a-c6dec789b10b)
+and [BCR consumer](https://formatjs.buildbuddy.io/invocation/e50d8faf-cf75-49ac-8891-b726caf63db5)
+passed archive compilation and all probe boundaries. Cross-compile CI also
+passed; this PartitionAlloc profile itself is Linux AMD64. Temporal Rust
+linking remains unfinished.
 
 ```sh
 python3 tools/capture_partition_alloc.py \
