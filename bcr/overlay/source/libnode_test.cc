@@ -26,7 +26,7 @@ const inspector = publicRequire('node:inspector');
 assert.equal(process.versions.node, '22.20.0');
 assert.equal(process.versions.modules, '140');
 assert.notEqual(fs, originalFs);
-assert.equal(publicRequire(process.argv[2]).answer, 42);
+assert.equal(publicRequire(publicRequire('node:path').resolve(process.argv[2])).answer, 42);
 const fixture = 'source-built Electron Node fixture\n';
 assert.equal(fs.readFileSync(process.argv[1], 'utf8'), fixture);
 assert.equal(originalFs.readFileSync(process.argv[1], 'utf8'), fixture);

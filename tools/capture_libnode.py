@@ -41,6 +41,7 @@ SCRIPTS = {
 def capture(graph, chromium, node, v8, zstd):
     if "89d685e42dbcf815a16ed0fcd7d050ef74ccad96" not in (chromium / "DEPS").read_text():
         raise ValueError("Zstd DEPS pin changed")
+    # Node exposes compression; captured GN only links the decoder.
     targets, seen, pending = graph["targets"], set(), [ROOT, "//third_party/zstd:compress"]
     while pending:
         label = pending.pop()
@@ -84,11 +85,17 @@ def capture(graph, chromium, node, v8, zstd):
         python.update(prefix + path.relative_to(directory).as_posix() for path in directory.rglob("*") if path.is_file() and path.suffix in (".py", ".template"))
         files.update(prefix + path.name for path in directory.iterdir() if path.is_file() and path.name.startswith(("LICENSE", "COPYING", "NOTICE")))
     files.update([NODE + "LICENSE", "third_party/zstd/src/LICENSE", "third_party/zstd/src/COPYING", "third_party/brotli/LICENSE"])
+    def outputs_for(target):
+        outputs = list(target.get("outputs", []))
+        if target.get("script") == "//third_party/inspector_protocol/code_generator.py":
+            outputs.append(BUILD + "gen/third_party/electron_node/src/node/inspector/protocol/Runtime.h")
+        return outputs
+
     producers, actions, libraries = {}, {}, {}
     for label in sorted(seen):
         target = targets[label]
         if target["type"] in ("action", "action_foreach"):
-            for output in target["outputs"]:
+            for output in outputs_for(target):
                 if not output.startswith(BUILD) or output in producers:
                     raise ValueError("Unexpected/duplicate libnode output")
                 producers[output] = label
@@ -112,7 +119,7 @@ def capture(graph, chromium, node, v8, zstd):
             for index, source in enumerate(target["sources"] if kind == "action_foreach" else [None]):
                 inputs = common | ({source} if source else set(target.get("sources", [])))
                 args = target.get("args", [])
-                outputs = target["outputs"]
+                outputs = outputs_for(target)
                 if source:
                     args = [arg.replace("{{source}}", "../../" + source[2:]).replace("{{source_name_part}}", Path(source).stem) for arg in args]
                     outputs = [BUILD + "gen/third_party/electron_node/src/" + Path(source).stem + ".json"]
@@ -127,7 +134,7 @@ def capture(graph, chromium, node, v8, zstd):
                     else:
                         files.add(path[2:])
                 runs.append({"inputs": sorted(inputs), "outputs": outputs, "args": args})
-            record.update(script=target["script"][2:], runs=runs, outputs=target["outputs"])
+            record.update(script=target["script"][2:], runs=runs, outputs=outputs_for(target), gn_outputs=target["outputs"])
             actions[label] = record
         elif kind in ("static_library", "source_set"):
             sources = target.get("sources", [])

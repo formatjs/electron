@@ -3927,6 +3927,9 @@
       ],
       "outputs": [
         "//out/bazel-import/gen/third_party/electron_node/src/inspector/concatenated_protocol.json"
+      ],
+      "gn_outputs": [
+        "//out/bazel-import/gen/third_party/electron_node/src/inspector/concatenated_protocol.json"
       ]
     },
     "//third_party/electron_node/src/inspector:node_protocol_generated_sources": {
@@ -4024,7 +4027,8 @@
             "//out/bazel-import/gen/third_party/electron_node/src/node/inspector/protocol/Protocol.cpp",
             "//out/bazel-import/gen/third_party/electron_node/src/node/inspector/protocol/Protocol.h",
             "//out/bazel-import/gen/third_party/electron_node/src/node/inspector/protocol/Target.cpp",
-            "//out/bazel-import/gen/third_party/electron_node/src/node/inspector/protocol/Target.h"
+            "//out/bazel-import/gen/third_party/electron_node/src/node/inspector/protocol/Target.h",
+            "//out/bazel-import/gen/third_party/electron_node/src/node/inspector/protocol/Runtime.h"
           ],
           "args": [
             "--inspector_protocol_dir",
@@ -4039,6 +4043,24 @@
         }
       ],
       "outputs": [
+        "//out/bazel-import/gen/third_party/electron_node/src/node/inspector/protocol/Forward.h",
+        "//out/bazel-import/gen/third_party/electron_node/src/node/inspector/protocol/IO.cpp",
+        "//out/bazel-import/gen/third_party/electron_node/src/node/inspector/protocol/IO.h",
+        "//out/bazel-import/gen/third_party/electron_node/src/node/inspector/protocol/Network.cpp",
+        "//out/bazel-import/gen/third_party/electron_node/src/node/inspector/protocol/Network.h",
+        "//out/bazel-import/gen/third_party/electron_node/src/node/inspector/protocol/NodeRuntime.cpp",
+        "//out/bazel-import/gen/third_party/electron_node/src/node/inspector/protocol/NodeRuntime.h",
+        "//out/bazel-import/gen/third_party/electron_node/src/node/inspector/protocol/NodeTracing.cpp",
+        "//out/bazel-import/gen/third_party/electron_node/src/node/inspector/protocol/NodeTracing.h",
+        "//out/bazel-import/gen/third_party/electron_node/src/node/inspector/protocol/NodeWorker.cpp",
+        "//out/bazel-import/gen/third_party/electron_node/src/node/inspector/protocol/NodeWorker.h",
+        "//out/bazel-import/gen/third_party/electron_node/src/node/inspector/protocol/Protocol.cpp",
+        "//out/bazel-import/gen/third_party/electron_node/src/node/inspector/protocol/Protocol.h",
+        "//out/bazel-import/gen/third_party/electron_node/src/node/inspector/protocol/Target.cpp",
+        "//out/bazel-import/gen/third_party/electron_node/src/node/inspector/protocol/Target.h",
+        "//out/bazel-import/gen/third_party/electron_node/src/node/inspector/protocol/Runtime.h"
+      ],
+      "gn_outputs": [
         "//out/bazel-import/gen/third_party/electron_node/src/node/inspector/protocol/Forward.h",
         "//out/bazel-import/gen/third_party/electron_node/src/node/inspector/protocol/IO.cpp",
         "//out/bazel-import/gen/third_party/electron_node/src/node/inspector/protocol/IO.h",
@@ -4220,6 +4242,10 @@
       "outputs": [
         "//out/bazel-import/gen/third_party/electron_node/src/node_protocol.json",
         "//out/bazel-import/gen/third_party/electron_node/src/js_protocol.json"
+      ],
+      "gn_outputs": [
+        "//out/bazel-import/gen/third_party/electron_node/src/node_protocol.json",
+        "//out/bazel-import/gen/third_party/electron_node/src/js_protocol.json"
       ]
     },
     "//third_party/electron_node/src/inspector:v8_inspector_compress_protocol_json": {
@@ -4246,6 +4272,9 @@
       ],
       "outputs": [
         "//out/bazel-import/gen/third_party/electron_node/src/inspector/v8_inspector_protocol_json.h"
+      ],
+      "gn_outputs": [
+        "//out/bazel-import/gen/third_party/electron_node/src/inspector/v8_inspector_protocol_json.h"
       ]
     }
   },
@@ -4266,6 +4295,7 @@
     "//out/bazel-import/gen/third_party/electron_node/src/node/inspector/protocol/Protocol.h": "//third_party/electron_node/src/inspector:node_protocol_generated_sources",
     "//out/bazel-import/gen/third_party/electron_node/src/node/inspector/protocol/Target.cpp": "//third_party/electron_node/src/inspector:node_protocol_generated_sources",
     "//out/bazel-import/gen/third_party/electron_node/src/node/inspector/protocol/Target.h": "//third_party/electron_node/src/inspector:node_protocol_generated_sources",
+    "//out/bazel-import/gen/third_party/electron_node/src/node/inspector/protocol/Runtime.h": "//third_party/electron_node/src/inspector:node_protocol_generated_sources",
     "//out/bazel-import/gen/third_party/electron_node/src/node_protocol.json": "//third_party/electron_node/src/inspector:node_protocol_json",
     "//out/bazel-import/gen/third_party/electron_node/src/js_protocol.json": "//third_party/electron_node/src/inspector:node_protocol_json",
     "//out/bazel-import/gen/third_party/electron_node/src/inspector/v8_inspector_protocol_json.h": "//third_party/electron_node/src/inspector:v8_inspector_compress_protocol_json"
