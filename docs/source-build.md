@@ -1362,8 +1362,8 @@ python3 tools/capture_platform.py \
 ## GPU command-buffer integration (validation pending)
 
 The graphics profile now also captures GLES2 client/service command buffers and
-Viz common: 2,619 native units across 405 library/group/runtime targets, 179
-declared generator targets (180 runs), and 16 exact source pins. Libyuv comes
+Viz common and GPU process IPC services: 2,633 native units across 407
+library/group/runtime targets, 179 declared generator targets (180 runs), and 16 exact source pins. Libyuv comes
 from its Chromium DEPS revision. GPU/Mojo/Dawn generation and the original
 Protobuf wrapper retain their declared tools and outputs.
 
@@ -1378,6 +1378,12 @@ The native protocol probe uses original command serializers, CommonDecoder,
 CommandBufferService and transfer buffers. It checks token/state propagation,
 shared-memory byte transfer, invalid ranges/handles, bucket limits and error
 callbacks. It also exercises real GPU preference serialization, shader-cache
-protobufs and Viz NV12 plane sizing. The existing SwiftShader pixel probe and
-complete source suite remain required. Runtime validation of this expansion is
+protobufs, Viz NV12 plane sizing and pinned libyuv ARGB-to-NV12 conversion.
+Converted chroma bytes pass through the native transfer buffer and decoder.
+The existing SwiftShader pixel probe and complete source suite remain required. Runtime validation of this expansion is
 pending; full Electron remains unfinished.
+
+Quoted sibling includes keep their checked-in relative file layout across profile
+boundaries. The capture projects their recursive source closure locally instead
+of redirecting those files into another source repository. No compiler include
+path workaround or source patch is needed.

@@ -14,7 +14,7 @@ from pathlib import Path
 from capture_mojo import SCRIPTS as MOJO_SCRIPTS
 from native_graph import BUILD, capture_library, load_profiles
 
-ROOTS = ["//ui/ozone:ozone", "//ui/gl:gl", "//gpu/command_buffer/client:gles2_implementation", "//gpu/command_buffer/service:gles2", "//components/viz/common:common"]
+ROOTS = ["//ui/ozone:ozone", "//ui/gl:gl", "//gpu/command_buffer/client:gles2_implementation", "//gpu/command_buffer/service:gles2", "//components/viz/common:common", "//gpu/ipc/service:service"]
 SOURCE_PREFIXES = ["third_party/libyuv", "third_party/angle", "third_party/dawn", "third_party/swiftshader", "third_party/spirv-tools/src", "third_party/spirv-headers/src", "third_party/vulkan-loader/src", "third_party/vulkan-tools/src", "third_party/vulkan-utility-libraries/src", "third_party/vulkan-headers/src", "third_party/vulkan_memory_allocator", "third_party/wayland/src", "third_party/wayland-protocols/src", "third_party/wayland-protocols/kde"]
 TOOLCHAIN = {"//buildtools/third_party/libc++:" + name for name in ("all_modules", "custom_headers", "libcxx_headers", "libc++")}
 SDK_LIBS = {"ffi_pic", "X11", "Xi", "Xext", "pci", "gbm", "dbus-1", "udev", "cairo", "harfbuzz", "pango-1.0", "pangocairo-1.0", "atk-1.0", "atk-bridge-2.0"}
@@ -318,6 +318,21 @@ def capture(graph, digest, chromium, source_roots, profiles):
                 input_file(original)
         if textual:
             library["textual_headers"] = sorted(textual)
+    # Quoted sibling includes must remain beside sources across profile boundaries.
+    pending, visited = list(files), set()
+    while pending:
+        source = pending.pop()
+        if source in visited or Path(source).suffix not in (".h", ".hh", ".hpp", ".inc", ".inl", ".def", ".cc", ".cpp", ".c", ".S", ".s"):
+            continue
+        visited.add(source)
+        for include in re.findall(r'^\s*#\s*include\s*"([^"\n]+)"', physical(source).read_text(), re.M):
+            candidate = posixpath.normpath(posixpath.join(posixpath.dirname(source), include))
+            if candidate.startswith(("/", "../")) or not physical(candidate).is_file():
+                continue
+            used_shared.discard("//" + candidate)
+            if candidate not in files:
+                files.add(candidate)
+                pending.append(candidate)
     for path in sorted(files):
         if not physical(path).is_file():
             raise ValueError("Missing original platform input: " + path)
