@@ -63,5 +63,7 @@ filegroup(
         ":glib",
         ":gmodule",
         ":gobject",
+        ":zlib",
     ],
+    target_compatible_with = _COMPATIBLE,
 )

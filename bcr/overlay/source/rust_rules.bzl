@@ -2,7 +2,6 @@
 
 load("@electron_rust_sources//:profile.bzl", "PROFILE")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
-load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load("@rules_rs//rs:cargo_build_script.bzl", "cargo_build_script")
 load("@rules_rs//rs:rules_rust_bindgen.bzl", "rust_bindgen")
 load("@rules_rs//rs:rust_binary.bzl", "rust_binary")
@@ -53,7 +52,6 @@ def _bindings_impl(ctx):
     )
     return [
         DefaultInfo(files = depset([output])),
-        ctx.attr.cc_lib[CcInfo],
         BuildInfo(out_dir = output, compile_data = depset([output]), dep_env = None, rustc_env = None, flags = None, linker_flags = None, link_search_paths = None),
     ]
 
@@ -61,7 +59,6 @@ _bindings = rule(
     implementation = _bindings_impl,
     attrs = {
         "src": attr.label(allow_single_file = True),
-        "cc_lib": attr.label(providers = [CcInfo], mandatory = True),
         "_runner": attr.label(default = Label("//electron/private:copy_bindings"), executable = True, cfg = "exec"),
     },
 )
@@ -106,7 +103,7 @@ def electron_temporal():
             clang_flags = ffi.get("clang_flags", ["-x", "c++", "-std=c++20", "-fparse-all-comments", "-fvisibility=default"]),
             target_compatible_with = _LINUX_AMD64,
         )
-        _bindings(name = crate["name"] + "_bindings", src = ":" + crate["name"] + "_generator", cc_lib = ffi["owner"] if ffi["owner"].startswith("@") else ":" + ffi["owner"])
+        _bindings(name = crate["name"] + "_bindings", src = ":" + crate["name"] + "_generator")
     for label, crate in PROFILE["rust"].items():
         environment = dict(crate["rustc_env"])
         if "CARGO_MANIFEST_DIR" in crate["rewritten_paths"]:
@@ -126,7 +123,8 @@ def electron_temporal():
             target_compatible_with = _LINUX_AMD64,
         )
         if label in PROFILE["ffi"]:
-            settings["deps"] += [":" + crate["name"] + "_bindings"]
+            ffi = PROFILE["ffi"][label]
+            settings["deps"] += [":" + crate["name"] + "_bindings", ffi["owner"] if ffi["owner"].startswith("@") else ":" + ffi["owner"]]
         if crate["kind"] == "cargo_build_script":
             settings["version"] = environment.get("CARGO_PKG_VERSION", "")
             settings["pkg_name"] = environment.get("CARGO_PKG_NAME", "")
