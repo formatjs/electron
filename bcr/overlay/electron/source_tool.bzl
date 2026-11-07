@@ -6,6 +6,9 @@ def _path(value):
     return value
 
 def _impl(ctx):
+    runtime = ctx.toolchains["@rules_python//python:toolchain_type"].py3_runtime
+    if not runtime.interpreter:
+        fail("Native tool staging requires a declared Python interpreter")
     name = _path(ctx.attr.binary_name)
     if "/" in name:
         fail("Native tool executable must have one filename")
@@ -28,9 +31,9 @@ def _impl(ctx):
     manifest = ctx.actions.declare_file(ctx.label.name + ".json")
     ctx.actions.write(manifest, json.encode(copies))
     ctx.actions.run(
-        executable = ctx.attr._runner[DefaultInfo].files_to_run,
-        arguments = [manifest.path],
-        inputs = inputs + [manifest],
+        executable = runtime.interpreter,
+        arguments = ["-I", "-B", ctx.file._script.path, manifest.path],
+        inputs = depset(inputs + [manifest, ctx.file._script], transitive = [runtime.files] if runtime.files else []),
         outputs = outputs,
         env = {"PATH": "", "LANG": "C", "LC_ALL": "C", "TZ": "UTC"},
         mnemonic = "ElectronNativeToolBundle",
@@ -40,10 +43,11 @@ def _impl(ctx):
 electron_source_tool = rule(
     implementation = _impl,
     executable = True,
+    toolchains = ["@rules_python//python:toolchain_type"],
     attrs = {
         "binary": attr.label(executable = True, cfg = "exec", mandatory = True),
         "binary_name": attr.string(mandatory = True),
         "data": attr.label_keyed_string_dict(allow_files = True, cfg = "exec"),
-        "_runner": attr.label(default = Label("//electron/private:source_tool"), executable = True, cfg = "exec"),
+        "_script": attr.label(default = Label("//electron/private:source_tool.py"), allow_single_file = True),
     },
 )

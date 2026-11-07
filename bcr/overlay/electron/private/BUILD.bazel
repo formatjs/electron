@@ -3,11 +3,6 @@ load("@rules_python//python:defs.bzl", "py_binary", "py_test")
 
 package(default_visibility = ["//visibility:public"])
 
-py_binary(
-    name = "source_tool",
-    srcs = ["source_tool.py"],
-)
-
 cc_binary(
     name = "nss_checksum",
     srcs = ["nss_checksum.cc"],
@@ -89,4 +84,7 @@ py_binary(
     srcs = ["artifact_file.py"],
 )
 
-exports_files(["copy_files.py"])
+exports_files([
+    "copy_files.py",
+    "source_tool.py",
+])
