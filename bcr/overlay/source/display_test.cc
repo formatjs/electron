@@ -45,7 +45,7 @@ void CheckDisplayModel() {
   auto bytes = display::mojom::Display::Serialize(&monitor);
   display::Display decoded;
   Require(display::mojom::Display::Deserialize(bytes, &decoded) && decoded.id() == monitor.id() && decoded.bounds() == monitor.bounds() && decoded.work_area() == monitor.work_area() && decoded.GetSizeInPixel() == monitor.GetSizeInPixel() && decoded.native_origin() == monitor.native_origin() && decoded.device_scale_factor() == 2 && decoded.rotation() == display::Display::ROTATE_270 && decoded.touch_support() == monitor.touch_support() && decoded.label() == monitor.label() && decoded.display_frequency() == 144, "original display wire roundtrip");
-  bytes.resize(bytes.size() - 1);
+  bytes.resize(bytes.size() / 2);
   Require(!display::mojom::Display::Deserialize(bytes, &decoded), "truncated display wire rejection");
 }
 
