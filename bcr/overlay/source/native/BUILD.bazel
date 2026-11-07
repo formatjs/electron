@@ -1,4 +1,5 @@
 exports_files([
+    "display_inputs.json",
     "gfx_inputs.json",
     "skia_inputs.json",
     "codecs_inputs.json",

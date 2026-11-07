@@ -43,6 +43,7 @@ use_repo(
     "electron_codecs_sources",
     "electron_dawn_upstream",
     "electron_devtools_frontend_sources",
+    "electron_display_sources",
     "electron_dragonbox_upstream",
     "electron_embedder_sources",
     "electron_fast_float_upstream",

@@ -1,5 +1,6 @@
 load("@electron_base_sources//:profile.bzl", BASE_PROFILE = "PROFILE")
 load("@electron_codecs_sources//:profile.bzl", CODECS_PROFILE = "PROFILE")
+load("@electron_display_sources//:profile.bzl", DISPLAY_PROFILE = "PROFILE")
 load("@electron_embedder_sources//:profile.bzl", EMBEDDER_PROFILE = "PROFILE")
 load("@electron_fonts_sources//:profile.bzl", FONTS_PROFILE = "PROFILE")
 load("@electron_gfx_sources//:profile.bzl", GFX_PROFILE = "PROFILE")
@@ -54,6 +55,31 @@ cc_test(
     deps = [
         "@electron_embedder_sources//:base_i18n",
         "@electron_skia_sources//:skia",
+    ],
+)
+
+cc_test(
+    name = "display_test",
+    srcs = ["display_test.cc"],
+    args = ["$(rootpath @electron_icu_sources//:common/icudtl.dat)"],
+    copts = DISPLAY_PROFILE["libraries"]["//ui/display:display"]["copts"],
+    data = ["@electron_icu_sources//:common/icudtl.dat"],
+    env = {
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+    },
+    linkstatic = True,
+    local_defines = DISPLAY_PROFILE["libraries"]["//ui/display:display"]["defines"],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    deps = [
+        "@electron_display_sources//:display",
+        "@electron_display_sources//:mojom",
+        "@electron_embedder_sources//:base_i18n",
+        "@electron_network_sources//:mojo_embedder",
     ],
 )
 
@@ -937,4 +963,9 @@ cc_test(
         "@electron_embedder_sources//:base_i18n",
         "@electron_embedder_sources//:gin",
     ],
+)
+
+alias(
+    name = "display_libraries",
+    actual = "@electron_display_sources//:libraries",
 )

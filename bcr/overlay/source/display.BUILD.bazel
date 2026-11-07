@@ -1,0 +1,5 @@
+load("@electron//source:display_rules.bzl", "electron_display")
+
+package(default_visibility = ["//visibility:public"])
+
+electron_display()
