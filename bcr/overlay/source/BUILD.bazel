@@ -10,9 +10,11 @@ load("@electron_libnode_sources//:profile.bzl", LIBNODE_PROFILE = "PROFILE")
 load("@electron_mojo_sources//:profile.bzl", MOJO_PROFILE = "PROFILE")
 load("@electron_network_sources//:profile.bzl", NETWORK_PROFILE = "PROFILE")
 load("@electron_skia_sources//:profile.bzl", SKIA_PROFILE = "PROFILE")
+load("@electron_ui_sources//:profile.bzl", UI_PROFILE = "PROFILE")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_shared_library.bzl", "cc_shared_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
+load("@rules_python//python:defs.bzl", "py_test")
 load("//electron:artifact_file.bzl", "electron_artifact_file")
 load("//electron:protobuf_probe_rules.bzl", "electron_protobuf_probe")
 load("//electron:source_rules.bzl", "electron_buildflags", "electron_fuses_generate", "electron_js2c", "electron_node_config", "electron_node_defines", "electron_original_fs")
@@ -56,6 +58,61 @@ cc_test(
     deps = [
         "@electron_embedder_sources//:base_i18n",
         "@electron_skia_sources//:skia",
+    ],
+)
+
+cc_test(
+    name = "ui_test",
+    srcs = ["ui_test.cc"],
+    args = [
+        "$(rootpath @electron_icu_sources//:common/icudtl.dat)",
+        "$(rootpath @electron_ui_sources//:gen/ui/strings/ui_strings_en-US.pak)",
+        "$(rootpath @electron_ui_sources//:gen/ui/strings/ui_strings_fr.pak)",
+        "$(rootpath @electron_ui_sources//:gen/ui/webui/resources/webui_resources.pak)",
+        "$(rootpath @electron_ui_sources//:gen/ui/webui/resources/js/minified/color_utils.js)",
+    ],
+    copts = UI_PROFILE["libraries"]["//ui/base:base"]["copts"],
+    data = [
+        "@electron_icu_sources//:common/icudtl.dat",
+        "@electron_ui_sources//:gen/ui/strings/ui_strings_en-US.pak",
+        "@electron_ui_sources//:gen/ui/strings/ui_strings_fr.pak",
+        "@electron_ui_sources//:gen/ui/webui/resources/js/minified/color_utils.js",
+        "@electron_ui_sources//:gen/ui/webui/resources/webui_resources.pak",
+    ],
+    env = {
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+    },
+    linkstatic = True,
+    local_defines = UI_PROFILE["libraries"]["//ui/base:base"]["defines"],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    deps = [
+        "@electron_embedder_sources//:base_i18n",
+        "@electron_ui_sources//:base",
+        "@electron_ui_sources//:color",
+        "@electron_ui_sources//:resources",
+        "@electron_ui_sources//:strings",
+    ],
+)
+
+py_test(
+    name = "ui_webui_test",
+    srcs = ["ui_webui_test.py"],
+    args = [
+        "$(rootpath @electron_chromium_node_tool//:node-linux-x64/bin/node)",
+        "$(rootpath @electron_ui_sources//:gen/ui/webui/resources/js/minified/color_utils.js)",
+    ],
+    data = [
+        "@electron_chromium_node_tool//:node-linux-x64/bin/node",
+        "@electron_ui_sources//:gen/ui/webui/resources/js/minified/color_utils.js",
+    ],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
     ],
 )
 
@@ -1001,4 +1058,9 @@ alias(
 alias(
     name = "events_libraries",
     actual = "@electron_events_sources//:libraries",
+)
+
+alias(
+    name = "ui_libraries",
+    actual = "@electron_ui_sources//:libraries",
 )

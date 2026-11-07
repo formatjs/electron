@@ -1,4 +1,5 @@
 exports_files([
+    "ui_inputs.json",
     "events_inputs.json",
     "display_inputs.json",
     "gfx_inputs.json",
