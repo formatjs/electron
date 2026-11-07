@@ -4,6 +4,7 @@
 import json
 import os
 from pathlib import Path, PurePosixPath
+import pickletools
 import shlex
 import shutil
 import subprocess
@@ -61,6 +62,14 @@ def run(manifest):
         repeated = generate(manifest, True)
         changed = sorted(path for path in outputs if outputs[path] != repeated[path])
         if changed:
+            for path in changed:
+                if path.endswith(".mojom-module"):
+                    left = list(pickletools.genops(outputs[path]))
+                    right = list(pickletools.genops(repeated[path]))
+                    strings = lambda ops: [value for _, value, _ in ops if isinstance(value, str)]
+                    one, two = strings(left), strings(right)
+                    first = next((index for index, (a, b) in enumerate(zip(left, right)) if a[:2] != b[:2]), min(len(left), len(right)))
+                    print("Generator pickle comparison: " + json.dumps({"first_bytes": len(outputs[path]), "second_bytes": len(repeated[path]), "first_ops": len(left), "second_ops": len(right), "first_strings": len(one), "second_strings": len(two), "string_sets_equal": set(one) == set(two), "string_order_equal": one == two, "temporary_paths": any("electron-generator-" in value or "electron generator repeat " in value for value in one + two), "first_difference": first, "first_opcode": ord(left[first][0].code) if first < len(left) else 0, "second_opcode": ord(right[first][0].code) if first < len(right) else 0}), flush=True)
             raise ValueError("Generator output differs across source paths and mtimes: " + manifest["script"] + "; " + ", ".join(changed))
     for actual, logical in manifest["outputs"]:
         Path(actual).write_bytes(outputs[logical])
