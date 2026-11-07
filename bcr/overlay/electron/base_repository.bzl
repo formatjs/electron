@@ -2,7 +2,7 @@
 
 def _impl(ctx):
     roots = {}
-    for name, anchor in {"chromium": ctx.attr.chromium, "electron": ctx.attr.electron, "lss": ctx.attr.lss, "boringssl": ctx.attr.boringssl, "gtest": ctx.attr.gtest}.items():
+    for name, anchor in {"chromium": ctx.attr.chromium, "electron": ctx.attr.electron, "lss": ctx.attr.lss, "boringssl": ctx.attr.boringssl, "gtest": ctx.attr.gtest, "icu": ctx.attr.icu}.items():
         ctx.read(anchor)
         roots[name] = ctx.path(anchor).dirname
     contents = ctx.read(ctx.attr.profile)
@@ -12,7 +12,7 @@ def _impl(ctx):
             fail("Invalid Chromium base source path")
         owner = "chromium"
         relative = path
-        for name, prefix in {"electron": "electron/", "lss": "third_party/lss/", "boringssl": "third_party/boringssl/src/"}.items():
+        for name, prefix in {"electron": "electron/", "lss": "third_party/lss/", "boringssl": "third_party/boringssl/src/", "icu": "third_party/icu/"}.items():
             if path.startswith(prefix):
                 owner = name
                 relative = path[len(prefix):]
@@ -31,6 +31,7 @@ electron_base_repository = repository_rule(
         "lss": attr.label(mandatory = True),
         "boringssl": attr.label(default = Label("@electron_boringssl_sources//:LICENSE")),
         "gtest": attr.label(default = Label("@googletest//:LICENSE")),
+        "icu": attr.label(default = Label("@electron_icu_sources//:LICENSE")),
         "profile": attr.label(default = Label("//source/native:base_inputs.json")),
         "build_file": attr.label(default = Label("//source:base.BUILD.bazel")),
     },

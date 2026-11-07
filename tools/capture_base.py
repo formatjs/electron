@@ -23,7 +23,10 @@ TOOLCHAIN = {"//buildtools/third_party/libc++:" + n for n in ("all_modules", "cu
 TOOLCHAIN.add("//build/config:executable_deps")
 
 
-def capture(graph, chromium, boringssl, perfetto_profile, rust_profile):
+def capture(graph, chromium, boringssl, icu, perfetto_profile, rust_profile):
+    for root, header in [(boringssl, "include/openssl/base.h"), (icu, "source/common/unicode/locid.h")]:
+        if not (root / header).is_file():
+            raise ValueError("Missing pinned header source: " + header)
     targets = graph["targets"]
     external = {label: "@electron_perfetto_native_sources//:" + name for label, name in perfetto_profile["names"].items()}
     external.update({label: "@electron_rust_sources//:" + record["name"] for label, record in rust_profile["rust"].items()})
@@ -52,6 +55,7 @@ def capture(graph, chromium, boringssl, perfetto_profile, rust_profile):
         for path in (chromium / directory).rglob("*"):
             if path.is_file() and path.suffix in (".h", ".inc", ".inl"):
                 headers.add(path.relative_to(chromium).as_posix())
+    headers.update("third_party/icu/" + path.relative_to(icu).as_posix() for directory in ["source/common", "source/i18n"] for path in (icu / directory).rglob("*.h"))
     headers.update("third_party/boringssl/src/" + path.relative_to(boringssl).as_posix() for path in (boringssl / "include").rglob("*.h"))
     headers.add("third_party/lss/linux_syscall_support.h")
     headers.add("testing/gtest/include/gtest/gtest_prod.h")
@@ -158,7 +162,7 @@ def capture(graph, chromium, boringssl, perfetto_profile, rust_profile):
         else:
             raise ValueError("Untranslated base target kind: " + kind)
     for path in files:
-        if path.startswith(("electron/", "third_party/lss/", "third_party/boringssl/src/", "testing/gtest/")):
+        if path.startswith(("electron/", "third_party/lss/", "third_party/boringssl/src/", "third_party/icu/", "testing/gtest/")):
             continue
         if not (chromium / path).is_file():
             raise ValueError("Missing original base input: " + path)
@@ -171,12 +175,13 @@ def main():
     parser.add_argument("--graph", type=Path, required=True)
     parser.add_argument("--chromium-root", type=Path, required=True)
     parser.add_argument("--boringssl-root", type=Path, required=True)
+    parser.add_argument("--icu-root", type=Path, required=True)
     parser.add_argument("--perfetto-profile", type=Path, default=Path("bcr/overlay/source/native/perfetto_inputs.json"))
     parser.add_argument("--rust-profile", type=Path, default=Path("bcr/overlay/source/native/temporal_inputs.json"))
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     content = args.graph.read_bytes()
-    result = capture(json.loads(gzip.decompress(content)), args.chromium_root, args.boringssl_root, json.loads(args.perfetto_profile.read_text()), json.loads(args.rust_profile.read_text()))
+    result = capture(json.loads(gzip.decompress(content)), args.chromium_root, args.boringssl_root, args.icu_root, json.loads(args.perfetto_profile.read_text()), json.loads(args.rust_profile.read_text()))
     result["graph_sha256"] = hashlib.sha256(content).hexdigest()
     args.output.write_text(json.dumps(result, indent=2) + "\n")
 
