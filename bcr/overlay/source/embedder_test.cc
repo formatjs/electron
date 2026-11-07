@@ -8,6 +8,7 @@
 #include "base/feature_list.h"
 #include "base/files/file.h"
 #include "base/files/file_path.h"
+#include "base/files/file_util.h"
 #include "base/files/memory_mapped_file.h"
 #include "base/i18n/break_iterator.h"
 #include "base/i18n/case_conversion.h"
@@ -80,12 +81,15 @@ int main(int argc, char** argv) {
   base::SingleThreadTaskExecutor executor;
   base::ThreadPoolInstance::CreateAndStartWithDefaultParams("EmbedderProbe");
   Stage("i18n");
-  base::File data(base::FilePath(argv[1]), base::File::FLAG_OPEN | base::File::FLAG_READ);
+  const auto icu_path = base::MakeAbsoluteFilePath(base::FilePath(argv[1]));
+  const auto snapshot_path = base::MakeAbsoluteFilePath(base::FilePath(argv[2]));
+  Require(!icu_path.empty() && !snapshot_path.empty(), "declared runtime paths");
+  base::File data(icu_path, base::File::FLAG_OPEN | base::File::FLAG_READ);
   Require(data.IsValid(), "declared ICU file");
   Require(base::i18n::InitializeICUWithFileDescriptor(data.TakePlatformFile(), base::MemoryMappedFile::Region::kWholeFile), "ICU descriptor initialization");
   CheckI18n();
   Stage("snapshot");
-  gin::V8Initializer::LoadV8SnapshotFromFileName(argv[2], gin::V8SnapshotFileType::kDefault);
+  gin::V8Initializer::LoadV8SnapshotFromFileName(snapshot_path.AsUTF8Unsafe(), gin::V8SnapshotFileType::kDefault);
   v8::StartupData snapshot;
   gin::V8Initializer::GetV8ExternalSnapshotData(&snapshot);
   Require(snapshot.data && snapshot.raw_size > 0, "Gin mapped generated snapshot");
