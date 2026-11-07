@@ -883,3 +883,44 @@ and [cross-compile](https://formatjs.buildbuddy.io/invocation/a503d8d2-6a4a-466c
 checks passed. This complete typed profile and runtime probe remain Linux AMD64;
 the cross-compile check covers existing platform probes, not complete typed
 bindings on every target. Full Electron linking remains unfinished.
+
+
+## Native font and XML dependencies
+
+`electron_fonts_sources` builds all 142 C/C++ units in the captured FreeType,
+HarfBuzz, libpng and libxml roots. Five native library/group targets retain
+original compiler settings, Chromium's FreeType modules/options, included C
+implementation files and source/public headers. Existing ICU and zlib remain
+shared. FreeType and HarfBuzz use exact Chromium DEPS commits and checksum-pinned
+GitHub archives. All 959 external source inputs match the original Gitiles
+checkout bytes; Gitiles archives themselves changed compressed bytes between
+fetches and are not used as pinned downloads.
+
+```mermaid
+flowchart TD
+  Font[Declared font bytes] --> HarfBuzz[Native HarfBuzz shaping]
+  ICU[Matching ICU] --> HarfBuzz
+  HarfBuzz --> Glyph[Glyph IDs / positions]
+  Glyph --> FreeType[Native FreeType rasterization]
+  Font --> FreeType
+  PNG[Native libpng] --> FreeType
+  Zlib[Shared zlib] --> PNG
+  XML[Native libxml] --> Content[Skia / content dependencies]
+  FreeType --> Content
+```
+
+`//source:fonts_test` checks original HarfBuzz fixture advances for `ffi` with
+ligatures enabled and disabled, then rasterizes the shaped ligature with
+FreeType and checks nonempty pixels. It also rejects invalid font bytes, checks
+a two-by-two RGBA PNG memory roundtrip (including alpha), rejects an invalid PNG
+signature, parses UTF-8 XML/entity content, evaluates XPath and rejects malformed
+XML. ICU data and the 6,404-byte original font fixture are declared runfiles;
+no host font lookup participates.
+
+[854f6a7 components](https://formatjs.buildbuddy.io/invocation/de381a35-b6b8-46cf-b868-6f1b830dc130),
+[consumer](https://formatjs.buildbuddy.io/invocation/be89e67e-3a77-4364-917e-c8cd913427de)
+and [cross-compile](https://formatjs.buildbuddy.io/invocation/cac878c2-42ac-4798-a252-b1fae8de5225)
+checks passed. These complete dependency roots remain Linux AMD64. Fontconfig's
+Rust fontations integration, complete Skia, Blink/content and Electron linking
+remain unfinished. Existing cross probes do not establish complete rendering
+support on every target.
