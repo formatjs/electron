@@ -4,6 +4,8 @@ This overlay builds native Electron source components, including the complete
 V8 engine, generated snapshots, Chromium base and patched libnode. No target
 currently links a full Electron executable. Source pins and build inputs live in
 `bcr/overlay/source`.
+Compilation uses native Bazel rules and declared generators, without CMake or
+`rules_foreign_cc` wrappers.
 Stage a local registry first as shown in the root README; add its registry flags
 to every Bazel command below. Native source work:
 
@@ -722,3 +724,41 @@ and [cross-compile](https://formatjs.buildbuddy.io/invocation/3e5b2b22-6b6f-4636
 checks passed. libnode itself remains Linux AMD64; cross checks still cover the
 existing platform probes. A complete Electron executable and the other full
 source profiles remain unfinished.
+
+## Gin and Base i18n
+
+`electron_embedder_sources` adds the matching 32-unit Gin library, 20-unit Base
+i18n library and four-unit CED library. Base, V8, ICU, Abseil and native GLib stay
+shared. CED matches Chromium's exact `ba412eaa` DEPS revision and the independently
+pinned archive used by `formatjs/chromium`.
+
+```mermaid
+flowchart TD
+  Flags[Original fixed buildflag generators] --> Gin[Gin]
+  V8[Native V8 and generated startup blob] --> Gin
+  Base[Chromium Base] --> Gin
+  ICU[Matching ICU and declared data] --> I18n[Base i18n]
+  CED[Pinned original CED] --> I18n
+  Base --> I18n
+  Gin --> Electron[Electron / Blink / content]
+  I18n --> Electron
+```
+
+Header groups remain separate; adding embedder sources does not change existing
+Base/V8 headers or compiler inputs. Buildflag generators retain explicit inputs,
+isolated Python and path/mtime byte checks. Captured context-snapshot and sandbox
+flags remain enabled. The utility-isolate probe loads the generated default V8
+snapshot; creating Blink's additional-context snapshot remains separate work.
+
+The probe exercises original ICU descriptor initialization, Unicode folding,
+legacy conversion, malformed UTF-8 rejection, word/grapheme boundaries and CED
+detection. It creates a real Gin isolate/context, installs a C++ callback, checks
+JS argument rejection and UTF-8 conversion, allocates through Gin's sandboxed
+ArrayBuffer allocator and verifies the binding after GC and during shutdown.
+The probe passes declared files through Base/Gin's file APIs; Gin's filename API
+expects an asset basename. No host asset search path is needed.
+[5bca689 components](https://formatjs.buildbuddy.io/invocation/fa47e627-5c1f-48a3-bba0-a3242d1f8dc6),
+[consumer](https://formatjs.buildbuddy.io/invocation/93435deb-d75a-4138-a291-8f1c2c115443)
+and [cross-compile](https://formatjs.buildbuddy.io/invocation/f22772db-5323-4a1d-95be-d497d50030c6)
+checks passed. This full profile remains Linux AMD64; full Electron still needs
+linking.
