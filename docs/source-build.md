@@ -267,6 +267,7 @@ Temporal slice now links this allocator through its original Rust bridge.
 ```sh
 python3 tools/capture_partition_alloc.py \
   --graph=bcr/overlay/source/native/linux_amd64.partial.json.gz \
+  --source-root=/path/to/matching/patched/chromium \
   --output=bcr/overlay/source/native/partition_alloc_inputs.bzl
 buildifier bcr/overlay/source/native/partition_alloc_inputs.bzl
 ```
@@ -304,6 +305,7 @@ python3 tools/capture_temporal.py \
   --graph=bcr/overlay/source/native/linux_amd64.partial.json.gz \
   --source-root=/path/to/matching/patched/chromium \
   --fontconfig-root=/path/to/fontconfig-f0ed9c3f43161d3555f6f7a5234b22fe7ca60727 \
+  --skia-root=/path/to/skia-f4ed99d2443962782cf5f8b4dd27179f131e7cbe \
   --output=bcr/overlay/source/native/temporal_inputs.json \
   --v8-output=bcr/overlay/source/native/v8_temporal_inputs.bzl
 buildifier bcr/overlay/source/native/v8_temporal_inputs.bzl
@@ -1013,3 +1015,59 @@ and [cross-compile](https://formatjs.buildbuddy.io/invocation/534b1402-47d9-4822
 checks passed. This full codec profile remains Linux AMD64; the cross check
 covers existing platform probes. Complete Skia, Blink/content, other full source
 profiles and the Electron executable remain unfinished.
+
+
+## Complete matching Skia closure
+
+`electron_skia_sources` translates the complete captured `//skia:skia` closure:
+1,158 C++ units in 27 library/group targets and 15 original Python actions with
+25 declared outputs. Existing Base, fonts, codecs, ICU, compression and tracing
+stay shared. Skia, Dawn and Vulkan headers use exact DEPS revisions with SHA-256
+archive pins. Native BCR Expat supplies the captured system-library dependency;
+X11/XCB/GL/EGL headers come from the already pinned matching Chromium sysroot.
+No CMake or foreign-cc actions participate.
+
+The shared Rust profile adds 12 targets, including original PNG/fontations
+bridges and a crc32fast build script. It now has 107 targets from 80 vendored
+packages. All previous 95 Rust target records remain unchanged. Native CXX
+uses the existing pinned executable and target-compiler configuration; original
+Rust and C++ bridge sources remain intact.
+
+```mermaid
+flowchart TD
+  JSON[Original Dawn JSON / templates] --> Generators[Original declared Python generators]
+  Generators --> Headers[Dawn / GPU headers]
+  Rust[Original PNG / fontations Rust] --> CXX[Native CXX bridges]
+  CXX --> Skia[Matching native Skia]
+  Headers --> Skia
+  Fonts[Native fonts / codecs / shared Base] --> Skia
+  Skia --> Probe[Raster / SkSL / Rust codec and font probes]
+  Skia --> Content[Remaining content / Electron closure]
+```
+
+Generators retain empty child `PATH`, declared files/tools and byte equality
+across changed paths and mtimes. Dawn's expected-output lists derive from its
+captured extractor outputs, matching the original `generator_lib.gni` declaration;
+source hashes record that derivation. Original output-list validation stays
+active. `gpu/webgpu/DAWN_VERSION` is a declared 40-byte pinned Dawn revision,
+so archive builds do not depend on a checkout hook or ambient Git execution.
+
+PartitionAlloc's `raw_ptr` provider now exports its complete original pointer
+header family and transitive includes: 62 headers, with existing allocator code
+and configuration unchanged. Wuffs exports its original `src/release/c` public
+include directory. Consumers use these shared providers rather than copied
+headers or replacement APIs.
+
+The runtime probe checks every pixel of a rasterized SkSL shader and rejects an
+invalid shader. Original Rust PNG encoding/decoding must preserve RGBA bytes and
+alpha, then reject invalid input. Original Skia fontations loads the declared
+font, maps a glyph and returns a nonempty path through its Rust/CXX path bridge;
+invalid font bytes must fail. ICU and font data remain declared runfiles.
+
+[3d7a5d1 components](https://formatjs.buildbuddy.io/invocation/3c7c227a-8327-422d-8c40-7509a4ff575f),
+[consumer](https://formatjs.buildbuddy.io/invocation/eb13ad3b-8467-451d-8ff5-41aaafca7a66)
+and [cross-compile](https://formatjs.buildbuddy.io/invocation/dc1a8ae4-65ef-4469-ae39-52f89c00efd8)
+checks passed. This complete Skia profile remains Linux AMD64; runtime coverage
+uses CPU raster/SkSL, not a hardware GPU context. Existing cross probes do not
+establish complete Skia support on other targets. Blink/content, other full
+source profiles and the Electron executable remain unfinished.
