@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: MIT
+#include <atomic>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <string>
@@ -8,6 +10,10 @@
 #include "v8.h"
 
 namespace {
+void Stage(const char* name) {
+  std::fprintf(stderr, "libnode probe stage: %s\n", name);
+}
+
 void Require(bool condition, const char* message) {
   if (!condition) {
     std::fprintf(stderr, "check failed: patched libnode %s\n", message);
@@ -58,19 +64,30 @@ Promise.all([fs.promises.readFile(process.argv[1], 'utf8'), evaluated])
 }  // namespace
 
 int main(int argc, char** argv) {
+  Stage("atomic");
+  struct Payload { uint64_t first, second, third; };
+  std::atomic<Payload> atomic(Payload{1, 2, 3});
+  Payload expected{1, 2, 3};
+  Require(atomic.compare_exchange_strong(expected, Payload{4, 5, 6}), "compiler-rt generic atomic update");
+  Require(!atomic.compare_exchange_strong(expected, Payload{7, 8, 9}) && expected.first == 4 && expected.second == 5 && expected.third == 6 && atomic.load().third == 6, "compiler-rt generic atomic mismatch and load");
   Require(argc == 5, "declared ICU, snapshot, fixture and addon arguments");
+  Stage("icu");
   Require(v8::V8::InitializeICUDefaultLocation(argv[0], argv[1]), "declared ICU data");
+  Stage("snapshot");
   v8::V8::InitializeExternalStartupDataFromFile(argv[2]);
+  Stage("node");
   auto initialization = node::InitializeOncePerProcess({argv[0], argv[3], argv[4]}, {
       node::ProcessInitializationFlags::kNoInitializeV8,
       node::ProcessInitializationFlags::kNoInitializeNodeV8Platform,
       node::ProcessInitializationFlags::kNoDefaultSignalHandling,
   });
   Require(!initialization->early_return(), "process initialization");
+  Stage("platform");
   auto platform = node::MultiIsolatePlatform::Create(2);
   v8::V8::InitializePlatform(platform.get());
   Require(v8::V8::Initialize(), "V8 initialization");
   std::vector<std::string> errors;
+  Stage("isolate");
   auto setup = node::CommonEnvironmentSetup::Create(
       platform.get(), &errors, initialization->args(), initialization->exec_args());
   Require(setup && errors.empty(), "environment creation");
@@ -81,14 +98,18 @@ int main(int argc, char** argv) {
     v8::HandleScope handles(setup->isolate());
     auto context = setup->context();
     v8::Context::Scope context_scope(context);
+    Stage("modules");
     Require(!node::LoadEnvironment(setup->env(), kScript).IsEmpty(), "builtin module execution");
+    Stage("loop");
     exit_code = node::SpinEventLoop(setup->env()).FromMaybe(1);
     v8::Local<v8::Value> done;
     Require(context->Global()->Get(context, v8::String::NewFromUtf8Literal(setup->isolate(), "probeDone")).ToLocal(&done) && done->IsTrue(), "asynchronous filesystem and inspector completion");
   }
+  Stage("shutdown");
   setup.reset();
   v8::V8::Dispose();
   v8::V8::DisposePlatform();
   node::TearDownOncePerProcess();
+  Stage("done");
   return exit_code;
 }
