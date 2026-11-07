@@ -5498,6 +5498,9 @@
         "prebuilt_rustc_sysroot/lib/rustlib/x86_64-unknown-linux-gnu/lib/libminiz_oxide.rlib",
         "prebuilt_rustc_sysroot/lib/rustlib/x86_64-unknown-linux-gnu/lib/libobject.rlib"
       ],
+      "native_tool_data": {
+        "@electron_icu_sources//:common/icudtl.dat": "icudtl.dat"
+      },
       "linker_inputs": []
     },
     "//components/url_formatter:skeleton_generator": {

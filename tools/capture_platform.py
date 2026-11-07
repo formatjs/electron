@@ -246,6 +246,8 @@ def capture(graph, digest, chromium, source_roots, profiles):
                 record["replaced_rust_toolchain_flags"] = replaced_rust_flags
             if label == "//third_party/wayland:wayland_scanner":
                 record["native_configuration_headers"] = ["//third_party/wayland/include/config.h"]
+            if label == "//components/url_formatter/spoof_checks/top_domains:top_domain_generator":
+                record["native_tool_data"] = {"@electron_icu_sources//:common/icudtl.dat": "icudtl.dat"}
             linker_inputs = []
             for flag in record["gn_ldflags"]:
                 if flag.startswith("-Wl,--version-script=../../"):

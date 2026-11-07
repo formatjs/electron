@@ -5,6 +5,7 @@ load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_import.bzl", "cc_import")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("//electron:source_action.bzl", "electron_source_action")
+load("//electron:source_tool.bzl", "electron_source_tool")
 
 _BUILD = "//out/bazel-import/"
 _COMPATIBLE = ["@platforms//os:linux", "@platforms//cpu:x86_64"]
@@ -20,6 +21,10 @@ def _file(original):
     if original in PROFILE["generated_files"]:
         return "//:" + original[2:]
     return ":" + original[len(_BUILD):] if original.startswith(_BUILD) else "//:" + original[2:]
+
+def _tool(original):
+    library = PROFILE["libraries"].get(original)
+    return ":" + library["name"] + "_runtime" if library and library.get("native_tool_data") else _label(original)
 
 def _system_deps(library):
     libs = library["libs"]
@@ -77,7 +82,7 @@ def electron_platform():
             electron_source_action(
                 name = name,
                 srcs = {_file(path): path[2:] for path in action["inputs"]},
-                tools = {_label(label): path[2:] for path, label in action["tools"].items()},
+                tools = {_tool(label): path[2:] for path, label in action["tools"].items()},
                 deps = [":" + PROFILE["names"][label] + "_runs" for label in action["ordering_deps"]],
                 exec_compatible_with = _COMPATIBLE,
                 script = action["script"],
@@ -126,6 +131,8 @@ def electron_platform():
             link = _link_settings(library)
             settings["linkopts"] += link.pop("linkopts")
             cc_binary(name = library["name"], copts = library["copts"], **dict(settings, **link))
+            if library.get("native_tool_data"):
+                electron_source_tool(name = library["name"] + "_runtime", binary = ":" + library["name"], binary_name = library["outputs"][0].split("/")[-1], data = library["native_tool_data"], target_compatible_with = _COMPATIBLE)
         elif library["kind"] == "shared_library":
             internal = library["name"] + "_objects"
             cc_library(name = internal, srcs = [_file(path) for path in library["srcs"]], copts = library["copts"], alwayslink = True, **settings)

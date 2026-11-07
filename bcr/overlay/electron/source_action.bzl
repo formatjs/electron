@@ -45,7 +45,7 @@ def _impl(ctx):
     ctx.actions.run(
         executable = ctx.attr._runner[DefaultInfo].files_to_run,
         arguments = [manifest.path],
-        inputs = depset(mappings.values() + [manifest], transitive = [target[DefaultInfo].files for target in ctx.attr.deps]),
+        inputs = depset(mappings.values() + [manifest], transitive = [target[DefaultInfo].files for target in ctx.attr.deps] + [target[DefaultInfo].files for target in ctx.attr.tools]),
         tools = tools,
         outputs = ctx.outputs.out_files,
         env = {"LANG": "C", "LC_ALL": "C", "TZ": "UTC", "PYTHONHASHSEED": "0"},
