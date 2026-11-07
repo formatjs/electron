@@ -92,6 +92,21 @@ def capture(graph, digest, chromium, node_modules, profiles):
     for path in package_files:
         input_file(path)
     actions, libraries, metadata, copies = {}, {}, {}, {}
+    def generated_dependencies(label):
+        outputs, visited, pending = set(), set(), list(targets[label].get("deps", []))
+        while pending:
+            dependency = pending.pop()
+            if dependency in visited:
+                continue
+            visited.add(dependency)
+            target = targets[dependency]
+            if target["type"] in ("action", "action_foreach", "copy", "generated_file"):
+                outputs.update(target.get("outputs", []))
+            elif target["type"] != "group":
+                continue
+            pending.extend(target.get("deps", []))
+        return outputs
+
     for label in sorted(seen):
         target = targets[label]
         if target["toolchain"] != "//build/toolchain/linux:clang_x64":
@@ -101,7 +116,8 @@ def capture(graph, digest, chromium, node_modules, profiles):
         if kind == "action":
             if target["script"] not in SCRIPTS:
                 raise ValueError("Untranslated original UI generator")
-            inputs = set(target.get("inputs", []) + target.get("sources", []) + [target["script"]])
+            directory_inputs = generated_dependencies(label)
+            inputs = set(target.get("inputs", []) + target.get("sources", []) + [target["script"]]) | directory_inputs
             for directory, paths in helpers.items():
                 if target["script"].startswith("//" + directory + "/"):
                     inputs.update(paths)
@@ -123,12 +139,12 @@ def capture(graph, digest, chromium, node_modules, profiles):
                         inputs.update("//" + path.relative_to(chromium).as_posix() for path in (chromium / "ui/strings").rglob("*") if path.is_file() and path.suffix in (".xtb", ".grdp"))
             if any("{{" in arg.replace("{{response_file_name}}", "") for arg in args):
                 raise ValueError("Untranslated UI generator placeholder: " + label)
-            for path in inputs:
+            for path in sorted(inputs):
                 input_file(path)
             execution_tools = {path: tools[path] for path in sorted(inputs) if path in tools}
             if uses_node or NODE in inputs:
                 execution_tools[NODE] = "@electron_chromium_node_tool//:node-linux-x64/bin/node"
-            record.update(node_modules=uses_node or NODE in inputs, script=target["script"][2:], inputs=sorted(path for path in inputs if path not in tools and path != NODE), tools=execution_tools, args=args, outputs=target["outputs"], response=target.get("response_file_contents", []))
+            record.update(generated_dependency_inputs=sorted(directory_inputs), node_modules=uses_node or NODE in inputs, script=target["script"][2:], inputs=sorted(path for path in inputs if path not in tools and path != NODE), tools=execution_tools, args=args, outputs=target["outputs"], response=target.get("response_file_contents", []))
             actions[label] = record
         elif kind == "copy":
             if len(target["sources"]) != len(target["outputs"]):
