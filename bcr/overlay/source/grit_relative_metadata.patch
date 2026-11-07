@@ -1,0 +1,12 @@
+--- a/tools/grit/grit/format/data_pack.py
++++ b/tools/grit/grit/format/data_pack.py
+@@ -96,7 +96,8 @@
+           resource_id = id_map[node.GetTextualIds()[0]]
+           data[resource_id] = value
+           root.info.append('{},{},{}'.format(
+-              node.attrs.get('name'), resource_id, node.source))
++              node.attrs.get('name'), resource_id,
++              os.path.relpath(node.source) if node.source else node.source))
+   return data
+ 
+ 

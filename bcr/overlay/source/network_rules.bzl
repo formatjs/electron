@@ -29,7 +29,7 @@ def _family(original):
     return selected.replace("/", "_") + "_headers" if selected else "common_headers"
 
 def electron_network():
-    native.exports_files(PROFILE["files"] + [path[2:] for path in PROFILE["generated_files"]] + ["profile.bzl", "BUILD.bazel"])
+    native.exports_files(PROFILE["files"] + [path[2:] for path in PROFILE["generated_files"]] + ["profile.bzl", "BUILD.bazel", "native_compat_patches.json"])
     cc_import(name = "atomic_runtime", static_library = "@llvm//runtimes/compiler-rt:clang_rt.builtins.static", target_compatible_with = _COMPATIBLE)
     cc_library(name = "common_headers", includes = ["."])
     for family, headers in PROFILE["headers"].items():

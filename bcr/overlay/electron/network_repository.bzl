@@ -14,7 +14,13 @@ def _impl(ctx):
         for prefix, name in {"net/third_party/quiche/src/": "quiche", "third_party/re2/src/": "re2", "third_party/sqlite/src/": "sqlite"}.items():
             if path.startswith(prefix):
                 owner, relative = name, path[len(prefix):]
-        ctx.symlink(roots[owner].get_child(relative), path)
+        origin = roots[owner].get_child(relative)
+        if path == "tools/grit/grit/format/data_pack.py":
+            ctx.file(path, ctx.read(origin), executable = False)
+        else:
+            ctx.symlink(origin, path)
+    ctx.patch(ctx.attr.metadata_patch, strip = 1)
+    ctx.file("native_compat_patches.json", json.encode({"graph_sha256": profile["graph_sha256"], "patches": [str(ctx.attr.metadata_patch)], "files": ["tools/grit/grit/format/data_pack.py"]}))
     for path, content in profile["generated_files"].items():
         if not path.startswith("//out/bazel-import/") or ".." in path.split("/"):
             fail("Invalid captured network file path")
@@ -29,6 +35,7 @@ electron_network_repository = repository_rule(
         "quiche": attr.label(mandatory = True),
         "re2": attr.label(mandatory = True),
         "sqlite": attr.label(mandatory = True),
+        "metadata_patch": attr.label(default = Label("//source:grit_relative_metadata.patch")),
         "profile": attr.label(default = Label("//source/native:network_inputs.json")),
         "build_file": attr.label(default = Label("//source:network.BUILD.bazel")),
     },
