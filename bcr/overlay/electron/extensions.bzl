@@ -4,6 +4,7 @@ load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository", "new_git_r
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load(":icu_repository.bzl", "electron_icu_repository")
 load(":partition_alloc_repository.bzl", "electron_partition_alloc_repository")
+load(":protobuf_repository.bzl", "electron_protobuf_repository")
 load(":rust_repository.bzl", "electron_rust_repository")
 load(":source_repositories.bzl", "electron_abseil_repository", "electron_node_repository", "electron_patched_upstream")
 load(":v8_support_repository.bzl", "electron_v8_support_repository")
@@ -62,6 +63,18 @@ def _impl(ctx):
     electron_icu_repository(name = "electron_icu_sources", chromium = "@electron_chromium_sources//:DEPS")
     electron_partition_alloc_repository(name = "electron_partition_alloc_sources", chromium = "@electron_chromium_sources//:DEPS")
     electron_rust_repository(name = "electron_rust_sources", chromium = "@electron_chromium_sources//:DEPS")
+    http_archive(
+        name = "electron_protobuf_javascript_upstream",
+        urls = ["https://github.com/protocolbuffers/protobuf-javascript/archive/e6d763860001ba1a76a63adcff5efb12b1c96024.tar.gz"],
+        sha256 = "dd78fad1311e7819913047f5ee544a384183ae88ca118a22f6d4992d4b2a081b",
+        strip_prefix = "protobuf-javascript-e6d763860001ba1a76a63adcff5efb12b1c96024",
+        build_file_content = "exports_files([\"BUILD.bazel\"], visibility = [\"//visibility:public\"])\n",
+    )
+    electron_protobuf_repository(
+        name = "electron_protobuf_sources",
+        chromium = "@electron_chromium_sources//:DEPS",
+        javascript = "@electron_protobuf_javascript_upstream//:BUILD.bazel",
+    )
     support_repos = []
     for name, github, revision, sha256 in [
         ("dragonbox", "jk-jeon/dragonbox", "6c7c925b571d54486b9ffae8d9d18a822801cbda", "71f2ed97cf89cc6b05c0aefb349bd137f521eca4e27f0fe985b1a815a77889a6"),
@@ -85,7 +98,7 @@ def _impl(ctx):
         highway = "@electron_highway_upstream//:BUILD.bazel",
     )
     electron_node_repository(name = "electron_node_sources", electron = "@electron//:DEPS")
-    direct = ["electron_node_sources", "electron_v8_sources", "electron_chromium_sources", "electron_cast_core_sources", "electron_glslang_sources", "electron_abseil_sources", "electron_icu_sources", "electron_partition_alloc_sources", "electron_rust_sources", "electron_v8_support_sources"] + dependency_repos + support_repos
+    direct = ["electron_node_sources", "electron_v8_sources", "electron_chromium_sources", "electron_cast_core_sources", "electron_glslang_sources", "electron_abseil_sources", "electron_icu_sources", "electron_partition_alloc_sources", "electron_rust_sources", "electron_v8_support_sources", "electron_protobuf_sources", "electron_protobuf_javascript_upstream"] + dependency_repos + support_repos
     return ctx.extension_metadata(reproducible = True, root_module_direct_deps = direct, root_module_direct_dev_deps = [])
 
 electron = module_extension(implementation = _impl, tag_classes = {"version": tag_class(attrs = {"version": attr.string(mandatory = True)})})

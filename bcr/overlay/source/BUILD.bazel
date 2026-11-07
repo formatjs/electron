@@ -1,5 +1,6 @@
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
+load("//electron:protobuf_probe_rules.bzl", "electron_protobuf_probe")
 load("//electron:source_rules.bzl", "electron_buildflags", "electron_fuses_generate", "electron_js2c", "electron_node_config", "electron_node_defines", "electron_original_fs")
 load("//electron:v8_rules.bzl", "electron_v8_bytecodes", "electron_v8_regexp", "electron_v8_torque", "electron_v8_torque_tool")
 load("//source/native:electron_buildflags.bzl", "ELECTRON_BUILD_FLAGS")
@@ -220,6 +221,8 @@ electron_js2c(
 )
 
 exports_files([
+    "protobuf.BUILD.bazel",
+    "protobuf_rules.bzl",
     "v8_support.BUILD.bazel",
     "v8_support_rules.bzl",
     "rust_allocator_probe.rs",
@@ -458,4 +461,62 @@ cc_test(
 alias(
     name = "v8_support_libraries",
     actual = "@electron_v8_support_sources//:libraries",
+)
+
+electron_protobuf_probe(
+    name = "protobuf_probe_generated",
+    testonly = True,
+    srcs = [
+        "protobuf_lite_probe.proto",
+        "protobuf_probe.proto",
+    ],
+)
+
+filegroup(
+    name = "protobuf_probe_sources",
+    testonly = True,
+    srcs = [":protobuf_probe_generated"],
+    output_group = "sources",
+)
+
+filegroup(
+    name = "protobuf_probe_headers",
+    testonly = True,
+    srcs = [":protobuf_probe_generated"],
+    output_group = "headers",
+)
+
+cc_library(
+    name = "protobuf_probe_messages",
+    testonly = True,
+    srcs = [":protobuf_probe_sources"],
+    hdrs = [":protobuf_probe_headers"],
+    copts = [
+        "-std=c++20",
+        "-fno-rtti",
+        "-fno-exceptions",
+    ],
+    includes = ["protobuf_probe_generated"],
+    deps = ["@electron_protobuf_sources//:protobuf_full"],
+)
+
+cc_test(
+    name = "protobuf_test",
+    srcs = ["protobuf_test.cc"],
+    copts = [
+        "-std=c++20",
+        "-fno-rtti",
+        "-fno-exceptions",
+    ],
+    linkstatic = True,
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    deps = [":protobuf_probe_messages"],
+)
+
+alias(
+    name = "protobuf_libraries",
+    actual = "@electron_protobuf_sources//:libraries",
 )

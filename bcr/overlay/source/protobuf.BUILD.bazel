@@ -1,0 +1,5 @@
+load("@electron//source:protobuf_rules.bzl", "electron_protobuf")
+
+package(default_visibility = ["//visibility:public"])
+
+electron_protobuf()

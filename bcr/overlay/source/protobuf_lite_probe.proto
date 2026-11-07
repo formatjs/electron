@@ -1,0 +1,9 @@
+syntax = "proto3";
+package electron_source_probe;
+option optimize_for = LITE_RUNTIME;
+
+message LiteEnvelope {
+  string name = 1;
+  repeated sint64 values = 2;
+  bytes payload = 3;
+}

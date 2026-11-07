@@ -43,6 +43,8 @@ use_repo(
     "electron_node_sources",
     "electron_partition_alloc_sources",
     "electron_perfetto_sources",
+    "electron_protobuf_javascript_upstream",
+    "electron_protobuf_sources",
     "electron_reactiveobjc_sources",
     "electron_reclient_configs_sources",
     "electron_rust_sources",
