@@ -45,7 +45,7 @@ def _impl(ctx):
     ctx.actions.run(
         executable = ctx.attr._runner[DefaultInfo].files_to_run,
         arguments = [manifest.path],
-        inputs = depset(mappings.values() + [manifest], transitive = [target[DefaultInfo].files for target in ctx.attr.deps] + [target[DefaultInfo].files for target in ctx.attr.tools]),
+        inputs = depset(mappings.values() + [manifest], transitive = [target[DefaultInfo].files for target in ctx.attr.deps] + [target[DefaultInfo].files for target in ctx.attr.tools] + [target[DefaultInfo].files for target in ctx.attr.tool_inputs]),
         tools = tools,
         outputs = ctx.outputs.out_files,
         env = {"LANG": "C", "LC_ALL": "C", "TZ": "UTC", "PYTHONHASHSEED": "0"},
@@ -59,6 +59,7 @@ electron_source_action = rule(
         "srcs": attr.label_keyed_string_dict(allow_files = True),
         "tools": attr.label_keyed_string_dict(cfg = "exec", allow_files = True),
         "source_groups": attr.label_list(cfg = "exec"),
+        "tool_inputs": attr.label_list(cfg = "exec"),
         "deps": attr.label_list(),
         "out_files": attr.output_list(mandatory = True),
         "logical_outputs": attr.string_list(mandatory = True),

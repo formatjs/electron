@@ -22,10 +22,6 @@ def _file(original):
         return "//:" + original[2:]
     return ":" + original[len(_BUILD):] if original.startswith(_BUILD) else "//:" + original[2:]
 
-def _tool(original):
-    library = PROFILE["libraries"].get(original)
-    return ":" + library["name"] + "_runtime" if library and library.get("native_tool_data") else _label(original)
-
 def _system_deps(library):
     libs = library["libs"]
     deps = []
@@ -82,7 +78,8 @@ def electron_platform():
             electron_source_action(
                 name = name,
                 srcs = {_file(path): path[2:] for path in action["inputs"]},
-                tools = {_tool(label): path[2:] for path, label in action["tools"].items()},
+                tools = {_label(label): path[2:] for path, label in action["tools"].items()},
+                tool_inputs = [":" + PROFILE["libraries"][label]["name"] + "_runtime" for label in action["tools"].values() if PROFILE["libraries"].get(label, {}).get("native_tool_data")],
                 deps = [":" + PROFILE["names"][label] + "_runs" for label in action["ordering_deps"]],
                 exec_compatible_with = _COMPATIBLE,
                 script = action["script"],

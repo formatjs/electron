@@ -10,11 +10,9 @@ def _impl(ctx):
     if not runtime.interpreter:
         fail("Native tool staging requires a declared Python interpreter")
     original = ctx.executable.binary
-    binary = ctx.actions.declare_file(ctx.label.name + "_exec", sibling = original)
-    ctx.actions.symlink(output = binary, target_file = original, is_executable = True)
     inputs, outputs = [], []
     copies = []
-    seen = {original.basename: True, binary.basename: True}
+    seen = {original.basename: True}
     for target, relative in ctx.attr.data.items():
         relative = _path(relative)
         if relative in seen:
@@ -37,13 +35,10 @@ def _impl(ctx):
         env = {"PATH": "", "LANG": "C", "LC_ALL": "C", "TZ": "UTC"},
         mnemonic = "ElectronNativeToolBundle",
     )
-    files = [binary, original] + outputs
-    runfiles = ctx.runfiles(files = files).merge(ctx.attr.binary[DefaultInfo].default_runfiles)
-    return [DefaultInfo(executable = binary, files = depset(files), runfiles = runfiles)]
+    return [DefaultInfo(files = depset(outputs))]
 
 electron_source_tool = rule(
     implementation = _impl,
-    executable = True,
     toolchains = ["@rules_python//python:toolchain_type"],
     attrs = {
         "binary": attr.label(executable = True, cfg = "exec", mandatory = True),
