@@ -155,12 +155,40 @@ interpreter API: handler names, coverage, uniqueness, illegal wide encodings
 and dense wide/extra-wide dispatch indices. A second generation uses a
 different output path containing spaces; the probe compares all bytes.
 Production consumers depend only on the first generation. Hosted validation
-must establish this producer before it feeds the remaining engine libraries.
+passed in [1395ef7 components](https://formatjs.buildbuddy.io/invocation/939077e6-f2cf-4874-8d8f-99b8becb0f72)
+and [BCR consumer](https://formatjs.buildbuddy.io/invocation/4dedcd9e-2880-4aec-8a0e-d2fbacf123e4),
+including the existing full Torque checks. This does not link the V8 engine.
 
 ```sh
 python3 tools/capture_v8_bytecodes.py --graph=bcr/overlay/source/native/linux_amd64.partial.json.gz \
   --output=bcr/overlay/source/native/v8_bytecode_inputs.bzl
 buildifier bcr/overlay/source/native/v8_bytecode_inputs.bzl
+```
+
+## Matching Chromium ICU
+
+`@electron_icu_sources//:icu` declares all 445 captured C++ units: 202 common
+units, including upstream stub data, and 243 i18n units. Source revision
+`1b2e3e8a421efae36141a7b932b41e315b089af8` and archive integrity match
+formatjs/chromium's ICU overlay; repository setup also verifies the revision
+against Electron's patched Chromium DEPS. Compile options, RTTI, definitions,
+headers and dependency edges come from this Electron capture.
+The header inventory includes GN's separate public lists and the real
+`stubdata.h` include omitted from those lists. Upstream subset Bazel packages
+are replaced by this captured graph; ICU sources and data remain unchanged.
+
+The profile retains file-backed data. `common/icudtl.dat` is an explicit output
+contract for later runtime packaging, rather than host ICU data or a different
+ICU version. `@electron//source:icu_test` disables ambient data-file loading,
+rejects corrupt common data, then initializes from that declared file. It
+checks NFC composition, case-fold preflight/expansion, collation strengths,
+French number formatting and Chromium's patched word-break behavior.
+Hosted compilation and these behavior checks remain required for this addition.
+
+```sh
+python3 tools/capture_icu.py --graph=bcr/overlay/source/native/linux_amd64.partial.json.gz \
+  --output=bcr/overlay/source/native/icu_inputs.bzl
+buildifier bcr/overlay/source/native/icu_inputs.bzl
 ```
 
 ## Native V8 base/task slice

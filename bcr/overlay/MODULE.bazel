@@ -33,6 +33,7 @@ use_repo(
     "electron_devtools_frontend_sources",
     "electron_ffmpeg_sources",
     "electron_glslang_sources",
+    "electron_icu_sources",
     "electron_mantle_sources",
     "electron_nan_sources",
     "electron_node_sources",

@@ -32,6 +32,7 @@ filegroup(
         "//source:electron_fuses",
         "//source:electron_natives",
         "//source:embedder_javascript",
+        "//source:icu",
         "//source:node_dependencies",
         "//source:node_javascript",
         "//source:node_libuv",
@@ -46,6 +47,7 @@ test_suite(
     tests = [
         "//source:crypto_compat_test",
         "//source:fuses_test",
+        "//source:icu_test",
         "//source:loop_interrupt_test",
         "//source:node_defines_test",
         "//source:node_dependencies_test",

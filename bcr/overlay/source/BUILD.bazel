@@ -13,6 +13,24 @@ load(":probes.bzl", "loop_probes")
 
 package(default_visibility = ["//visibility:public"])
 
+cc_test(
+    name = "icu_test",
+    srcs = ["icu_test.cc"],
+    args = ["$(rootpath @electron_icu_sources//:common/icudtl.dat)"],
+    copts = ["-std=c++20"],
+    data = ["@electron_icu_sources//:common/icudtl.dat"],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    deps = ["@electron_icu_sources//:icu"],
+)
+
+alias(
+    name = "icu",
+    actual = "@electron_icu_sources//:icu",
+)
+
 electron_v8_bytecodes(
     name = "v8_bytecodes",
     target_compatible_with = [
@@ -86,6 +104,8 @@ electron_js2c(
 )
 
 exports_files([
+    "icu.BUILD.bazel",
+    "icu_rules.bzl",
     "node_deps.bzl",
     "v8.BUILD.bazel",
     "node.BUILD.bazel",

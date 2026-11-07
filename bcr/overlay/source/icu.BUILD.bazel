@@ -1,0 +1,5 @@
+load("@electron//source:icu_rules.bzl", "electron_icu_libraries")
+
+package(default_visibility = ["//visibility:public"])
+
+electron_icu_libraries()
