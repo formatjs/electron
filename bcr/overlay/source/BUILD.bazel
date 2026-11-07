@@ -1,4 +1,5 @@
 load("@electron_base_sources//:profile.bzl", BASE_PROFILE = "PROFILE")
+load("@electron_codecs_sources//:profile.bzl", CODECS_PROFILE = "PROFILE")
 load("@electron_embedder_sources//:profile.bzl", EMBEDDER_PROFILE = "PROFILE")
 load("@electron_fonts_sources//:profile.bzl", FONTS_PROFILE = "PROFILE")
 load("@electron_ipcz_sources//:profile.bzl", IPCZ_PROFILE = "PROFILE")
@@ -24,6 +25,33 @@ load(":bundles.bzl", "electron_bundles")
 load(":probes.bzl", "loop_probes")
 
 package(default_visibility = ["//visibility:public"])
+
+alias(
+    name = "codecs_libraries",
+    actual = "@electron_codecs_sources//:libraries",
+)
+
+cc_test(
+    name = "codecs_test",
+    srcs = ["codecs_test.cc"],
+    copts = CODECS_PROFILE["libraries"]["//third_party/libjpeg_turbo:libjpeg"]["copts"],
+    env = {
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+    },
+    linkstatic = True,
+    local_defines = CODECS_PROFILE["libraries"]["//third_party/libjpeg_turbo:libjpeg"]["defines"],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    deps = [
+        "@electron_codecs_sources//:jpeg",
+        "@electron_codecs_sources//:webp",
+        "@electron_codecs_sources//:wuffs",
+    ],
+)
 
 alias(
     name = "fonts_libraries",

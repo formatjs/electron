@@ -29,6 +29,7 @@ filegroup(
     srcs = [
         "//source:base_libraries",
         "//source:chromium_patches",
+        "//source:codecs_libraries",
         "//source:dependency_patches",
         "//source:electron_fuses",
         "//source:electron_natives",
@@ -61,6 +62,7 @@ test_suite(
     tests = [
         "//electron/private:nss_integrity_test",
         "//source:base_test",
+        "//source:codecs_test",
         "//source:crypto_compat_test",
         "//source:embedder_test",
         "//source:fonts_test",

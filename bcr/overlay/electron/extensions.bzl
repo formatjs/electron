@@ -3,6 +3,7 @@
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository", "new_git_repository")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load(":base_repository.bzl", "electron_base_repository")
+load(":codecs_repository.bzl", "electron_codecs_repository")
 load(":embedder_repository.bzl", "electron_embedder_repository")
 load(":fonts_repository.bzl", "electron_fonts_repository")
 load(":icu_repository.bzl", "electron_icu_repository")
@@ -117,6 +118,17 @@ def _impl(ctx):
     ]:
         exported = [anchor] + (["test/shape/data/in-house/fonts/7bbd3175734d5d291e1c15271ec0cbb97b626ebf.ttf"] if name == "harfbuzz" else [])
         http_archive(name = "electron_" + name + "_upstream", urls = [url], sha256 = digest, strip_prefix = strip, build_file_content = "exports_files(" + repr(exported) + ", visibility = [\"//visibility:public\"])\n")
+    for name, remote, commit, anchor in [
+        ("jpeg", "https://chromium.googlesource.com/chromium/deps/libjpeg_turbo.git", "e14cbfaa85529d47f9f55b0f104a579c1061f9ad", "LICENSE.md"),
+        ("nasm", "https://chromium.googlesource.com/chromium/deps/nasm.git", "e2c93c34982b286b27ce8b56dd7159e0b90869a2", "LICENSE"),
+    ]:
+        new_git_repository(name = "electron_" + name + "_upstream", remote = remote, commit = commit, build_file_content = "exports_files([" + repr(anchor) + "], visibility = [\"//visibility:public\"])\n")
+    for name, github, commit, digest, anchor in [
+        ("webp", "webmproject/libwebp", "b0e8039062eedbcb20ebb1bad62bfeaee2b94ec6", "5e085cf7e7e5e7fe5373c9e1c1ef31e6d7b89f67ab2d26fb9d542abb5d718939", "COPYING"),
+        ("wuffs", "google/wuffs-mirror-release-c", "e3f919ccfe3ef542cfc983a82146070258fb57f8", "e849dab1f372f16b782ba7528e7f70281e35425bd2d644c92a36fb95909f98db", "LICENSE"),
+    ]:
+        http_archive(name = "electron_" + name + "_upstream", urls = ["https://github.com/" + github + "/archive/" + commit + ".tar.gz"], sha256 = digest, strip_prefix = ("libwebp" if name == "webp" else "wuffs-mirror-release-c") + "-" + commit, build_file_content = "exports_files([" + repr(anchor) + "], visibility = [\"//visibility:public\"])\n")
+    electron_codecs_repository(name = "electron_codecs_sources", chromium = "@electron_chromium_sources//:DEPS", jpeg = "@electron_jpeg_upstream//:LICENSE.md", webp = "@electron_webp_upstream//:COPYING", wuffs = "@electron_wuffs_upstream//:LICENSE", nasm = "@electron_nasm_upstream//:LICENSE")
     electron_fonts_repository(name = "electron_fonts_sources", chromium = "@electron_chromium_sources//:DEPS", freetype = "@electron_freetype_upstream//:LICENSE.TXT", harfbuzz = "@electron_harfbuzz_upstream//:COPYING", fontconfig = "@electron_fontconfig_upstream//:COPYING")
     electron_mojo_repository(name = "electron_mojo_sources", chromium = "@electron_chromium_sources//:DEPS")
     electron_network_repository(
@@ -210,6 +222,6 @@ def _impl(ctx):
     )
     electron_node_repository(name = "electron_node_sources", electron = "@electron//:DEPS")
     direct = ["electron_embedder_sources", "electron_ced_upstream", "electron_libnode_sources", "electron_zstd_upstream", "electron_base_sources", "electron_lss_upstream", "electron_node_sources", "electron_v8_sources", "electron_chromium_sources", "electron_cast_core_sources", "electron_glslang_sources", "electron_abseil_sources", "electron_icu_sources", "electron_partition_alloc_sources", "electron_rust_sources", "electron_v8_support_sources", "electron_protobuf_sources", "electron_protobuf_javascript_upstream", "electron_perfetto_native_sources", "electron_jsoncpp_upstream", "electron_v8_engine_sources", "electron_fp16_upstream"] + dependency_repos + support_repos
-    return ctx.extension_metadata(reproducible = True, root_module_direct_deps = direct + ["electron_fontconfig_upstream", "electron_freetype_upstream", "electron_harfbuzz_upstream", "electron_fonts_sources", "electron_mojo_sources", "electron_ipcz_sources", "electron_chromium_native_support", "electron_nspr_upstream", "electron_nss_upstream", "nspr", "nss", "electron_quiche_upstream", "electron_re2_upstream", "electron_network_platform_headers", "electron_network_sources"], root_module_direct_dev_deps = [])
+    return ctx.extension_metadata(reproducible = True, root_module_direct_deps = direct + ["electron_codecs_sources", "electron_jpeg_upstream", "electron_webp_upstream", "electron_wuffs_upstream", "electron_nasm_upstream", "electron_fontconfig_upstream", "electron_freetype_upstream", "electron_harfbuzz_upstream", "electron_fonts_sources", "electron_mojo_sources", "electron_ipcz_sources", "electron_chromium_native_support", "electron_nspr_upstream", "electron_nss_upstream", "nspr", "nss", "electron_quiche_upstream", "electron_re2_upstream", "electron_network_platform_headers", "electron_network_sources"], root_module_direct_dev_deps = [])
 
 electron = module_extension(implementation = _impl, tag_classes = {"version": tag_class(attrs = {"version": attr.string(mandatory = True)})})
