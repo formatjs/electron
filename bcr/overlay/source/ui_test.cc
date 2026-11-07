@@ -5,6 +5,7 @@
 
 #include "base/at_exit.h"
 #include "base/command_line.h"
+#include "base/environment.h"
 #include "base/feature_list.h"
 #include "base/files/file.h"
 #include "base/files/file_util.h"
@@ -44,9 +45,10 @@ void CheckResources(char** paths) {
   base::ScopedTempDir locales;
   Require(locales.CreateUniqueTempDir() && base::CopyFile(DeclaredPath(paths[0]), locales.GetPath().AppendASCII("en-US.pak")) && base::CopyFile(DeclaredPath(paths[1]), locales.GetPath().AppendASCII("fr.pak")) && base::PathService::Override(ui::DIR_LOCALES, locales.GetPath()), "relocated declared locale pack directory");
   ui::ResourceBundle resources(nullptr);
-  Require(resources.ReloadLocaleResources("en-US") == "en-US", "native English locale pack loading");
+  auto environment = base::Environment::Create();
+  Require(environment->SetVar("LANGUAGE", "en-US") && resources.ReloadLocaleResources("en-US") == "en-US", "native English locale pack loading");
   Require(resources.GetLocalizedString(IDS_APP_OK) == u"OK" && resources.GetLocalizedString(IDS_APP_CANCEL) == u"Cancel", "original English GRIT resource strings");
-  Require(resources.ReloadLocaleResources("fr") == "fr" && resources.GetLocalizedString(IDS_APP_CANCEL) == u"Annuler", "native French locale reload and translation");
+  Require(environment->SetVar("LANGUAGE", "fr") && resources.ReloadLocaleResources("fr") == "fr" && resources.GetLocalizedString(IDS_APP_CANCEL) == u"Annuler", "native French locale reload and translation");
   resources.AddDataPackFromPath(DeclaredPath(paths[2]), ui::kScaleFactorNone);
   std::string module;
   Require(base::ReadFileToString(DeclaredPath(paths[3]), &module) && !module.empty(), "declared minified WebUI module");
