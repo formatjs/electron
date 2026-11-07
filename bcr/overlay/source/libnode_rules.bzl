@@ -26,7 +26,7 @@ def _family(original):
 def electron_libnode():
     native.exports_files(PROFILE["files"] + ["profile.bzl", "BUILD.bazel"])
     for family, headers in PROFILE["headers"].items():
-        cc_library(name = family + "_headers", hdrs = headers, includes = ["."])
+        cc_library(name = family + "_headers", hdrs = headers, includes = ["."] + (["third_party/electron_node/src"] if family == "node" else []))
     for original, action in PROFILE["actions"].items():
         for index, run in enumerate(action["runs"]):
             outputs = [path[len(_BUILD):] for path in run["outputs"]]
@@ -59,7 +59,7 @@ def electron_libnode():
             settings["deps"] += ["@glib//glib", "@glib//gmodule", "@glib//gobject"]
         for language, sources, flags in [("c", library["c_srcs"], library["c_copts"]), ("asm", library["asm_srcs"], library["asm_copts"])]:
             if sources:
-                cc_library(name = library["name"] + "_" + language, srcs = [_file(path) for path in sources], copts = flags, alwayslink = True, **settings)
+                cc_library(name = library["name"] + "_" + language, srcs = [_file(path) for path in sources], copts = flags, alwayslink = library["kind"] == "source_set", **settings)
                 settings["deps"] += [":" + library["name"] + "_" + language]
         cc_library(name = library["name"], srcs = [_file(path) for path in library["srcs"]], copts = library["copts"], alwayslink = library["kind"] == "source_set", **settings)
     native.alias(name = "libnode", actual = _label(PROFILE["root"]))

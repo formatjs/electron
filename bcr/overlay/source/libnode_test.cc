@@ -26,6 +26,7 @@ const inspector = publicRequire('node:inspector');
 assert.equal(process.versions.node, '22.20.0');
 assert.equal(process.versions.modules, '140');
 assert.notEqual(fs, originalFs);
+assert.equal(publicRequire(process.argv[2]).answer, 42);
 const fixture = 'source-built Electron Node fixture\n';
 assert.equal(fs.readFileSync(process.argv[1], 'utf8'), fixture);
 assert.equal(originalFs.readFileSync(process.argv[1], 'utf8'), fixture);
@@ -57,10 +58,10 @@ Promise.all([fs.promises.readFile(process.argv[1], 'utf8'), evaluated])
 }  // namespace
 
 int main(int argc, char** argv) {
-  Require(argc == 4, "declared ICU, snapshot and fixture arguments");
+  Require(argc == 5, "declared ICU, snapshot, fixture and addon arguments");
   Require(v8::V8::InitializeICUDefaultLocation(argv[0], argv[1]), "declared ICU data");
   v8::V8::InitializeExternalStartupDataFromFile(argv[2]);
-  auto initialization = node::InitializeOncePerProcess({argv[0], argv[3]}, {
+  auto initialization = node::InitializeOncePerProcess({argv[0], argv[3], argv[4]}, {
       node::ProcessInitializationFlags::kNoInitializeV8,
       node::ProcessInitializationFlags::kNoInitializeNodeV8Platform,
       node::ProcessInitializationFlags::kNoDefaultSignalHandling,

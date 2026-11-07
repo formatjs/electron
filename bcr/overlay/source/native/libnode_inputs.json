@@ -1,5 +1,8 @@
 {
   "root": "//third_party/electron_node:libnode",
+  "aliases": {
+    "third_party/electron_node/deps/v8/include/js_protocol.pdl": "v8/include/js_protocol.pdl"
+  },
   "names": {
     "//third_party/brotli:common": "target_61df780e5db77c52",
     "//third_party/brotli:dec": "target_2541e248822dff8e",
@@ -3937,6 +3940,8 @@
         {
           "inputs": [
             "//out/bazel-import/gen/third_party/electron_node/src/node_protocol.json",
+            "//third_party/electron_node/deps/v8/include/js_protocol.pdl",
+            "//third_party/electron_node/src/inspector/node_protocol.pdl",
             "//third_party/electron_node/src/inspector/node_protocol_config.json",
             "//third_party/inspector_protocol/check_protocol_compatibility.py",
             "//third_party/inspector_protocol/code_generator.py",
@@ -4358,6 +4363,7 @@
     "third_party/brotli/include/brotli/shared_dictionary.h",
     "third_party/brotli/include/brotli/types.h",
     "third_party/electron_node/LICENSE",
+    "third_party/electron_node/deps/v8/include/js_protocol.pdl",
     "third_party/electron_node/src/acorn_version.h",
     "third_party/electron_node/src/aliased_buffer-inl.h",
     "third_party/electron_node/src/aliased_buffer.h",

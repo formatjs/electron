@@ -12,10 +12,11 @@ def _impl(ctx):
             fail("Invalid libnode source path")
         owner = "chromium"
         relative = path
+        original = profile["aliases"].get(path, path)
         for name, prefix in {"node": "third_party/electron_node/", "v8": "v8/", "zstd": "third_party/zstd/src/"}.items():
-            if path.startswith(prefix):
+            if original.startswith(prefix):
                 owner = name
-                relative = path[len(prefix):]
+                relative = original[len(prefix):]
         ctx.symlink(roots[owner].get_child(relative), path)
     ctx.file("profile.bzl", "PROFILE = json.decode(" + json.encode(contents) + ")\n")
     ctx.file("BUILD.bazel", ctx.read(ctx.attr.build_file))

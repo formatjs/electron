@@ -29,6 +29,7 @@ GENERATED_FILES = {
     BUILD + "gen/electron_natives.cc": "@electron//source:electron_natives",
     BUILD + "gen/third_party/electron_node/node_javascript.cc": "@electron//source:node_javascript",
 }
+ALIASES = {NODE + "deps/v8/include/js_protocol.pdl": "v8/include/js_protocol.pdl"}
 SCRIPTS = {
     "//third_party/inspector_protocol/code_generator.py",
     "//third_party/inspector_protocol/concatenate_protocols.py",
@@ -56,6 +57,7 @@ def capture(graph, chromium, node, v8, zstd):
         return graph["pool"][item["pool"]] if isinstance(item, dict) else item
 
     def physical(path):
+        path = ALIASES.get(path, path)
         for prefix, directory in [(NODE, node), ("v8/", v8), ("third_party/zstd/src/", zstd)]:
             if path.startswith(prefix):
                 return directory / path.removeprefix(prefix)
@@ -102,6 +104,8 @@ def capture(graph, chromium, node, v8, zstd):
             if target["script"] not in SCRIPTS:
                 raise ValueError("Unknown libnode generator")
             common = set(target.get("inputs", []) + [target["script"]])
+            if target["script"] == "//third_party/inspector_protocol/code_generator.py":
+                common.update(["//" + NODE + "src/inspector/node_protocol.pdl", "//" + NODE + "deps/v8/include/js_protocol.pdl"])
             if "inspector_protocol/" in target["script"]:
                 common.update("//" + path for path in python)
             runs = []
@@ -165,7 +169,7 @@ def capture(graph, chromium, node, v8, zstd):
         if not physical(path).is_file():
             raise ValueError("Missing original libnode input: " + path)
     header_families = {name: sorted(path for path in headers if path.startswith(prefix)) for name, prefix in {"node": NODE, "brotli": "third_party/brotli/", "zstd": "third_party/zstd/", "inspector": "third_party/inspector_protocol/"}.items()}
-    return {"root": ROOT, "names": names, "libraries": libraries, "actions": actions, "producers": producers, "files": sorted(files), "headers": header_families, "external": REUSE, "generated_files": GENERATED_FILES, "generator_deps": sorted(GENERATORS), "toolchain_deps": sorted(TOOLCHAIN)}
+    return {"root": ROOT, "aliases": ALIASES, "names": names, "libraries": libraries, "actions": actions, "producers": producers, "files": sorted(files), "headers": header_families, "external": REUSE, "generated_files": GENERATED_FILES, "generator_deps": sorted(GENERATORS), "toolchain_deps": sorted(TOOLCHAIN)}
 
 
 def main():
