@@ -44,9 +44,8 @@ int main() {
   base::SingleThreadTaskExecutor executor(base::MessagePumpType::UI);
   base::RunLoop loop;
   bool ran = false;
-  executor.task_runner()->PostTask(FROM_HERE, base::BindOnce([&] {
-    ran = true;
-  }));
+  executor.task_runner()->PostTask(FROM_HERE, base::BindOnce(
+      [](bool* flag) { *flag = true; }, base::Unretained(&ran)));
   struct State { base::RunLoop* loop; bool dispatched; } state{&loop, false};
   g_idle_add([](gpointer data) -> gboolean {
     auto* state = static_cast<State*>(data);
