@@ -35,7 +35,8 @@ def generate(description):
                 destination.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(source, destination)
                 os.utime(destination, (mtime, mtime))
-            subprocess.run([tool, "-o", str(output), "-v8-root", str(root), *description["sources"]], cwd=root, check=True)
+            # Torque embeds this root in generated source locations.
+            subprocess.run([tool, "-o", str(output), "-v8-root", ".", *description["sources"]], cwd=root, check=True)
             return output
 
         first = run("first", 0)
