@@ -1338,7 +1338,11 @@ source CI; the complete aggregate and suite remain required afterward.
 [e42592d components](https://formatjs.buildbuddy.io/invocation/9a591f26-aab9-495f-8a05-da63df40d687),
 [BCR consumer](https://formatjs.buildbuddy.io/invocation/44781263-425a-4713-a6e2-288114a29449)
 and [cross probes](https://formatjs.buildbuddy.io/invocation/2a544517-a493-4bd2-9e08-ac3beb1bee52)
-passed. Temporary crash instrumentation is removed; cleanup validation follows.
+passed. Temporary crash instrumentation is removed. The clean
+[e677b62 components](https://formatjs.buildbuddy.io/invocation/7056db57-2403-44a5-ac43-048b82fa95ec),
+[consumer](https://formatjs.buildbuddy.io/invocation/0109ff8b-c8e5-4faf-9cda-c333de0a4be3)
+and [cross probes](https://formatjs.buildbuddy.io/invocation/eb37a769-f425-4ba9-9c64-5f77a864c1a2)
+also passed.
 Source component profiles remain Linux AMD64. Complete Electron remains
 unfinished.
 
