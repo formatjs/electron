@@ -22,6 +22,12 @@ def generate(description):
     inputs = {relative(name): Path(path).absolute() for name, path in description["inputs"].items()}
     if sorted(description["sources"]) != sorted(inputs):
         raise ValueError("Torque source order differs from declared inputs")
+    outputs = {}
+    for logical, target in description["outputs"].items():
+        relative(logical)
+        if not logical.startswith("torque-generated/"):
+            raise ValueError("Unexpected Torque output root")
+        outputs[logical] = target
     tool = str(Path(description["tool"]).absolute())
     with tempfile.TemporaryDirectory(prefix="electron-torque-") as directory:
         directory = Path(directory)
@@ -30,6 +36,8 @@ def generate(description):
             root = directory / name / "source with spaces"
             output = directory / name / "generated with spaces"
             output.mkdir(parents=True)
+            for logical in outputs:
+                (output / logical.removeprefix("torque-generated/")).parent.mkdir(parents=True, exist_ok=True)
             for logical, source in inputs.items():
                 destination = root / logical
                 destination.parent.mkdir(parents=True, exist_ok=True)
@@ -42,10 +50,7 @@ def generate(description):
         first = run("first", 0)
         second = run("repeat", 1234567890) if description["verify_reproducible"] else None
         records = []
-        for logical, target in sorted(description["outputs"].items()):
-            relative(logical)
-            if not logical.startswith("torque-generated/"):
-                raise ValueError("Unexpected Torque output root")
+        for logical, target in sorted(outputs.items()):
             name = logical.removeprefix("torque-generated/")
             source = first / name
             data = source.read_bytes()
