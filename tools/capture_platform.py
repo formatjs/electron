@@ -174,6 +174,19 @@ def capture(graph, digest, chromium, source_roots, profiles):
             for path in script_parent.glob("*.py"):
                 inputs.add(target["script"].rsplit("/", 1)[0] + "/" + path.name)
             args = [arg.replace("$SOURCE_ROOT/out/bazel-import/", "") for arg in target.get("args", [])]
+            if "--jinja2-path" in args:
+                package = args[args.index("--jinja2-path") + 1]
+                if package != "../../third_party/jinja2":
+                    raise ValueError("Untranslated platform Jinja package path")
+                for directory in ("third_party/jinja2", "third_party/markupsafe"):
+                    root = physical(directory)
+                    inputs.update("//" + directory + "/" + path.relative_to(root).as_posix() for path in source_files(root) if path.suffix == ".py")
+            if "--template-dir" in args:
+                directory = args[args.index("--template-dir") + 1]
+                if directory != "../../third_party/dawn/generator/templates":
+                    raise ValueError("Untranslated platform template path")
+                root = physical(directory[6:])
+                inputs.update("//" + directory[6:] + "/" + path.relative_to(root).as_posix() for path in source_files(root) if path.is_file())
             if target["script"] == "//mojo/public/tools/bindings/mojom_bindings_generator.py":
                 template = {"c++": "cpp_templates.zip", "typescript": "ts_templates.zip", "javascript": "js_templates.zip"}[args[args.index("-g") + 1]]
                 inputs.add(BUILD + args[args.index("--bytecode_path") + 1] + "/" + template)

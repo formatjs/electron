@@ -130,7 +130,8 @@ def electron_platform():
             cc_library(name = library["name"], deps = [":" + library["name"] + "_import", ":source_headers"], target_compatible_with = _COMPATIBLE)
         else:
             cc_library(name = library["name"], srcs = [_file(path) for path in library["srcs"]], copts = library["copts"], alwayslink = library["kind"] == "source_set", **settings)
-    native.filegroup(name = "libraries", srcs = [_label(label) for label, library in PROFILE["libraries"].items() if library["kind"] != "executable"] + shared)
-    native.filegroup(name = "runtime", srcs = shared + ["@electron_platform_runtime//:libraries", "@electron_platform_pciutils//:libpci.so.3"])
+    icds = [_file(path) for action in PROFILE["actions"].values() if action["script"] in ["third_party/swiftshader/src/Vulkan/write_icd_json.py", "third_party/vulkan-tools/src/scripts/gn/generate_vulkan_icd_json.py"] for path in action["outputs"]]
+    native.filegroup(name = "libraries", srcs = [_label(label) for label, library in PROFILE["libraries"].items() if library["kind"] != "executable"] + shared + icds)
+    native.filegroup(name = "runtime", srcs = shared + icds + ["@electron_platform_runtime//:libraries", "@electron_platform_pciutils//:libpci.so.3"])
     native.alias(name = "ozone", actual = _label("//ui/ozone:ozone"))
     native.alias(name = "gl", actual = _label("//ui/gl:gl"))
