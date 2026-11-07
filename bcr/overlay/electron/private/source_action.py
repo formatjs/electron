@@ -47,7 +47,8 @@ def generate(manifest, repeat):
         scratch = root / "tmp"
         scratch.mkdir()
         environment = {"PATH": "", "LANG": "C", "LC_ALL": "C", "TZ": "UTC", "TMPDIR": str(scratch), "PYTHONHASHSEED": "0", "PYTHONNOUSERSITE": "1", "PYTHONDONTWRITEBYTECODE": "1"}
-        result = subprocess.run([sys.executable, "-I", "-B", str(logical_path(root, manifest["script"])), *arguments], cwd=build, env=environment)
+        bootstrap = "import os, runpy, sys; script = sys.argv[1]; sys.argv = sys.argv[1:]; sys.path.insert(0, os.path.dirname(os.path.abspath(script))); runpy.run_path(script, run_name='__main__')"
+        result = subprocess.run([sys.executable, "-I", "-B", "-c", bootstrap, str(logical_path(root, manifest["script"])), *arguments], cwd=build, env=environment)
         if result.returncode:
             raise SystemExit(result.returncode)
         return {logical: logical_path(build, logical).read_bytes() for _, logical in manifest["outputs"]}

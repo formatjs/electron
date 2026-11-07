@@ -8,6 +8,7 @@ load(":perfetto_repository.bzl", "electron_perfetto_repository")
 load(":protobuf_repository.bzl", "electron_protobuf_repository")
 load(":rust_repository.bzl", "electron_rust_repository")
 load(":source_repositories.bzl", "electron_abseil_repository", "electron_node_repository", "electron_patched_upstream")
+load(":v8_engine_repository.bzl", "electron_v8_engine_repository")
 load(":v8_support_repository.bzl", "electron_v8_support_repository")
 
 _VERSION = "39.0.0"
@@ -65,6 +66,19 @@ def _impl(ctx):
     electron_partition_alloc_repository(name = "electron_partition_alloc_sources", chromium = "@electron_chromium_sources//:DEPS")
     electron_rust_repository(name = "electron_rust_sources", chromium = "@electron_chromium_sources//:DEPS")
     http_archive(
+        name = "electron_fp16_upstream",
+        urls = ["https://github.com/Maratyszcza/FP16/archive/3d2de1816307bac63c16a297e8c4dc501b4076df.tar.gz"],
+        sha256 = "65ace2f05fd9434b0acb7a7d3cc6cd96842ea6236b680594af932b359bedbfc1",
+        strip_prefix = "FP16-3d2de1816307bac63c16a297e8c4dc501b4076df",
+        build_file_content = "exports_files([\"BUILD.bazel\"], visibility = [\"//visibility:public\"])\n",
+    )
+    electron_v8_engine_repository(
+        name = "electron_v8_engine_sources",
+        v8 = "@electron_v8_sources//:DEPS",
+        chromium = "@electron_chromium_sources//:DEPS",
+        fp16 = "@electron_fp16_upstream//:BUILD.bazel",
+    )
+    http_archive(
         name = "electron_jsoncpp_upstream",
         urls = ["https://github.com/open-source-parsers/jsoncpp/archive/42e892d96e47b1f6e29844cc705e148ec4856448.tar.gz"],
         sha256 = "0b40e4598d68d3dbd8cab90b249e18f1363ecc694c38f727851f4db34b6887ec",
@@ -112,7 +126,7 @@ def _impl(ctx):
         highway = "@electron_highway_upstream//:BUILD.bazel",
     )
     electron_node_repository(name = "electron_node_sources", electron = "@electron//:DEPS")
-    direct = ["electron_node_sources", "electron_v8_sources", "electron_chromium_sources", "electron_cast_core_sources", "electron_glslang_sources", "electron_abseil_sources", "electron_icu_sources", "electron_partition_alloc_sources", "electron_rust_sources", "electron_v8_support_sources", "electron_protobuf_sources", "electron_protobuf_javascript_upstream", "electron_perfetto_native_sources", "electron_jsoncpp_upstream"] + dependency_repos + support_repos
+    direct = ["electron_node_sources", "electron_v8_sources", "electron_chromium_sources", "electron_cast_core_sources", "electron_glslang_sources", "electron_abseil_sources", "electron_icu_sources", "electron_partition_alloc_sources", "electron_rust_sources", "electron_v8_support_sources", "electron_protobuf_sources", "electron_protobuf_javascript_upstream", "electron_perfetto_native_sources", "electron_jsoncpp_upstream", "electron_v8_engine_sources", "electron_fp16_upstream"] + dependency_repos + support_repos
     return ctx.extension_metadata(reproducible = True, root_module_direct_deps = direct, root_module_direct_dev_deps = [])
 
 electron = module_extension(implementation = _impl, tag_classes = {"version": tag_class(attrs = {"version": attr.string(mandatory = True)})})

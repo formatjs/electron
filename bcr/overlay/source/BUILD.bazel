@@ -221,6 +221,8 @@ electron_js2c(
 )
 
 exports_files([
+    "v8_engine.BUILD.bazel",
+    "v8_engine_rules.bzl",
     "perfetto.BUILD.bazel",
     "perfetto_rules.bzl",
     "protobuf.BUILD.bazel",
@@ -546,4 +548,36 @@ cc_test(
 alias(
     name = "perfetto_libraries",
     actual = "@electron_perfetto_native_sources//:libraries",
+)
+
+cc_test(
+    name = "v8_engine_test",
+    srcs = ["v8_engine_test.cc"],
+    args = [
+        "$(rootpath @electron_icu_sources//:common/icudtl.dat)",
+        "$(rootpath @electron_v8_engine_sources//:snapshot_blob.bin)",
+    ],
+    copts = [
+        "-std=c++20",
+        "-fno-rtti",
+        "-fno-exceptions",
+    ],
+    data = [
+        "@electron_icu_sources//:common/icudtl.dat",
+        "@electron_v8_engine_sources//:snapshot_blob.bin",
+    ],
+    linkstatic = True,
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    deps = [
+        "@electron_v8_engine_sources//:platform",
+        "@electron_v8_engine_sources//:v8",
+    ],
+)
+
+alias(
+    name = "v8_engine_libraries",
+    actual = "@electron_v8_engine_sources//:libraries",
 )
