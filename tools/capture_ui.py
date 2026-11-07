@@ -6,6 +6,7 @@ import ast
 import gzip
 import hashlib
 import json
+import posixpath
 import re
 from pathlib import Path
 
@@ -92,6 +93,25 @@ def capture(graph, digest, chromium, node_modules, profiles):
     for path in package_files:
         input_file(path)
     actions, libraries, metadata, copies = {}, {}, {}, {}
+    def resource_inputs(target):
+        if target.get("script") != "//ui/webui/resources/tools/generate_grd.py":
+            return set()
+        args = target.get("args", [])
+        if "--input-files" not in args:
+            return set()
+        base = args[args.index("--input-files-base-dir") + 1]
+        generated_root = args[args.index("--root-gen-dir") + 1].rstrip("/")
+        prefix = BUILD if base.startswith(generated_root + "/") else "//"
+        paths = set()
+        for name in args[args.index("--input-files") + 1:]:
+            if name.startswith("--"):
+                break
+            path = posixpath.normpath(posixpath.join(base, name))
+            if path.startswith(("/", "../")):
+                raise ValueError("Invalid original resource path")
+            paths.add(prefix + path)
+        return paths
+
     def dependency_inputs(label):
         outputs, visited, pending = set(), set(), list(targets[label].get("deps", []))
         while pending:
@@ -104,6 +124,7 @@ def capture(graph, digest, chromium, node_modules, profiles):
                 outputs.update(target.get("outputs", []))
                 outputs.update(target.get("inputs", []))
                 outputs.update(target.get("sources", []))
+                outputs.update(resource_inputs(target))
             elif target["type"] != "group":
                 continue
             pending.extend(target.get("deps", []))
@@ -119,7 +140,7 @@ def capture(graph, digest, chromium, node_modules, profiles):
             if target["script"] not in SCRIPTS:
                 raise ValueError("Untranslated original UI generator")
             directory_inputs = dependency_inputs(label)
-            inputs = set(target.get("inputs", []) + target.get("sources", []) + [target["script"]]) | directory_inputs
+            inputs = set(target.get("inputs", []) + target.get("sources", []) + [target["script"]]) | directory_inputs | resource_inputs(target)
             for directory, paths in helpers.items():
                 if target["script"].startswith("//" + directory + "/"):
                     inputs.update(paths)
