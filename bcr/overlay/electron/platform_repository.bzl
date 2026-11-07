@@ -23,7 +23,12 @@ def _sources_impl(ctx):
                 matched = len(prefix)
         if not source.exists:
             fail("Pinned platform source missing: " + path)
-        ctx.symlink(source, path)
+        if path == "build/util/lastchange.py":
+            ctx.file(path, ctx.read(source), executable = False)
+        else:
+            ctx.symlink(source, path)
+    ctx.patch(ctx.attr.lastchange_patch, strip = 1)
+    ctx.file("native_compat_patches.json", json.encode({"graph_sha256": profile["graph_sha256"], "patches": [str(ctx.attr.lastchange_patch)], "files": ["build/util/lastchange.py"]}))
     for path, content in profile["generated_files"].items():
         if not path.startswith("//out/bazel-import/") or ".." in path.split("/"):
             fail("Invalid platform metadata path")
@@ -35,6 +40,7 @@ _platform_sources = repository_rule(
     implementation = _sources_impl,
     attrs = {
         "chromium": attr.label(mandatory = True),
+        "lastchange_patch": attr.label(default = Label("//source:lastchange_environment.patch")),
         "sources": attr.label_keyed_string_dict(mandatory = True),
         "profile": attr.label(default = Label("//source/native:platform_inputs.json")),
         "build_file": attr.label(default = Label("//source:platform.BUILD.bazel")),

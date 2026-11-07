@@ -17,6 +17,7 @@ def _label(original):
     return PROFILE["external"].get(original, ":" + PROFILE["names"].get(original, ""))
 
 def _file(original):
+    original = PROFILE.get("source_aliases", {}).get(original, original)
     if original in PROFILE["external_files"]:
         return PROFILE["external_files"][original]
     if original in PROFILE["generated_files"]:
@@ -54,7 +55,7 @@ def _link_settings(library):
     return dict(linkopts = flags, additional_linker_inputs = [_file(path) for path in library["linker_inputs"]])
 
 def electron_platform():
-    native.exports_files(PROFILE["files"] + [path[2:] for path in PROFILE["generated_files"]] + ["profile.bzl", "BUILD.bazel"])
+    native.exports_files(PROFILE["files"] + [path[2:] for path in PROFILE["generated_files"]] + ["profile.bzl", "BUILD.bazel", "native_compat_patches.json"])
     common_headers = {_file("//" + path): True for directory, headers in PROFILE["headers"].items() for path in headers if directory != "third_party/wayland/include"}.keys()
     electron_source_headers(
         name = "upstream_headers",
@@ -63,14 +64,14 @@ def electron_platform():
     cc_library(
         name = "tool_headers",
         hdrs = common_headers,
-        includes = [".", "gen"],
+        includes = [".", "gen", "src"],
         deps = [":upstream_headers", "@electron_platform_sdk//:headers"],
         target_compatible_with = _COMPATIBLE,
     )
     cc_library(
         name = "source_headers",
         hdrs = common_headers + [_file(path) for action in PROFILE["actions"].values() for path in action["outputs"] if path.endswith((".h", ".hpp", ".inc", ".inl"))],
-        includes = [".", "gen"],
+        includes = [".", "gen", "src"],
         deps = [":upstream_headers", "@electron_platform_sdk//:headers"],
         target_compatible_with = _COMPATIBLE,
     )
@@ -153,3 +154,6 @@ def electron_platform():
     native.filegroup(name = "runtime", srcs = ["@electron//source/glib:runtime"] + shared + icds + ["@electron_platform_runtime//:libraries", "@electron_platform_pciutils//:libpci.so.3"])
     native.alias(name = "ozone", actual = _label("//ui/ozone:ozone"))
     native.alias(name = "gl", actual = _label("//ui/gl:gl"))
+
+    for name, original in {"gpu_client": "//gpu/command_buffer/client:gles2_implementation", "gpu_service": "//gpu/command_buffer/service:gles2", "viz_common": "//components/viz/common:common"}.items():
+        native.alias(name = name, actual = _label(original))

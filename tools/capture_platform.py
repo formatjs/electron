@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""Capture original Linux Ozone/GL targets, shared runtimes and execution tools."""
+"""Capture native Linux graphics, GPU command buffers and original generators."""
 
 import argparse
 import ast
@@ -14,12 +14,13 @@ from pathlib import Path
 from capture_mojo import SCRIPTS as MOJO_SCRIPTS
 from native_graph import BUILD, capture_library, load_profiles
 
-ROOTS = ["//ui/ozone:ozone", "//ui/gl:gl"]
-SOURCE_PREFIXES = ["third_party/angle", "third_party/dawn", "third_party/swiftshader", "third_party/spirv-tools/src", "third_party/spirv-headers/src", "third_party/vulkan-loader/src", "third_party/vulkan-tools/src", "third_party/vulkan-utility-libraries/src", "third_party/vulkan-headers/src", "third_party/vulkan_memory_allocator", "third_party/wayland/src", "third_party/wayland-protocols/src", "third_party/wayland-protocols/kde"]
+ROOTS = ["//ui/ozone:ozone", "//ui/gl:gl", "//gpu/command_buffer/client:gles2_implementation", "//gpu/command_buffer/service:gles2", "//components/viz/common:common"]
+SOURCE_PREFIXES = ["third_party/libyuv", "third_party/angle", "third_party/dawn", "third_party/swiftshader", "third_party/spirv-tools/src", "third_party/spirv-headers/src", "third_party/vulkan-loader/src", "third_party/vulkan-tools/src", "third_party/vulkan-utility-libraries/src", "third_party/vulkan-headers/src", "third_party/vulkan_memory_allocator", "third_party/wayland/src", "third_party/wayland-protocols/src", "third_party/wayland-protocols/kde"]
 TOOLCHAIN = {"//buildtools/third_party/libc++:" + name for name in ("all_modules", "custom_headers", "libcxx_headers", "libc++")}
 SDK_LIBS = {"ffi_pic", "X11", "Xi", "Xext", "pci", "gbm", "dbus-1", "udev", "cairo", "harfbuzz", "pango-1.0", "pangocairo-1.0", "atk-1.0", "atk-bridge-2.0"}
 SCRIPTS = MOJO_SCRIPTS | {"//" + name for name in (
     "build/write_buildflag_header.py", "build/gn_run_binary.py",
+    "gpu/config/process_json.py", "tools/protoc_wrapper/protoc_wrapper.py",
     "third_party/wayland/wayland_scanner_wrapper.py",
     "third_party/spirv-tools/src/utils/generate_language_headers.py",
     "third_party/spirv-tools/src/utils/generate_registry_tables.py",
@@ -100,6 +101,21 @@ def capture(graph, digest, chromium, source_roots, profiles):
                 return root / path[len(prefix):].lstrip("/")
         return chromium / path
 
+    hook_label = "//gpu/webgpu:checkout_lastchange_dawn"
+    hook_name = "checkout_lastchange_dawn"
+    hook_outputs = [BUILD + "src/gpu/webgpu/" + name for name in ["DAWN_VERSION", "dawn_commit_hash.h"]]
+    source_aliases = {"//gpu/webgpu/" + path.rsplit("/", 1)[-1]: path for path in hook_outputs}
+    dawn = revisions["third_party/dawn"]["commit"]
+    if dawn != "cee9cb0d67e749bf42f5e90cb3b8a6f525dbb920":
+        raise ValueError("Update pinned Dawn checkout-hook commit metadata")
+    tree = ast.parse((chromium / "DEPS").read_text())
+    hook_list = next(node.value for node in tree.body if isinstance(node, ast.Assign) and any(isinstance(name, ast.Name) and name.id == "hooks" for name in node.targets))
+    hook = next(node for node in hook_list.elts if isinstance(node, ast.Dict) and any(isinstance(key, ast.Constant) and key.value == "name" and isinstance(value, ast.Constant) and value.value == "lastchange_dawn" for key, value in zip(node.keys, node.values)))
+    original_command = ast.literal_eval(next(value for key, value in zip(hook.keys, hook.values) if isinstance(key, ast.Constant) and key.value == "action"))
+    expected_command = ["python3", "src/build/util/lastchange.py", "-m", "DAWN_COMMIT_HASH", "-s", "src/third_party/dawn", "--revision", "src/gpu/webgpu/DAWN_VERSION", "--header", "src/gpu/webgpu/dawn_commit_hash.h"]
+    if original_command != expected_command:
+        raise ValueError("Original Dawn checkout hook changed")
+    names[hook_label] = hook_name
     files, generated, headers, used_shared = set(), {}, {}, set()
     literal_metadata = {}
     producers = {}
@@ -110,6 +126,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
                 if not output.startswith(BUILD) or output in producers:
                     raise ValueError("Unexpected/duplicate platform output")
                 producers[output] = label
+    producers.update({path: hook_label for path in hook_outputs})
     tools = {output: label for label, target in targets.items() if target["type"] == "executable" and (label in seen or label in external) for output in target.get("outputs", [])[:1]}
     execution_closure, pending = set(), [label for label in seen if targets[label]["type"] == "executable"]
     while pending:
@@ -120,6 +137,8 @@ def capture(graph, digest, chromium, source_roots, profiles):
         pending.extend(targets[label].get("deps", []))
 
     def input_file(path):
+        if path in source_aliases:
+            return
         if path in tools:
             return
         if path in generated:
@@ -136,7 +155,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
         else:
             raise ValueError("Invalid platform source path")
 
-    directories = ["third_party/khronos", "ui", "dbus", "components/dbus", "components/url_formatter", "components/headless", "services/service_manager/public", "third_party/angle", "third_party/dawn", "third_party/swiftshader", "third_party/spirv-tools/src", "third_party/spirv-headers/src", "third_party/vulkan-loader/src", "third_party/vulkan-tools/src", "third_party/vulkan-utility-libraries/src", "third_party/vulkan-headers/src", "third_party/wayland/src", "third_party/wayland/include"]
+    directories = ["third_party/libyuv", "gpu", "components/viz/common", "third_party/khronos", "ui", "dbus", "components/dbus", "components/url_formatter", "components/headless", "services/service_manager/public", "third_party/angle", "third_party/dawn", "third_party/swiftshader", "third_party/spirv-tools/src", "third_party/spirv-headers/src", "third_party/vulkan-loader/src", "third_party/vulkan-tools/src", "third_party/vulkan-utility-libraries/src", "third_party/vulkan-headers/src", "third_party/wayland/src", "third_party/wayland/include"]
     for directory in directories:
         root = physical(directory)
         inventory = sorted(directory + "/" + path.relative_to(root).as_posix() for path in source_files(root) if path.is_file() and path.suffix in (".h", ".hh", ".hpp", ".hpp11", ".inc", ".inl", ".def", ".gen"))
@@ -261,6 +280,15 @@ def capture(graph, digest, chromium, source_roots, profiles):
             record["linker_inputs"] = linker_inputs
         else:
             raise ValueError("Untranslated platform target kind: " + kind)
+    input_file("//build/util/lastchange.py")
+    actions[hook_label] = dict(
+        name=hook_name, kind="action", gn_deps=[],
+        script="build/util/lastchange.py", inputs=["//build/util/lastchange.py"], tools={},
+        outputs=hook_outputs, runs=[dict(outputs=hook_outputs, args=["-m", "DAWN_COMMIT_HASH", "-s", "../../third_party/dawn", "--revision", "src/gpu/webgpu/DAWN_VERSION", "--header", "src/gpu/webgpu/dawn_commit_hash.h"])],
+        response=[], environment={"BASE_COMMIT_HASH": dawn, "BASE_COMMIT_SUBMISSION_MS": "1759164973000"},
+        checkout_hook={"source": "DEPS", "name": "lastchange_dawn", "command": original_command,
+                       "commit_metadata": "https://github.com/google/dawn/commit/" + dawn},
+    )
     for label, action in actions.items():
         ordering, visited, pending = set(), set(), list(action["gn_deps"])
         while pending:
@@ -294,7 +322,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
         if not physical(path).is_file():
             raise ValueError("Missing original platform input: " + path)
     used = {dep for label in seen for dep in targets[label].get("deps", []) if dep in external}
-    return dict(roots=ROOTS, graph_sha256=digest, source_revisions=revisions, names=names, libraries=libraries, actions=actions, metadata=metadata, literal_metadata=literal_metadata, execution_tools=sorted(set(tools.values())), execution_closure=sorted(execution_closure), producers=producers, headers=headers, files=sorted(files), external_files={path: shared[path] for path in sorted(used_shared)}, external={label: external[label] for label in sorted(used)}, generated_files=generated, toolchain_deps=sorted(TOOLCHAIN), sdk_libraries=sorted(SDK_LIBS))
+    return dict(source_aliases=source_aliases, roots=ROOTS, graph_sha256=digest, source_revisions=revisions, names=names, libraries=libraries, actions=actions, metadata=metadata, literal_metadata=literal_metadata, execution_tools=sorted(set(tools.values())), execution_closure=sorted(execution_closure), producers=producers, headers=headers, files=sorted(files), external_files={path: shared[path] for path in sorted(used_shared)}, external={label: external[label] for label in sorted(used)}, generated_files=generated, toolchain_deps=sorted(TOOLCHAIN), sdk_libraries=sorted(SDK_LIBS))
 
 
 def main():

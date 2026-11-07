@@ -76,6 +76,7 @@ test_suite(
         "//source:fonts_test",
         "//source:fuses_test",
         "//source:gfx_test",
+        "//source:gpu_transport_test",
         "//source:icu_test",
         "//source:ipcz_test",
         "//source:libnode_test",
