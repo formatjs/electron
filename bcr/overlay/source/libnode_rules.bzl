@@ -1,6 +1,7 @@
 """Captured patched libnode, Chromium inspector and compression implementations."""
 
 load("@electron_libnode_sources//:profile.bzl", "PROFILE")
+load("@rules_cc//cc:cc_import.bzl", "cc_import")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("//electron:source_action.bzl", "electron_source_action")
 
@@ -25,6 +26,7 @@ def _family(original):
 
 def electron_libnode():
     native.exports_files(PROFILE["files"] + ["profile.bzl", "BUILD.bazel"])
+    cc_import(name = "atomic_runtime", static_library = PROFILE["native_library_replacements"]["atomic"], target_compatible_with = _COMPATIBLE)
     for family, headers in PROFILE["headers"].items():
         cc_library(name = family + "_headers", hdrs = headers, includes = ["."] + (["third_party/electron_node/src"] if family == "node" else []))
     for original, action in PROFILE["actions"].items():
@@ -50,11 +52,13 @@ def electron_libnode():
             hdrs = [_file(path) for path in library["generated_headers"]],
             local_defines = library["defines"],
             includes = library["includes"],
-            linkopts = ["-l" + name for name in library["libs"] if name in ["dl", "pthread", "rt", "m", "atomic"]],
+            linkopts = ["-l" + name for name in library["libs"] if name in ["dl", "pthread", "rt", "m"]],
             linkstatic = True,
             target_compatible_with = _COMPATIBLE,
             deps = [":" + _family(original) + "_headers"] + {_label(dep): True for dep in library["gn_deps"] + library.get("native_extra_deps", []) if dep not in PROFILE["toolchain_deps"] and dep not in PROFILE["generator_deps"]}.keys(),
         )
+        if "atomic" in library["libs"]:
+            settings["deps"] += [":atomic_runtime"]
         if "glib-2.0" in library["libs"]:
             settings["deps"] += ["@glib//glib", "@glib//gmodule", "@glib//gobject"]
         for language, sources, flags in [("c", library["c_srcs"], library["c_copts"]), ("asm", library["asm_srcs"], library["asm_copts"])]:

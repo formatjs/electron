@@ -1,5 +1,8 @@
 {
   "root": "//third_party/electron_node:libnode",
+  "native_library_replacements": {
+    "atomic": "@llvm//runtimes/compiler-rt:clang_rt.builtins.static"
+  },
   "aliases": {
     "third_party/electron_node/deps/v8/include/js_protocol.pdl": "v8/include/js_protocol.pdl"
   },

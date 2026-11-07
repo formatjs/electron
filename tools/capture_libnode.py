@@ -176,7 +176,7 @@ def capture(graph, chromium, node, v8, zstd):
         if not physical(path).is_file():
             raise ValueError("Missing original libnode input: " + path)
     header_families = {name: sorted(path for path in headers if path.startswith(prefix)) for name, prefix in {"node": NODE, "brotli": "third_party/brotli/", "zstd": "third_party/zstd/", "inspector": "third_party/inspector_protocol/"}.items()}
-    return {"root": ROOT, "aliases": ALIASES, "names": names, "libraries": libraries, "actions": actions, "producers": producers, "files": sorted(files), "headers": header_families, "external": REUSE, "generated_files": GENERATED_FILES, "generator_deps": sorted(GENERATORS), "toolchain_deps": sorted(TOOLCHAIN)}
+    return {"root": ROOT, "native_library_replacements": {"atomic": "@llvm//runtimes/compiler-rt:clang_rt.builtins.static"}, "aliases": ALIASES, "names": names, "libraries": libraries, "actions": actions, "producers": producers, "files": sorted(files), "headers": header_families, "external": REUSE, "generated_files": GENERATED_FILES, "generator_deps": sorted(GENERATORS), "toolchain_deps": sorted(TOOLCHAIN)}
 
 
 def main():
