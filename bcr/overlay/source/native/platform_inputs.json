@@ -111193,6 +111193,7 @@
       "gn_deps": [],
       "script": "third_party/dawn/generator/opengl_loader_generator.py",
       "inputs": [
+        "//out/bazel-import/gen/third_party/dawn/opengl_loader_gen.expected_outputs",
         "//third_party/dawn/generator/dawn_gpu_info_generator.py",
         "//third_party/dawn/generator/dawn_json_generator.py",
         "//third_party/dawn/generator/dawn_version_generator.py",
@@ -111404,6 +111405,7 @@
       "gn_deps": [],
       "script": "third_party/dawn/generator/dawn_json_generator.py",
       "inputs": [
+        "//out/bazel-import/gen/third_party/dawn/utils_gen.expected_outputs",
         "//third_party/dawn/generator/dawn_gpu_info_generator.py",
         "//third_party/dawn/generator/dawn_json_generator.py",
         "//third_party/dawn/generator/dawn_version_generator.py",
@@ -120638,6 +120640,38 @@
       "gn_deps": [],
       "outputs": [
         "//out/bazel-import/gen/ui/ozone/public/mojom/gesture_properties_service.build_metadata"
+      ]
+    }
+  },
+  "literal_metadata": {
+    "//out/bazel-import/gen/third_party/dawn/opengl_loader_gen.expected_outputs": {
+      "source": "third_party/dawn/generator/generator_lib.gni",
+      "target": "//third_party/dawn/src/dawn/native:opengl_loader_gen",
+      "outputs": [
+        "src/dawn/native/opengl/OpenGLFunctionsBase_autogen.cpp",
+        "src/dawn/native/opengl/OpenGLFunctionsBase_autogen.h",
+        "src/dawn/native/opengl/opengl_platform_autogen.h"
+      ]
+    },
+    "//out/bazel-import/gen/third_party/dawn/utils_gen.expected_outputs": {
+      "source": "third_party/dawn/generator/generator_lib.gni",
+      "target": "//third_party/dawn/src/dawn/native:utils_gen",
+      "outputs": [
+        "src/dawn/native/ChainUtils_autogen.h",
+        "src/dawn/native/ChainUtils_autogen.cpp",
+        "src/dawn/native/Features_autogen.h",
+        "src/dawn/native/Features_autogen.inl",
+        "src/dawn/native/ProcTable.cpp",
+        "src/dawn/native/dawn_platform_autogen.h",
+        "src/dawn/native/wgpu_structs_autogen.h",
+        "src/dawn/native/wgpu_structs_autogen.cpp",
+        "src/dawn/native/ValidationUtils_autogen.h",
+        "src/dawn/native/ValidationUtils_autogen.cpp",
+        "src/dawn/native/webgpu_absl_format_autogen.h",
+        "src/dawn/native/webgpu_absl_format_autogen.cpp",
+        "src/dawn/native/webgpu_StreamImpl_autogen.cpp",
+        "src/dawn/native/ObjectType_autogen.h",
+        "src/dawn/native/ObjectType_autogen.cpp"
       ]
     }
   },
@@ -148328,6 +148362,8 @@
     "//out/bazel-import/gen/services/viz/public/mojom/singleplanar_format.typemap_config": "[\n\n]",
     "//out/bazel-import/gen/services/viz/public/mojom/singleplanar_format__generator.rsp": "../../services/viz/public/mojom/compositing/internal/singleplanar_format.mojom\n",
     "//out/bazel-import/gen/services/viz/public/mojom/singleplanar_format_shared__generator.rsp": "../../services/viz/public/mojom/compositing/internal/singleplanar_format.mojom\n",
+    "//out/bazel-import/gen/third_party/dawn/opengl_loader_gen.expected_outputs": "src/dawn/native/opengl/OpenGLFunctionsBase_autogen.cpp\nsrc/dawn/native/opengl/OpenGLFunctionsBase_autogen.h\nsrc/dawn/native/opengl/opengl_platform_autogen.h\n",
+    "//out/bazel-import/gen/third_party/dawn/utils_gen.expected_outputs": "src/dawn/native/ChainUtils_autogen.h\nsrc/dawn/native/ChainUtils_autogen.cpp\nsrc/dawn/native/Features_autogen.h\nsrc/dawn/native/Features_autogen.inl\nsrc/dawn/native/ProcTable.cpp\nsrc/dawn/native/dawn_platform_autogen.h\nsrc/dawn/native/wgpu_structs_autogen.h\nsrc/dawn/native/wgpu_structs_autogen.cpp\nsrc/dawn/native/ValidationUtils_autogen.h\nsrc/dawn/native/ValidationUtils_autogen.cpp\nsrc/dawn/native/webgpu_absl_format_autogen.h\nsrc/dawn/native/webgpu_absl_format_autogen.cpp\nsrc/dawn/native/webgpu_StreamImpl_autogen.cpp\nsrc/dawn/native/ObjectType_autogen.h\nsrc/dawn/native/ObjectType_autogen.cpp\n",
     "//out/bazel-import/gen/ui/base/cursor/mojom/cursor_type.build_metadata": "{\n  \"deps\": [\n\n  ],\n  \"sources\": [\n    \"../../../../../../../ui/base/cursor/mojom/cursor_type.mojom\"\n  ]\n}",
     "//out/bazel-import/gen/ui/base/cursor/mojom/cursor_type__generate_message_ids.rsp": "../../ui/base/cursor/mojom/cursor_type.mojom\n",
     "//out/bazel-import/gen/ui/base/cursor/mojom/cursor_type__parser_action.rsp": "../../ui/base/cursor/mojom/cursor_type.mojom\n",

@@ -100,6 +100,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
         return chromium / path
 
     files, generated, headers, used_shared = set(), {}, {}, set()
+    literal_metadata = {}
     producers = {}
     for label in sorted(seen):
         target = targets[label]
@@ -119,6 +120,8 @@ def capture(graph, digest, chromium, source_roots, profiles):
 
     def input_file(path):
         if path in tools:
+            return
+        if path in generated:
             return
         if path in shared:
             used_shared.add(path)
@@ -187,6 +190,19 @@ def capture(graph, digest, chromium, source_roots, profiles):
                     raise ValueError("Untranslated platform template path")
                 root = physical(directory[6:])
                 inputs.update("//" + directory[6:] + "/" + path.relative_to(root).as_posix() for path in source_files(root) if path.is_file())
+            if "--expected-outputs-file" in args:
+                extraction_label = label.removesuffix("__json_tarball")
+                extraction = targets[extraction_label]
+                if not label.endswith("__json_tarball") or extraction.get("script") != "//third_party/dawn/generator/extract_json.py" or extraction["args"][0] != args[args.index("--output-json-tarball") + 1]:
+                    raise ValueError("Untranslated original Dawn output declaration")
+                prefix = BUILD + extraction["args"][1] + "/"
+                if any(not output.startswith(prefix) for output in extraction["outputs"]):
+                    raise ValueError("Original Dawn output escapes generation root")
+                path = BUILD + args[args.index("--expected-outputs-file") + 1]
+                outputs = [output.removeprefix(prefix) for output in extraction["outputs"]]
+                generated[path] = "\n".join(outputs) + "\n"
+                literal_metadata[path] = dict(source="third_party/dawn/generator/generator_lib.gni", target=extraction_label, outputs=outputs)
+                inputs.add(path)
             if target["script"] == "//mojo/public/tools/bindings/mojom_bindings_generator.py":
                 template = {"c++": "cpp_templates.zip", "typescript": "ts_templates.zip", "javascript": "js_templates.zip"}[args[args.index("-g") + 1]]
                 inputs.add(BUILD + args[args.index("--bytecode_path") + 1] + "/" + template)
@@ -249,7 +265,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
         if not physical(path).is_file():
             raise ValueError("Missing original platform input: " + path)
     used = {dep for label in seen for dep in targets[label].get("deps", []) if dep in external}
-    return dict(roots=ROOTS, graph_sha256=digest, source_revisions=revisions, names=names, libraries=libraries, actions=actions, metadata=metadata, execution_tools=sorted(set(tools.values())), execution_closure=sorted(execution_closure), producers=producers, headers=headers, files=sorted(files), external_files={path: shared[path] for path in sorted(used_shared)}, external={label: external[label] for label in sorted(used)}, generated_files=generated, toolchain_deps=sorted(TOOLCHAIN), sdk_libraries=sorted(SDK_LIBS))
+    return dict(roots=ROOTS, graph_sha256=digest, source_revisions=revisions, names=names, libraries=libraries, actions=actions, metadata=metadata, literal_metadata=literal_metadata, execution_tools=sorted(set(tools.values())), execution_closure=sorted(execution_closure), producers=producers, headers=headers, files=sorted(files), external_files={path: shared[path] for path in sorted(used_shared)}, external={label: external[label] for label in sorted(used)}, generated_files=generated, toolchain_deps=sorted(TOOLCHAIN), sdk_libraries=sorted(SDK_LIBS))
 
 
 def main():
