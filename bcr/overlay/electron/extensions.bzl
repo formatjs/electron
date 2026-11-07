@@ -6,6 +6,7 @@ load(":icu_repository.bzl", "electron_icu_repository")
 load(":partition_alloc_repository.bzl", "electron_partition_alloc_repository")
 load(":rust_repository.bzl", "electron_rust_repository")
 load(":source_repositories.bzl", "electron_abseil_repository", "electron_node_repository", "electron_patched_upstream")
+load(":v8_support_repository.bzl", "electron_v8_support_repository")
 
 _VERSION = "39.0.0"
 
@@ -61,8 +62,30 @@ def _impl(ctx):
     electron_icu_repository(name = "electron_icu_sources", chromium = "@electron_chromium_sources//:DEPS")
     electron_partition_alloc_repository(name = "electron_partition_alloc_sources", chromium = "@electron_chromium_sources//:DEPS")
     electron_rust_repository(name = "electron_rust_sources", chromium = "@electron_chromium_sources//:DEPS")
+    support_repos = []
+    for name, github, revision, sha256 in [
+        ("dragonbox", "jk-jeon/dragonbox", "6c7c925b571d54486b9ffae8d9d18a822801cbda", "71f2ed97cf89cc6b05c0aefb349bd137f521eca4e27f0fe985b1a815a77889a6"),
+        ("fast_float", "fastfloat/fast_float", "cb1d42aaa1e14b09e1452cfdef373d051b8c02a4", "68faac8220af2d346bc76c71a6baad4a0e692640d9a595606a745219757fccdc"),
+        ("highway", "google/highway", "84379d1c73de9681b54fbe1c035a23c7bd5d272d", "1647ed8ba0a614347e2e9d34e7957a2547387997255a559e469ef04b0bc520a0"),
+    ]:
+        repo = "electron_" + name + "_upstream"
+        http_archive(
+            name = repo,
+            urls = ["https://github.com/" + github + "/archive/" + revision + ".tar.gz"],
+            sha256 = sha256,
+            strip_prefix = name + "-" + revision,
+            build_file_content = "exports_files([\"BUILD.bazel\"], visibility = [\"//visibility:public\"])\n",
+        )
+        support_repos.append(repo)
+    electron_v8_support_repository(
+        name = "electron_v8_support_sources",
+        chromium = "@electron_chromium_sources//:DEPS",
+        dragonbox = "@electron_dragonbox_upstream//:BUILD.bazel",
+        fast_float = "@electron_fast_float_upstream//:BUILD.bazel",
+        highway = "@electron_highway_upstream//:BUILD.bazel",
+    )
     electron_node_repository(name = "electron_node_sources", electron = "@electron//:DEPS")
-    direct = ["electron_node_sources", "electron_v8_sources", "electron_chromium_sources", "electron_cast_core_sources", "electron_glslang_sources", "electron_abseil_sources", "electron_icu_sources", "electron_partition_alloc_sources", "electron_rust_sources"] + dependency_repos
+    direct = ["electron_node_sources", "electron_v8_sources", "electron_chromium_sources", "electron_cast_core_sources", "electron_glslang_sources", "electron_abseil_sources", "electron_icu_sources", "electron_partition_alloc_sources", "electron_rust_sources", "electron_v8_support_sources"] + dependency_repos + support_repos
     return ctx.extension_metadata(reproducible = True, root_module_direct_deps = direct, root_module_direct_dev_deps = [])
 
 electron = module_extension(implementation = _impl, tag_classes = {"version": tag_class(attrs = {"version": attr.string(mandatory = True)})})

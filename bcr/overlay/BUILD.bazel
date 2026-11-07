@@ -41,6 +41,7 @@ filegroup(
         "//source:v8_bytecodes",
         "//source:v8_patches",
         "//source:v8_regexp",
+        "//source:v8_support_libraries",
         "//source:v8_torque",
     ],
 )
@@ -58,6 +59,7 @@ test_suite(
         "//source:temporal_test",
         "//source:v8_bytecodes_test",
         "//source:v8_regexp_test",
+        "//source:v8_support_test",
         "//source:v8_tasks_test",
         "//tests:electron_bundles_test",
         "//tests:node_builtins_test",

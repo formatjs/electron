@@ -1,0 +1,5 @@
+load("@electron//source:v8_support_rules.bzl", "electron_v8_support")
+
+package(default_visibility = ["//visibility:public"])
+
+electron_v8_support()

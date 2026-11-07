@@ -1,4 +1,5 @@
 exports_files([
+    "v8_support_inputs.json",
     "v8_temporal_inputs.bzl",
     "temporal_inputs.json",
     "partition_alloc_inputs.bzl",

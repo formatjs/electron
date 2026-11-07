@@ -44,8 +44,11 @@ use_repo(
     "electron_cast_core_sources",
     "electron_chromium_sources",
     "electron_devtools_frontend_sources",
+    "electron_dragonbox_upstream",
+    "electron_fast_float_upstream",
     "electron_ffmpeg_sources",
     "electron_glslang_sources",
+    "electron_highway_upstream",
     "electron_icu_sources",
     "electron_mantle_sources",
     "electron_nan_sources",
@@ -58,6 +61,7 @@ use_repo(
     "electron_sqlite_sources",
     "electron_squirrel_mac_sources",
     "electron_v8_sources",
+    "electron_v8_support_sources",
     "electron_webrtc_sources",
 )
 

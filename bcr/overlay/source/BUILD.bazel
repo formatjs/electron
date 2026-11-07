@@ -220,6 +220,8 @@ electron_js2c(
 )
 
 exports_files([
+    "v8_support.BUILD.bazel",
+    "v8_support_rules.bzl",
     "rust_allocator_probe.rs",
     "rust.BUILD.bazel",
     "rust_rules.bzl",
@@ -430,4 +432,30 @@ cc_test(
         ":node_defines",
     ],
     includes = ["node_defines"],
+)
+
+cc_test(
+    name = "v8_support_test",
+    srcs = ["v8_support_test.cc"],
+    copts = [
+        "-std=c++20",
+        "-ffp-contract=off",
+    ],
+    linkstatic = True,
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    deps = ["@electron_v8_support_sources//:" + name for name in [
+        "dragonbox",
+        "fast_float",
+        "highway",
+        "simdutf",
+        "compression_utils_portable",
+    ]],
+)
+
+alias(
+    name = "v8_support_libraries",
+    actual = "@electron_v8_support_sources//:libraries",
 )
