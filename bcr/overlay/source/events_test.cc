@@ -102,7 +102,8 @@ void CheckProtocolAndCompression() {
   int display, screen;
   Require(xcb_parse_display("fixture:12.3", &host, &display, &screen) && std::strcmp(host, "fixture") == 0 && display == 12 && screen == 3, "native XCB display string parsing");
   std::free(host);
-  Require(!xcb_parse_display("fixture:invalid", nullptr, nullptr, nullptr), "invalid XCB display rejection");
+  host = nullptr;
+  Require(!xcb_parse_display("fixture:invalid", &host, &display, &screen), "invalid XCB display rejection");
   std::string input;
   for (int i = 0; i < 256; ++i) input.append("wire\0payload", 12);
   std::string compressed, decoded;

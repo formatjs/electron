@@ -1169,3 +1169,58 @@ and [cross-compile](https://formatjs.buildbuddy.io/invocation/7c3d5002-aee4-478a
 checks passed. The display runtime probe and existing source runtime suite passed.
 Action analysis found no CMake or foreign-cc actions. Complete Blink/content,
 other full source profiles and the Electron executable remain unfinished.
+
+## Native events closure
+
+`electron_events_sources` captures the complete `ui/events:events` dependency
+closure: 417 native units in 125 library/group targets, 76 original Python
+actions, seven literal GN metadata targets and one original protocol-copy step.
+Existing display/gfx/Skia/Mojo/Base/Perfetto/Protobuf providers retain their
+identities. Matching Snappy comes from its exact Chromium DEPS commit; the
+existing pinned JavaScript protoc plugin remains an execution tool.
+
+```mermaid
+flowchart TD
+  Shared[Native display / gfx / Mojo / Base] --> Events[Original UI events]
+  Proto[Original protoc / plugins / tracing generators] --> Events
+  Protocol[Original X11 protocol copies] --> Events
+  XCB[Native XCB / XKB] --> Events
+  Events --> Probe[Input / keyboard state / X11 wire / compression probes]
+  Events --> Content[Remaining UI / content / Electron closure]
+```
+
+Native XCB uses pinned BCR libxcb/xcb-proto sources with declared Python
+generation and byte checks across changed paths/mtimes. Original shell moves
+and header copies become declared copy actions. Linux abstract sockets stay
+enabled, matching the Chromium reference. Native libxau and xkbcommon retain
+their BCR source rules; no CMake/foreign-cc wrappers participate.
+
+The runtime probe uses explicit input events, an inline XKB keymap with default
+includes/environment names disabled, a fixed X11 keyboard packet and binary
+Snappy data. It checks modifier/clone and transform behavior, shift press/release,
+invalid keyboard layout rejection, original X11 decoding, XCB display parsing
+and compression/truncation handling. No host keyboard layout or X server is
+required. This complete source profile remains Linux AMD64; physical X11/device
+execution and other full source profiles need separate coverage.
+
+Recapture from matching public source checkouts:
+
+```sh
+python3 tools/capture_events.py \
+  --graph=bcr/overlay/source/native/linux_amd64.partial.json.gz \
+  --chromium-root=/path/to/electron-patched-chromium \
+  --snappy-root=/path/to/snappy-32ded457c0b1fe78ceb8397632c416568d6714a0 \
+  --protobuf-javascript-root=/path/to/protobuf-javascript-e6d763860001ba1a76a63adcff5efb12b1c96024 \
+  --perfetto-root=/path/to/electron-patched-perfetto \
+  --profiles=bcr/overlay/source/native \
+  --output=bcr/overlay/source/native/events_inputs.json
+```
+
+[decd4f5 components](https://formatjs.buildbuddy.io/invocation/69a9e5a2-7f52-4b5e-9019-e668a8c35dd3),
+[consumer](https://formatjs.buildbuddy.io/invocation/eafe398a-4731-4923-94ce-1b34ab04fa1f)
+and [cross-compile](https://formatjs.buildbuddy.io/invocation/93ec6252-8c42-4cef-9b6d-50def569b0e3)
+checks passed. Original X11 keysym headers and three textually included keyboard
+C implementations are declared inputs. The wire probe uses public decoding and
+owned-memory interfaces. Generator byte checks remain enabled. Complete
+Blink/content, other full source profiles and the Electron executable remain
+unfinished.
