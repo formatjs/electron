@@ -34,7 +34,8 @@ def electron_v8_engine():
         name = "source_headers",
         hdrs = PROFILE["headers"],
         includes = [".", "v8", "v8/include", "third_party/fp16/src/include"],
-        deps = ["@googletest//:gtest_prod"],
+        # GN exposes Abseil headers through include roots on header-only edges.
+        deps = ["@googletest//:gtest_prod", "@electron_protobuf_sources//:abseil"],
     )
     for original, generator in PROFILE["reused_generators"].items():
         outputs = sorted(generator["outputs"])
