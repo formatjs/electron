@@ -2,7 +2,8 @@
 
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository", "new_git_repository")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-load(":source_repositories.bzl", "electron_abseil_repository", "electron_icu_repository", "electron_node_repository", "electron_patched_upstream")
+load(":icu_repository.bzl", "electron_icu_repository")
+load(":source_repositories.bzl", "electron_abseil_repository", "electron_node_repository", "electron_patched_upstream")
 
 _VERSION = "39.0.0"
 

@@ -183,7 +183,12 @@ ICU version. `@electron//source:icu_test` disables ambient data-file loading,
 rejects corrupt common data, then initializes from that declared file. It
 checks NFC composition, case-fold preflight/expansion, collation strengths,
 French number formatting and Chromium's patched word-break behavior.
-Hosted compilation and these behavior checks remain required for this addition.
+[fe62420 source components](https://formatjs.buildbuddy.io/invocation/63616e6c-424b-4f71-8962-5903b4a10113)
+and [BCR consumer](https://formatjs.buildbuddy.io/invocation/23d317a4-9381-4466-a904-6afb3bb4a61d)
+passed all compilation and these behavior checks; cross-compile CI also passed.
+This captured ICU profile itself remains Linux AMD64. Its repository rule is
+separate from Node/V8 repository implementations so future ICU setup edits do
+not change their definition files. Full V8/Electron linking remains unfinished.
 
 ```sh
 python3 tools/capture_icu.py --graph=bcr/overlay/source/native/linux_amd64.partial.json.gz \
