@@ -109,11 +109,18 @@ def capture(graph, digest, chromium, node_modules, profiles):
             if uses_node:
                 inputs.update(helpers["third_party/node"])
             args = [arg.replace("$SOURCE_ROOT/out/bazel-import/", "") for arg in target.get("args", [])]
+            if target["script"] == "//mojo/public/tools/bindings/mojom_bindings_generator.py":
+                prefix = {"c++": "cpp_templates.zip", "typescript": "ts_templates.zip", "javascript": "js_templates.zip"}[args[args.index("-g") + 1]]
+                inputs.add(BUILD + args[args.index("--bytecode_path") + 1] + "/" + prefix)
             for arg in args:
                 if arg.startswith("../../") and physical(arg[6:]).is_file():
                     inputs.add("//" + arg[6:])
                 elif BUILD + arg in graph["generated_files"]:
                     inputs.add(BUILD + arg)
+            if target["script"] == "//tools/grit/grit.py":
+                for source in list(inputs):
+                    if source.startswith("//ui/strings/") and source.endswith(".grd"):
+                        inputs.update("//" + path.relative_to(chromium).as_posix() for path in (chromium / "ui/strings").rglob("*") if path.is_file() and path.suffix in (".xtb", ".grdp"))
             if any("{{" in arg.replace("{{response_file_name}}", "") for arg in args):
                 raise ValueError("Untranslated UI generator placeholder: " + label)
             for path in inputs:
