@@ -1,7 +1,8 @@
 # Electron source import
 
 This overlay builds native Electron source components, including the complete
-V8 engine, generated snapshots, Chromium base and patched libnode. No target
+V8 engine, generated snapshots, Chromium base, patched libnode and native
+Mojo/networking. No target
 currently links a full Electron executable. Source pins and build inputs live in
 `bcr/overlay/source`.
 Compilation uses native Bazel rules and declared generators, without CMake or
@@ -779,5 +780,65 @@ calls and cleanup are checked too.
 [c961819 components](https://formatjs.buildbuddy.io/invocation/f6a3b332-0992-416c-9457-6c23dbbb6324),
 [consumer](https://formatjs.buildbuddy.io/invocation/3afbac9c-cb0e-4445-a246-0b6d499ffcde)
 and [cross-compile](https://formatjs.buildbuddy.io/invocation/99392287-c350-44ac-997e-d3e17c87b1e9)
-checks passed. This full profile remains Linux AMD64. Mojo's core/platform and
-matching networking dependencies remain unfinished.
+checks passed. This full profile remains Linux AMD64. Mojo/network integration
+follows below.
+
+## Mojo and networking
+
+`electron_network_sources` translates the complete captured Mojo embedder
+closure: 1,124 C/C++ units in 63 library/group/tool targets, plus 29 original
+generator runs. Existing Base, ICU, IPCz, Protobuf, compression and tracing
+targets stay shared. QUICHE and RE2 use Chromium's exact DEPS revisions; SQLite
+uses Electron's patched source, original shim and symbol-renaming headers.
+Source-listed headers, public headers and included compiler inputs stay declared.
+Native NSS/NSPR build rules come from pinned
+`formatjs/chromium` commit `4a2321d`. GSSAPI headers use the matching pinned
+Chromium sysroot archive; product libraries never fall back to host packages.
+All 34 PKI sources match the captured BoringSSL target and join its existing
+SSL/crypto libraries. Net's shared type headers declare their Mojo tag,
+unexportable-key and time-tracker header dependencies explicitly. The tag-only
+target exposes one header instead of the complete Mojo header inventory.
+
+```mermaid
+flowchart TD
+  Sources[Matching patched sources] --> Net[Chromium networking]
+  Protoc[Matching native protoc] --> Proto[Original protocol generators]
+  Tools[Native root-store and HSTS tools] --> Data[Root-store / HSTS data]
+  Grit[Original GRIT and resource ID generators] --> Resources[Resource headers / packs]
+  Proto --> Net
+  Data --> Net
+  Resources --> Net
+  NSS[Native NSS / NSPR] --> Net
+  Net --> Mojo[Mojo core / platform / embedder]
+  IPCz[Matching IPCz] --> Mojo
+  Mojo --> Electron[Electron / content]
+```
+
+Python generators retain explicit inputs, execution-platform tools, empty child
+`PATH` and byte equality across changed paths/mtimes. Two owned GRIT adaptations
+make `.pak.info` source paths and the resource-ID header comment relative.
+`native_compat_patches.json` records them; parent Chromium files stay unchanged.
+
+NSS module `.chk` files use original DSA-2048 parameters, a public build key and
+[RFC 6979](https://www.rfc-editor.org/rfc/rfc6979#section-3.2) SHA-256 nonces.
+Original source-built NSS performs key construction, signing and verification;
+its random blinding stays enabled. Each integrity action compares output bytes
+across paths/mtimes. Public-key metadata inside `.chk` serves module integrity;
+release signing has its own interface. Runtime random generation remains original.
+Published DSA-2048/SHA-256 vectors check nonce generation.
+
+The runtime probe loads the declared NSS implementation and calls its original
+`BLAPI_SHVerifyFile` vector entry. It accepts generated and relocated integrity
+files, then rejects changed library bytes and changed signature bytes. HSTS
+lookup checks both sides of Chromium's 70-day build-age boundary with a scoped
+test clock; production clock and expiry policy remain unchanged.
+
+The runtime probe covers generated suffix/HSTS data, IDNA canonicalization,
+invalid URLs, hashing, NSS random generation and Chromium SQL. Mojo checks binary
+messages, empty/closed pipes, data pipes, shared mappings and cleanup.
+[122f977 components](https://formatjs.buildbuddy.io/invocation/c4852e98-f478-4d62-9b46-d8e782e1ff68),
+[consumer](https://formatjs.buildbuddy.io/invocation/376c61c9-c0a3-471b-b9a7-2d07d498f510)
+and [cross-compile](https://formatjs.buildbuddy.io/invocation/2b651fc7-4805-4297-8279-0e494a51e15f)
+checks passed, including the nonce vectors and fresh network-denial gate. This
+full profile remains Linux AMD64; typed Mojo bindings, Blink/content and the
+full Electron executable remain unfinished.
