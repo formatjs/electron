@@ -1,7 +1,9 @@
 # Electron source import
 
 This overlay builds native Electron source components, including the complete
-V8 engine, generated snapshots and Chromium base. No target currently links a full Electron executable. Source pins and build inputs live in `bcr/overlay/source`.
+V8 engine, generated snapshots, Chromium base and patched libnode. No target
+currently links a full Electron executable. Source pins and build inputs live in
+`bcr/overlay/source`.
 Stage a local registry first as shown in the root README; add its registry flags
 to every Bazel command below. Native source work:
 
@@ -37,8 +39,9 @@ Chromium dependencies still need explicit source/Bazel declarations before
 full native translation. Other four source graphs also remain. No GN/Ninja
 build runs inside Bazel actions.
 
-Next concrete producers: `//third_party/electron_node:libnode` has 171 C/C++
-units; `//electron:electron_lib` has 315. Node's `run_node_js2c`,
+Patched `//third_party/electron_node:libnode` now builds its 171 C/C++ units and
+executes a real embedding probe. Next native producer:
+`//electron:electron_lib` has 315 units plus its Chromium dependency closure. Node's `run_node_js2c`,
 `generate_config_gypi` and `node_js2c_original_fs` now have native Bazel
 producers. All eight Electron webpack bundles now build using actual upstream
 configurations, captured buildflags and 141 integrity-pinned packages
@@ -663,3 +666,59 @@ Base also links PartitionAlloc's original two-unit `raw_ptr` implementation.
 This is distinct from its 66-unit allocator/shim closure. Its private headers
 stay separate from the existing allocator header target, keeping the full V8
 engine's action inputs unchanged during this extension.
+
+## Patched libnode and native inspector
+
+`electron_libnode_sources` translates the 171-unit patched libnode source set,
+original Chromium inspector protocol implementation and matching Brotli/Zstd
+libraries: 239 C/C++/assembly units total. Existing V8, Base, ICU, BoringSSL,
+libuv, eleven Node dependencies and both JS2C outputs stay shared.
+
+```mermaid
+flowchart TD
+  Node[Patched Node sources and builtins] --> Library[libnode]
+  Protocol[Original PDL and inspector generators] --> Library
+  V8[Source-built V8 and startup snapshot] --> Library
+  Base[Chromium Base and original CRDTP] --> Library
+  Compression[Pinned Brotli / matching Zstd] --> Library
+  Library --> Probe[Real Node environment and inspector]
+  Addon[Native Node-API 10 shared addon] --> Probe
+```
+
+Native actions declare the PDL files read by Node's actual inspector config,
+including a read-only alias to the matching patched V8 PDL. They also declare
+the original generator's imported `Runtime.h`, omitted from captured GN outputs.
+Zstd compression is an explicit extra native dependency: Node 22.20 exposes
+compression APIs, while the captured GN edge only names the decoder. The
+profile preserves original GN outputs/dependencies alongside these additions.
+Zstd uses Chromium's exact `89d685e` DEPS revision and an integrity-pinned archive.
+No stock Node/V8 source tree substitutes for Electron's selected versions.
+
+Generators retain isolated Python, declared Jinja/MarkupSafe sources, empty
+child `PATH`, explicit environments and output equality across paths/mtimes.
+Compression header groups stay separate from Node headers; static-library and
+source-set linkage retain their original distinction. Legacy GNU `-latomic`
+resolves to the declared LLVM compiler-rt builtins archive, whose source includes
+the atomic implementation. A native `cc_shared_library` builds the
+addon; a declared pinned-Python action materializes unchanged bytes in a regular
+`.node` file. Symlinking a `.so` is insufficient: Node resolves the real filename
+before selecting its loader. Bazel 9 rejects a direct `.node` shared-library
+filename, so the final file requires its own declared action.
+
+`node_embed_lifecycle.patch` updates the owned `CommonEnvironmentSetup` copy to
+dispose its isolate before unregistering the platform, matching Electron's
+existing `NodeMainInstance` ordering. V8 can still request foreground tasks
+during disposal. Original parent sources remain unchanged;
+`native_compat_patches.json` records this compatibility patch.
+
+The embedding probe initializes an actual Node environment with generated V8
+startup data. It checks ABI 140, Node-API 10 shared-addon loading, original-fs,
+asynchronous filesystem reads, crypto, Brotli/Zstd round trips and corruption
+rejection, in-memory SQLite and inspector `Runtime.evaluate`. Generic 24-byte
+atomic compare-exchange/load exercises the actual compiler-rt implementation.
+[40b2baf components](https://formatjs.buildbuddy.io/invocation/db60fdd2-5715-468b-aad5-05013a89fa46),
+[consumer](https://formatjs.buildbuddy.io/invocation/257b7fb2-b546-4a98-8b6a-6e1cfb45fa73)
+and [cross-compile](https://formatjs.buildbuddy.io/invocation/3e5b2b22-6b6f-4636-b582-5bc4efd1af57)
+checks passed. libnode itself remains Linux AMD64; cross checks still cover the
+existing platform probes. A complete Electron executable and the other full
+source profiles remain unfinished.
