@@ -1071,3 +1071,53 @@ checks passed. This complete Skia profile remains Linux AMD64; runtime coverage
 uses CPU raster/SkSL, not a hardware GPU context. Existing cross probes do not
 establish complete Skia support on other targets. Blink/content, other full
 source profiles and the Electron executable remain unfinished.
+
+## Native graphics closure
+
+`electron_gfx_sources` captures `ui/gfx`, image codecs, memory buffers, data packs
+and geometry/range Mojo bindings. It adds 351 native C/C++/assembly units in
+62 library/group targets, 34 original Python actions and four literal GN metadata
+targets. Existing Skia, Mojo, fonts, codecs and Base providers stay shared.
+
+libdrm and libsync use exact Chromium DEPS commits. Crashpad comes from the
+Electron-patched Chromium tree. The original libdrm configuration group retains
+its native dependency; no system library discovery or wrapper build substitutes
+for these sources. Original generators retain declared inputs, empty child PATH
+and changed-path/mtime byte checks.
+
+```mermaid
+flowchart TD
+  Shared[Native Skia / Mojo / fonts / Base] --> Gfx[Original ui/gfx closure]
+  Native[Native libdrm / libsync / patched Crashpad] --> Gfx
+  Metadata[Original generators / GN metadata] --> Gfx
+  Gfx --> Probe[Geometry / wire types / PNG / buffers / data packs]
+  Gfx --> Content[Remaining content / Electron closure]
+```
+
+`gfx_test` covers transform composition/inversion, singular rejection, native
+geometry/range wire roundtrips and truncated wire rejection, PNG RGBA/alpha and
+invalid input, NV12 layout and size overflow, original DRM format/modifier names,
+and deterministic binary data packs with duplicate resources and truncated-input
+rejection. This captured profile remains Linux AMD64. Hardware GPU/device and
+Crashpad process execution need separate runtime coverage.
+
+Recapture from matching public checkouts:
+
+```sh
+python3 tools/capture_gfx.py \
+  --graph=bcr/overlay/source/native/linux_amd64.partial.json.gz \
+  --chromium-root=/path/to/electron-patched-chromium \
+  --libdrm-root=/path/to/libdrm-ad78bb591d02162d3b90890aa4d0a238b2a37cde \
+  --libsync-root=/path/to/libsync-f4f4387b6bf2387efbcfd1453af4892e8982faf6 \
+  --profiles=bcr/overlay/source/native \
+  --output=bcr/overlay/source/native/gfx_inputs.json
+```
+
+[8f46f43 components](https://formatjs.buildbuddy.io/invocation/064306e7-598c-4ec4-9fb2-1e55f172e442),
+[consumer](https://formatjs.buildbuddy.io/invocation/e3112348-39f6-47a5-8001-f72d63c0f457)
+and [cross-compile](https://formatjs.buildbuddy.io/invocation/e1c6f98a-f21f-430b-9a5e-2b1206b25deb)
+checks passed, including the real gfx runtime probe. Original cc component
+headers and Crashpad's assembly include are declared source inputs. Skia
+recapture remains byte-identical after sharing the profile ownership loader.
+Action analysis found no CMake or foreign-cc actions. Full Electron remains
+unlinked; existing cross probes cover their named platform boundaries.
