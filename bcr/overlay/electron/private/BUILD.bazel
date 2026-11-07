@@ -40,3 +40,8 @@ py_binary(
     name = "webpack",
     srcs = ["webpack.py"],
 )
+
+py_binary(
+    name = "source_action",
+    srcs = ["source_action.py"],
+)

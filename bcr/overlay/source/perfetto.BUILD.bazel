@@ -1,0 +1,5 @@
+load("@electron//source:perfetto_rules.bzl", "electron_perfetto")
+
+package(default_visibility = ["//visibility:public"])
+
+electron_perfetto()

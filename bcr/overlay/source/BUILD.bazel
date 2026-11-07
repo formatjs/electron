@@ -221,6 +221,8 @@ electron_js2c(
 )
 
 exports_files([
+    "perfetto.BUILD.bazel",
+    "perfetto_rules.bzl",
     "protobuf.BUILD.bazel",
     "protobuf_rules.bzl",
     "v8_support.BUILD.bazel",
@@ -519,4 +521,29 @@ cc_test(
 alias(
     name = "protobuf_libraries",
     actual = "@electron_protobuf_sources//:libraries",
+)
+
+cc_test(
+    name = "perfetto_test",
+    srcs = ["perfetto_test.cc"],
+    copts = [
+        "-std=c++20",
+        "-fno-rtti",
+        "-fno-exceptions",
+    ],
+    linkstatic = True,
+    local_defines = [
+        "DCHECK_ALWAYS_ON=1",
+        "NDEBUG",
+    ],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    deps = ["@electron_perfetto_native_sources//:perfetto"],
+)
+
+alias(
+    name = "perfetto_libraries",
+    actual = "@electron_perfetto_native_sources//:libraries",
 )

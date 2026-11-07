@@ -4,6 +4,7 @@ load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository", "new_git_r
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load(":icu_repository.bzl", "electron_icu_repository")
 load(":partition_alloc_repository.bzl", "electron_partition_alloc_repository")
+load(":perfetto_repository.bzl", "electron_perfetto_repository")
 load(":protobuf_repository.bzl", "electron_protobuf_repository")
 load(":rust_repository.bzl", "electron_rust_repository")
 load(":source_repositories.bzl", "electron_abseil_repository", "electron_node_repository", "electron_patched_upstream")
@@ -57,12 +58,25 @@ def _impl(ctx):
         if group == "boringssl":
             git_repository(name = name, remote = remote, commit = commit, patches = patches + [Label("//source:boringssl-electron.patch")], patch_strip = 1)
         else:
-            new_git_repository(name = name, remote = remote, commit = commit, patches = patches, patch_strip = 1, build_file_content = "package(default_visibility = [\"//visibility:public\"])\nfilegroup(name = \"source_anchor\", srcs = glob([\"*\"], exclude = [\"BUILD.bazel\"]))")
+            new_git_repository(name = name, remote = remote, commit = commit, patches = patches, patch_strip = 1, build_file_content = "package(default_visibility = [\"//visibility:public\"])\n" + ("exports_files([\"BUILD.gn\"])\n" if group == "perfetto" else "") + "filegroup(name = \"source_anchor\", srcs = glob([\"*\"], exclude = [\"BUILD.bazel\"]))")
         dependency_repos.append(name)
     electron_abseil_repository(name = "electron_abseil_sources", chromium = "@electron_chromium_sources//:DEPS")
     electron_icu_repository(name = "electron_icu_sources", chromium = "@electron_chromium_sources//:DEPS")
     electron_partition_alloc_repository(name = "electron_partition_alloc_sources", chromium = "@electron_chromium_sources//:DEPS")
     electron_rust_repository(name = "electron_rust_sources", chromium = "@electron_chromium_sources//:DEPS")
+    http_archive(
+        name = "electron_jsoncpp_upstream",
+        urls = ["https://github.com/open-source-parsers/jsoncpp/archive/42e892d96e47b1f6e29844cc705e148ec4856448.tar.gz"],
+        sha256 = "0b40e4598d68d3dbd8cab90b249e18f1363ecc694c38f727851f4db34b6887ec",
+        strip_prefix = "jsoncpp-42e892d96e47b1f6e29844cc705e148ec4856448",
+        build_file_content = "exports_files([\"BUILD.bazel\"], visibility = [\"//visibility:public\"])\n",
+    )
+    electron_perfetto_repository(
+        name = "electron_perfetto_native_sources",
+        chromium = "@electron_chromium_sources//:DEPS",
+        perfetto = "@electron_perfetto_sources//:BUILD.gn",
+        jsoncpp = "@electron_jsoncpp_upstream//:BUILD.bazel",
+    )
     http_archive(
         name = "electron_protobuf_javascript_upstream",
         urls = ["https://github.com/protocolbuffers/protobuf-javascript/archive/e6d763860001ba1a76a63adcff5efb12b1c96024.tar.gz"],
@@ -98,7 +112,7 @@ def _impl(ctx):
         highway = "@electron_highway_upstream//:BUILD.bazel",
     )
     electron_node_repository(name = "electron_node_sources", electron = "@electron//:DEPS")
-    direct = ["electron_node_sources", "electron_v8_sources", "electron_chromium_sources", "electron_cast_core_sources", "electron_glslang_sources", "electron_abseil_sources", "electron_icu_sources", "electron_partition_alloc_sources", "electron_rust_sources", "electron_v8_support_sources", "electron_protobuf_sources", "electron_protobuf_javascript_upstream"] + dependency_repos + support_repos
+    direct = ["electron_node_sources", "electron_v8_sources", "electron_chromium_sources", "electron_cast_core_sources", "electron_glslang_sources", "electron_abseil_sources", "electron_icu_sources", "electron_partition_alloc_sources", "electron_rust_sources", "electron_v8_support_sources", "electron_protobuf_sources", "electron_protobuf_javascript_upstream", "electron_perfetto_native_sources", "electron_jsoncpp_upstream"] + dependency_repos + support_repos
     return ctx.extension_metadata(reproducible = True, root_module_direct_deps = direct, root_module_direct_dev_deps = [])
 
 electron = module_extension(implementation = _impl, tag_classes = {"version": tag_class(attrs = {"version": attr.string(mandatory = True)})})
