@@ -20,6 +20,7 @@
 #include "ui/color/color_id.h"
 #include "ui/color/color_mixer.h"
 #include "ui/color/color_provider.h"
+#include "ui/color/color_recipe.h"
 #include "ui/color/color_transform.h"
 #include "ui/strings/grit/ui_strings.h"
 #include "ui/webui/resources/grit/webui_resources.h"
@@ -50,7 +51,6 @@ void CheckResources(char** paths) {
   std::string module;
   Require(base::ReadFileToString(DeclaredPath(paths[3]), &module) && !module.empty(), "declared minified WebUI module");
   Require(resources.LoadDataResourceString(IDR_WEBUI_JS_COLOR_UTILS_JS) == module, "packed WebUI module equals original minifier output");
-  base::PathService::RemoveOverride(ui::DIR_LOCALES);
 }
 
 void CheckColorPipeline() {
