@@ -56,7 +56,7 @@ def capture(graph, chromium, perfetto, jsoncpp):
 
     files, headers, actions, libraries = set(), [], {}, {}
     for directory, prefix in [(perfetto, "third_party/perfetto/"), (jsoncpp, "third_party/jsoncpp/source/")]:
-        paths = [prefix + path.relative_to(directory).as_posix() for path in directory.rglob("*") if path.is_file() and path.suffix in (".h", ".inc")]
+        paths = [prefix + path.relative_to(directory).as_posix() for path in directory.rglob("*") if path.is_file() and path.suffix in (".h", ".inc", ".inl")]
         files.update(paths)
         headers += paths
         files.update(prefix + path.name for path in directory.iterdir() if path.is_file() and path.name.startswith(("LICENSE", "COPYING", "NOTICE")))
