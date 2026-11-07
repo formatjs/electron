@@ -132,7 +132,7 @@ def electron_platform():
             settings["linkopts"] += link.pop("linkopts")
             cc_binary(name = library["name"], copts = library["copts"], **dict(settings, **link))
             if library.get("native_tool_data"):
-                electron_source_tool(name = library["name"] + "_runtime", binary = ":" + library["name"], binary_name = library["outputs"][0].split("/")[-1], data = library["native_tool_data"], target_compatible_with = _COMPATIBLE)
+                electron_source_tool(name = library["name"] + "_runtime", binary = ":" + library["name"], data = library["native_tool_data"], target_compatible_with = _COMPATIBLE)
         elif library["kind"] == "shared_library":
             internal = library["name"] + "_objects"
             cc_library(name = internal, srcs = [_file(path) for path in library["srcs"]], copts = library["copts"], alwayslink = True, **settings)
