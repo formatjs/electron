@@ -1,14 +1,36 @@
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load("//electron:source_rules.bzl", "electron_buildflags", "electron_fuses_generate", "electron_js2c", "electron_node_config", "electron_node_defines", "electron_original_fs")
+load("//electron:v8_rules.bzl", "electron_v8_torque", "electron_v8_torque_tool")
 load("//source/native:electron_buildflags.bzl", "ELECTRON_BUILD_FLAGS")
 load("//source/native:fuses_flags.bzl", "DEBUG_FLAGS")
 load("//source/native:node_deps_inputs.bzl", "NODE_DEPENDENCIES")
 load("//source/native:node_inputs.bzl", "NODE_BUILTIN_INPUTS", "ORIGINAL_FS_INPUTS")
+load("//source/native:v8_torque_inputs.bzl", "TORQUE_RUN")
 load(":bundles.bzl", "electron_bundles")
 load(":probes.bzl", "loop_probes")
 
 package(default_visibility = ["//visibility:public"])
+
+electron_v8_torque(
+    name = "v8_torque",
+    srcs = {"@electron_v8_sources//:" + path: path for path in TORQUE_RUN["sources"]},
+    out_files = TORQUE_RUN["outputs"],
+    source_order = TORQUE_RUN["sources"],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    verify_reproducible = True,
+)
+
+filegroup(
+    name = "v8_torque_manifest",
+    srcs = [":v8_torque"],
+    output_group = "manifest",
+)
+
+electron_v8_torque_tool(name = "v8_torque_tool")
 
 electron_js2c(
     name = "embedder_javascript",

@@ -33,7 +33,8 @@ def main():
             sources = [path for path in sources if Path(path).name in selected]
             if len(sources) != len(selected):
                 raise ValueError("Expected all five captured platform task sources")
-        libraries[label.split(":")[1]] = {"srcs": sources, "defines": value(target, "defines"), "copts": flags, "omitted_toolchain_and_diagnostic_flags": omitted}
+        definitions = value(target, "defines")
+        libraries[label.split(":")[1]] = {"srcs": sources, "defines": [definition.replace('"', '\\"') for definition in definitions], "gn_defines": definitions, "copts": flags, "omitted_toolchain_and_diagnostic_flags": omitted}
     args.output.write_text('"""Exact Linux V8 base/task inventory; source toolchain paths use hermetic LLVM."""\n\nGRAPH_SHA256 = ' + repr(hashlib.sha256(args.graph.read_bytes()).hexdigest()) + '\n\nV8_BASE_LIBRARIES = ' + json.dumps(libraries, indent=4) + '\n')
 
 

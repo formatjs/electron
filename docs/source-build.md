@@ -107,6 +107,30 @@ python3 tools/capture_node_deps.py --graph=bcr/overlay/source/native/linux_amd64
 buildifier bcr/overlay/source/native/node_deps_inputs.bzl
 ```
 
+## Complete Torque generation
+
+`@electron//source:v8_torque` builds the matching Torque compiler from 25 captured
+C++ units and translates all 246 upstream `.tq` inputs into 1,250 declared engine
+outputs. It preserves captured source order, exceptions/RTTI and Electron's
+sandbox, Temporal, Intl and Perfetto definitions. Hermetic LLVM replaces source
+toolchain/sysroot options; original dependencies, includes and omitted flags
+remain recorded. No default V8 feature profile substitutes for this capture.
+
+The action invokes the execution compiler directly through declared Python,
+using stable source-relative arguments. The initial profile runs twice under
+different source/output paths and input mtimes, then requires byte equality for
+every output. A manifest records profile provenance and output hashes; output
+groups expose headers and C++ sources for the remaining engine build. Tests
+check generated engine/Intl/Temporal interfaces and malformed-input rejection.
+Hosted compilation and generation must establish this new producer. The full
+V8 library, libnode and Electron executable remain unfinished.
+
+```sh
+python3 tools/capture_v8_torque.py --graph=bcr/overlay/source/native/linux_amd64.partial.json.gz \
+  --output=bcr/overlay/source/native/v8_torque_inputs.bzl
+buildifier bcr/overlay/source/native/v8_torque_inputs.bzl
+```
+
 ## Native V8 base/task slice
 
 `@electron_v8_sources//:libbase` compiles all 40 captured Linux AMD64 source

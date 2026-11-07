@@ -36,6 +36,7 @@ filegroup(
         "//source:node_javascript",
         "//source:node_libuv",
         "//source:v8_patches",
+        "//source:v8_torque",
     ],
 )
 
@@ -50,5 +51,6 @@ test_suite(
         "//source:v8_tasks_test",
         "//tests:electron_bundles_test",
         "//tests:node_builtins_test",
+        "//tests:v8_torque_test",
     ],
 )

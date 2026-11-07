@@ -5,6 +5,11 @@ package(default_visibility = ["//visibility:public"])
 exports_files(["webpack.cjs"])
 
 py_binary(
+    name = "torque",
+    srcs = ["torque.py"],
+)
+
+py_binary(
     name = "run_source",
     srcs = ["run_source.py"],
     main = "run_source.py",

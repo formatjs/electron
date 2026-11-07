@@ -7,6 +7,26 @@ package(default_visibility = ["//visibility:public"])
 execution_node(name = "execution_node")
 
 py_test(
+    name = "v8_torque_test",
+    srcs = ["v8_torque_test.py"],
+    args = [
+        "$(rootpath //source:v8_torque_manifest)",
+        "$(rootpath //source:v8_torque_tool)",
+        "$(rootpath //source/native:linux_amd64.partial.json.gz)",
+    ],
+    data = [
+        "//source:v8_torque",
+        "//source:v8_torque_manifest",
+        "//source:v8_torque_tool",
+        "//source/native:linux_amd64.partial.json.gz",
+    ],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)
+
+py_test(
     name = "hermetic_execution_test",
     srcs = ["hermetic_execution_test.py"],
     tags = [
