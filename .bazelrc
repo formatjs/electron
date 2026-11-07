@@ -24,3 +24,6 @@ build:buildbuddy --ui_event_filters=-info
 build:buildbuddy --extra_execution_platforms=//platforms:buildbuddy_linux_amd64
 
 build --@rules_rust//rust/toolchain/channel=nightly
+
+# Source desktop libraries use the pinned Chromium SDK ABI.
+build --platforms=@electron//source/platforms:linux_amd64

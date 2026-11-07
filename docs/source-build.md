@@ -8,7 +8,10 @@ currently links a full Electron executable. Source pins and build inputs live in
 Compilation uses native Bazel rules and declared generators, without CMake or
 `rules_foreign_cc` wrappers.
 Stage a local registry first as shown in the root README; add its registry flags
-to every Bazel command below. Native source work:
+to every Bazel command below. Desktop source targets use
+`--platforms=@electron//source/platforms:linux_amd64`, matching the pinned
+Chromium SDK’s glibc 2.31 floor. Development and consumer checks set this default;
+cross probes select their own target platforms. Native source work:
 
 - Electron 39.0.0, Chromium 142.0.7444.52 commit
   `7efca501bfcc84657ba2921a852e98ce1fb37641`, Node 22.20.0 and V8
@@ -1281,4 +1284,61 @@ python3 tools/capture_ui.py \
   --node-modules-root=/path/to/pinned-node_modules \
   --profiles=bcr/overlay/source/native \
   --output=bcr/overlay/source/native/ui_inputs.json
+```
+
+## Native Ozone/GL integration
+
+`electron_platform_sources` captures the complete Ozone/GL dependency closure:
+2,147 native units in 306 library/group/runtime targets, 116 original generator
+targets (117 runs), eight GN metadata targets and two literal Dawn output lists.
+Fifteen source repositories retain the exact Chromium/Dawn DEPS revisions.
+Existing native UI, Skia, Mojo, Rust and Base providers retain their identities.
+
+```mermaid
+flowchart TD
+  Declarations[Captured GN sources / flags / output declarations] --> Native[Native C/C++/Rust rules]
+  Declarations --> Generators[Original Python / Wayland scanner / trie tools]
+  Generators --> Native
+  Native --> Runtime[ANGLE / SwiftShader / Vulkan / Ozone]
+  SDK[Pinned Linux SDK / desktop ABI runtime] --> Runtime
+  Runtime --> Probe[Explicit SwiftShader / framebuffer readback]
+  Runtime --> Electron[Remaining compositor / content / Electron closure]
+```
+
+Shared-library version scripts, SONAMEs and ICD manifests remain declared
+products. Native Rust providers supply standard-library inputs instead of GN's
+relative archive paths. The Wayland scanner consumes Chromium's checked-in
+Linux configuration header. Its compilation headers remain independent of
+generated protocol headers. Original generator validators and changed-path/mtime
+byte checks remain enabled, including Dawn's expected-output declarations.
+The native trie generator keeps its original C++ executable provider. Matching
+ICU data is declared beside its binary in the execution configuration. Its source
+and invocation remain unchanged.
+
+Desktop ABI libraries come from 49 checksum-pinned Debian packages matching the
+Chromium SDK. Extraction runs no package hooks; all 53 library files are declared
+runtime data. PCIutils, Wayland, ANGLE, SwiftShader and the Vulkan loader compile
+from source. Execution Node and target Electron's embedded Node remain separate.
+
+The graphics probe loads the actual EGL/GLES libraries, explicitly selects the
+SwiftShader Vulkan backend, renders a 2×2 framebuffer and checks every RGBA byte.
+Its loader paths contain declared source/runtime files; optional Vulkan layers
+are disabled and cache directories point to test scratch space. The source
+aggregate [built on BB](https://formatjs.buildbuddy.io/invocation/85cc8487-a8b3-48f3-88d9-3bd196ca972e)
+at `a6469fa`. Runtime validation then exposed the desktop SDK’s newer glibc
+requirements. The explicit Linux source platform now matches its glibc 2.31 ABI;
+validation remains pending. Full source profiles remain Linux AMD64; complete
+Electron remains unfinished.
+
+Source capture reads metadata only:
+
+```sh
+python3 tools/capture_platform.py \
+  --graph=bcr/overlay/source/native/linux_amd64.partial.json.gz \
+  --chromium-root=/path/to/electron-patched-chromium-and-deps \
+  --source-root=third_party/wayland/src=/path/to/wayland-a156431ea66fe67d69c9fbba8a8ad34dabbab81c \
+  --source-root=third_party/wayland-protocols/src=/path/to/wayland-protocols-efbc060534be948b63e1f395d69b583eebba3235 \
+  --source-root=third_party/wayland-protocols/kde=/path/to/kde-protocols-0b07950714b3a36c9b9f71fc025fc7783e82926e \
+  --profiles=bcr/overlay/source/native \
+  --output=bcr/overlay/source/native/platform_inputs.json
 ```

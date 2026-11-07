@@ -6,3 +6,6 @@ build --@rules_python//python/config_settings:bootstrap_impl=script
 test --test_output=errors
 
 build --@rules_rust//rust/toolchain/channel=nightly
+
+# Source desktop libraries use the pinned Chromium SDK ABI.
+build --platforms=@electron//source/platforms:linux_amd64
