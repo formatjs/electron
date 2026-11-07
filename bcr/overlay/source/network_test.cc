@@ -25,6 +25,7 @@
 #include "mojo/public/c/system/buffer.h"
 #include "mojo/public/c/system/data_pipe.h"
 #include "mojo/public/c/system/functions.h"
+#include "mojo/public/c/system/message_pipe.h"
 #include "net/base/registry_controlled_domains/registry_controlled_domain.h"
 #include "net/http/transport_security_state.h"
 #include "nss.h"
@@ -64,7 +65,7 @@ void CheckNetwork() {
   Require(database.OpenInMemory(), "Chromium SQL memory database");
   Require(database.Execute("CREATE TABLE values_table(value INTEGER)"), "Chromium SQL schema creation");
   Require(database.Execute("INSERT INTO values_table VALUES(19), (23)"), "Chromium SQL insertion");
-  auto statement = database.GetUniqueStatement("SELECT sum(value) FROM values_table");
+  sql::Statement statement(database.GetUniqueStatement("SELECT sum(value) FROM values_table"));
   Require(statement.Step() && statement.ColumnInt(0) == 42 && !statement.Step() && statement.Succeeded(), "Chromium SQL query and completion");
 }
 
