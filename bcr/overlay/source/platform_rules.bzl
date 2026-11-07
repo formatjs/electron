@@ -125,7 +125,7 @@ def electron_platform():
                     for header in library.get("native_configuration_headers", []):
                         compiler_inputs.append(_file(header))
                         flags = flags + ["-include", "$(location " + _file(header) + ")"]
-                cc_library(name = library["name"] + "_" + language, srcs = [_file(path) for path in sources], copts = flags, additional_compiler_inputs = compiler_inputs, alwayslink = library["kind"] == "source_set", **settings)
+                cc_library(name = library["name"] + "_" + language, srcs = [_file(path) for path in sources], copts = flags, additional_compiler_inputs = compiler_inputs, alwayslink = library["kind"] in ["source_set", "shared_library"], **settings)
                 settings["deps"] += [":" + library["name"] + "_" + language]
         if library["kind"] == "executable":
             settings.pop("includes")
