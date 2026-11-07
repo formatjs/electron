@@ -64,7 +64,7 @@ def capture(graph, digest, chromium, snappy, protobuf_javascript, perfetto, prof
         else:
             raise ValueError("Invalid events source path")
 
-    for directory in ["components/prefs", "components/system_cpu", "components/tracing", "components/variations", "components/version_info", "sandbox/policy", "services/metrics", "services/tracing", "third_party/snappy", "third_party/protobuf-javascript", "third_party/perfetto", "ui/events", "ui/gfx/x", "ui/latency", "url/mojom"]:
+    for directory in ["components/prefs", "components/system_cpu", "components/tracing", "components/variations", "components/version_info", "sandbox/policy", "services/metrics", "services/tracing", "third_party/snappy", "third_party/protobuf-javascript", "third_party/x11proto", "third_party/perfetto", "ui/events", "ui/gfx/x", "ui/latency", "url/mojom"]:
         inventory = set()
         for prefix, root in [(directory, physical(directory + "/"))] + [(prefix, root) for prefix, root in roots.items() if prefix.startswith(directory + "/")]:
             inventory.update(prefix + "/" + path.relative_to(root).as_posix() for path in root.rglob("*") if path.is_file() and path.suffix in (".h", ".hpp", ".inc", ".inl"))

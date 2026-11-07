@@ -39323,6 +39323,9 @@
       "third_party/protobuf-javascript/src/generator/js_generator.h",
       "third_party/protobuf-javascript/src/generator/well_known_types_embed.h"
     ],
+    "third_party/x11proto": [
+      "third_party/x11proto/keysymdef.h"
+    ],
     "third_party/perfetto": [
       "third_party/perfetto/buildtools/expat/include/expat_config.h",
       "third_party/perfetto/buildtools/grpc/protobuf_include/google/protobuf/compiler/csharp/names.h",
@@ -41007,6 +41010,7 @@
     "third_party/snappy/src/snappy_test_data.h",
     "third_party/snappy/win32/config.h",
     "third_party/snappy/win32/snappy-stubs-public.h",
+    "third_party/x11proto/keysymdef.h",
     "tools/generate_library_loader/generate_library_loader.py",
     "ui/events/android/drag_event_android.h",
     "ui/events/android/event_flags_android.h",
@@ -42772,16 +42776,16 @@
     "//out/bazel-import/gen/sandbox/policy/mojom/mojom__generate_message_ids.rsp": "../../sandbox/policy/mojom/context.mojom\n../../sandbox/policy/mojom/sandbox.mojom\n",
     "//out/bazel-import/gen/sandbox/policy/mojom/mojom__generator.rsp": "../../sandbox/policy/mojom/context.mojom\n../../sandbox/policy/mojom/sandbox.mojom\n",
     "//out/bazel-import/gen/sandbox/policy/mojom/mojom__parser_action.rsp": "../../sandbox/policy/mojom/context.mojom\n../../sandbox/policy/mojom/sandbox.mojom\n",
-    "//out/bazel-import/gen/sandbox/policy/mojom/mojom.ts_typemap_config": "[\n\n]",
     "//out/bazel-import/gen/sandbox/policy/mojom/mojom.typemap_config": "[\n\n]",
+    "//out/bazel-import/gen/sandbox/policy/mojom/mojom.ts_typemap_config": "[\n\n]",
     "//out/bazel-import/gen/sandbox/policy/mojom/mojom_shared__generator.rsp": "../../sandbox/policy/mojom/context.mojom\n../../sandbox/policy/mojom/sandbox.mojom\n",
     "//out/bazel-import/gen/services/metrics/public/mojom/mojom.build_metadata": "{\n  \"deps\": [\n    \"../../../../url/mojom/url_mojom_gurl.build_metadata\"\n  ],\n  \"sources\": [\n    \"../../../../../../../services/metrics/public/mojom/ukm_interface.mojom\"\n  ]\n}",
-    "//out/bazel-import/gen/services/metrics/public/mojom/mojom__generate_message_ids.rsp": "../../services/metrics/public/mojom/ukm_interface.mojom\n",
     "//out/bazel-import/gen/url/mojom/url_mojom_gurl.build_metadata": "{\n  \"deps\": [\n\n  ],\n  \"sources\": [\n    \"../../../../../url/mojom/url.mojom\"\n  ]\n}",
+    "//out/bazel-import/gen/services/metrics/public/mojom/mojom__generate_message_ids.rsp": "../../services/metrics/public/mojom/ukm_interface.mojom\n",
     "//out/bazel-import/gen/services/metrics/public/mojom/mojom__generator.rsp": "../../services/metrics/public/mojom/ukm_interface.mojom\n",
     "//out/bazel-import/gen/services/metrics/public/mojom/mojom__parser_action.rsp": "../../services/metrics/public/mojom/ukm_interface.mojom\n",
-    "//out/bazel-import/gen/services/metrics/public/mojom/mojom.typemap_config": "[\n\n]",
     "//out/bazel-import/gen/services/metrics/public/mojom/mojom.ts_typemap_config": "[\n\n]",
+    "//out/bazel-import/gen/services/metrics/public/mojom/mojom.typemap_config": "[\n\n]",
     "//out/bazel-import/gen/services/metrics/public/mojom/mojom_shared__generator.rsp": "../../services/metrics/public/mojom/ukm_interface.mojom\n",
     "//out/bazel-import/gen/services/tracing/public/mojom/mojom.build_metadata": "{\n  \"deps\": [\n    \"../../../../mojo/public/mojom/base/base.build_metadata\",\n    \"../../../../sandbox/policy/mojom/mojom.build_metadata\"\n  ],\n  \"sources\": [\n    \"../../../../../../../services/tracing/public/mojom/background_tracing_agent.mojom\",\n    \"../../../../../../../services/tracing/public/mojom/system_tracing_service.mojom\",\n    \"../../../../../../../services/tracing/public/mojom/traced_process.mojom\",\n    \"../../../../../../../services/tracing/public/mojom/tracing_service.mojom\",\n    \"../../../../../../../services/tracing/public/mojom/constants.mojom\",\n    \"../../../../../../../services/tracing/public/mojom/perfetto_service.mojom\"\n  ]\n}",
     "//out/bazel-import/gen/services/tracing/public/mojom/mojom__generate_message_ids.rsp": "../../services/tracing/public/mojom/background_tracing_agent.mojom\n../../services/tracing/public/mojom/system_tracing_service.mojom\n../../services/tracing/public/mojom/traced_process.mojom\n../../services/tracing/public/mojom/tracing_service.mojom\n../../services/tracing/public/mojom/constants.mojom\n../../services/tracing/public/mojom/perfetto_service.mojom\n",
