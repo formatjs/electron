@@ -4,6 +4,8 @@
 import hashlib
 import json
 from pathlib import Path
+import resource
+import signal
 import subprocess
 import sys
 import tempfile
@@ -33,14 +35,18 @@ class V8TorqueTest(unittest.TestCase):
         builtins = (MANIFEST.parent / "torque-generated/builtin-definitions.h").read_text()
         self.assertIn("ArrayMap", builtins)
 
-    def test_malformed_torque_fails_cleanly(self):
+    def test_malformed_torque_reports_parse_error(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             (root / "invalid.tq").write_text("this is not Torque;\n")
             output = root / "generated"
             output.mkdir()
-            result = subprocess.run([TOOL, "-o", str(output), "-v8-root", str(root), "invalid.tq"], cwd=root, capture_output=True, timeout=60)
-            self.assertEqual(result.returncode, 1)
+            resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
+            result = subprocess.run([TOOL, "-o", str(output), "-v8-root", ".", "invalid.tq"], cwd=root, capture_output=True, timeout=60)
+            # Upstream Torque aborts after printing parser diagnostics.
+            self.assertEqual(result.returncode, -signal.SIGABRT)
+            self.assertIn(b"invalid.tq", result.stderr)
+            self.assertIn(b"Torque Error: Parser Error: unexpected token", result.stderr)
 
 
 if __name__ == "__main__":
