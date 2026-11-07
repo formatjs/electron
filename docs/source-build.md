@@ -83,8 +83,10 @@ edges fail import rather than substituting another library version.
 
 `@electron//source:node_dependencies_test` links all eight libraries and checks
 URL/JSON/HTTP parsing, IPv6 conversion, histogram recording, HTTP/2 settings,
-SQLite FTS5/session configuration and WASI argument transfer. Hosted compilation
-and execution must establish this new profile; it does not link libnode or
+SQLite FTS5/session configuration and WASI argument transfer.
+[4cdf425 source components](https://formatjs.buildbuddy.io/invocation/2a3b5827-c0ff-4435-ba97-6922950889a4)
+and [BCR consumer](https://formatjs.buildbuddy.io/invocation/af1a822c-1bd7-4b88-acc6-f961b36e278c)
+both passed compilation and the linked probe. This does not link libnode or
 Electron. Other target profiles remain unsupported for these libraries.
 
 Regenerate the inventory from the same graph:

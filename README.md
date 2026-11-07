@@ -8,7 +8,8 @@ ASAR, installers, signing and app runtime toolchains belong in a separate
 
 Full source-built Electron remains unfinished. Current components include patched
 libuv, BoringSSL, Node builtin generators, all eight Electron webpack bundles,
-fuses and V8 base/task libraries. No target links a complete Electron executable.
+fuses, V8 base/task libraries and eight Node dependency libraries (133 C/C++ units).
+No target links a complete Electron executable.
 See [source status and reproduction](docs/source-build.md).
 
 ## Layout
