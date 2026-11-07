@@ -11,6 +11,14 @@ from pathlib import Path
 def capture(graph):
     root = "//base/allocator/partition_allocator/"
     prefix = root + "src/partition_alloc:"
+    groups = {
+        root[:-1] + ":partition_alloc": [prefix + "partition_alloc"],
+        prefix + "partition_alloc": [prefix + name for name in ("allocator_base", "allocator_core", "allocator_shim", "buildflags")],
+    }
+    for label, dependencies in groups.items():
+        target = graph["targets"][label]
+        if target["type"] != "group" or target["deps"] != dependencies:
+            raise ValueError("Untranslated PartitionAlloc aggregate dependency")
     toolchain = {"//buildtools/third_party/libc++:all_modules", "//buildtools/third_party/libc++:custom_headers", "//buildtools/third_party/libc++:libcxx_headers"}
     edges = {
         "allocator_base": {"build_config", "buildflags"},
@@ -22,6 +30,8 @@ def capture(graph):
     libraries, headers = {}, []
     for name, dependencies in edges.items():
         target = graph["targets"][prefix + name]
+        if target["toolchain"] != "//build/toolchain/linux:clang_x64":
+            raise ValueError("Expected PartitionAlloc Linux AMD64 toolchain")
         kind = "static_library" if name.startswith("allocator_") else "source_set"
         if target["type"] != kind or set(target["deps"]) != toolchain | {prefix + dep for dep in dependencies}:
             raise ValueError("Untranslated PartitionAlloc dependency")

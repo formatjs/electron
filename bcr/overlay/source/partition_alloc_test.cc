@@ -33,13 +33,19 @@ void Pattern(void* memory, size_t length, unsigned char value) {
   }
 }
 
-void CheckCallocOverflow() {
+enum class OverflowKind { kCalloc, kAllocation };
+
+void CheckOverflow(OverflowKind kind) {
   const pid_t child = fork();
   Require(child >= 0, "PartitionAlloc overflow child starts");
   if (child == 0) {
     const rlimit limit = {0, 0};
     if (setrlimit(RLIMIT_CORE, &limit) != 0) _exit(90);
-    allocator_shim::UncheckedCalloc(std::numeric_limits<size_t>::max(), 2);
+    if (kind == OverflowKind::kCalloc) {
+      allocator_shim::UncheckedCalloc(std::numeric_limits<size_t>::max(), 2);
+    } else {
+      allocator_shim::UncheckedAlloc(std::numeric_limits<size_t>::max());
+    }
     _exit(91);
   }
   int status = 0;
@@ -48,7 +54,9 @@ void CheckCallocOverflow() {
     result = waitpid(child, &status, 0);
   } while (result < 0 && errno == EINTR);
   Require(result == child, "PartitionAlloc overflow child waited");
-  Require(WIFSIGNALED(status) && WTERMSIG(status) == SIGILL, "PartitionAlloc calloc overflow traps");
+  const int expected_signal = kind == OverflowKind::kCalloc ? SIGILL : SIGTRAP;
+  Require(WIFSIGNALED(status) && WTERMSIG(status) == expected_signal,
+          kind == OverflowKind::kCalloc ? "PartitionAlloc calloc overflow traps" : "PartitionAlloc allocation overflow traps");
 }
 }  // namespace
 
@@ -67,8 +75,10 @@ int main() {
   Managed(memory);
   Pattern(memory, 37 * 29, 0);
   allocator_shim::UncheckedFree(memory);
-  CheckCallocOverflow();
-  Require(!allocator_shim::UncheckedAlloc(std::numeric_limits<size_t>::max()), "PartitionAlloc oversized allocation rejected");
+  CheckOverflow(OverflowKind::kCalloc);
+  CheckOverflow(OverflowKind::kAllocation);
+  const size_t oversized = static_cast<size_t>(std::numeric_limits<std::ptrdiff_t>::max()) / 2;
+  Require(!allocator_shim::UncheckedAlloc(oversized), "PartitionAlloc oversized allocation rejected");
 
   for (size_t alignment : {size_t{16}, size_t{64}, size_t{4096}}) {
     // The implementation takes size, alignment.
