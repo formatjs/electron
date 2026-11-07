@@ -1,5 +1,11 @@
 // SPDX-License-Identifier: MIT
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+
 #include <dlfcn.h>
+#include <elf.h>
+#include <ucontext.h>
 #include <unwind.h>
 #include <unistd.h>
 
@@ -26,21 +32,32 @@ void Stage(const char* stage) {
   std::fprintf(stderr, "[DEBUG-native-graphics] %s\n", stage);
 }
 
+void FrameAddress(uintptr_t address) {
+  Dl_info info = {};
+  if (dladdr(reinterpret_cast<void*>(address), &info) && info.dli_fname) {
+    const auto* header = static_cast<const Elf64_Ehdr*>(info.dli_fbase);
+    const uintptr_t offset = header->e_type == ET_EXEC ? address :
+        address - reinterpret_cast<uintptr_t>(info.dli_fbase);
+    std::fprintf(stderr, "[DEBUG-native-graphics] frame %s 0x%lx\n",
+                 info.dli_fname, static_cast<unsigned long>(offset));
+  }
+}
+
 _Unwind_Reason_Code Frame(_Unwind_Context* context, void* data) {
   auto* count = static_cast<unsigned*>(data);
   if ((*count)++ >= 24) return _URC_END_OF_STACK;
-  const auto address = static_cast<uintptr_t>(_Unwind_GetIP(context));
-  Dl_info info = {};
-  if (dladdr(reinterpret_cast<void*>(address), &info) && info.dli_fname) {
-    std::fprintf(stderr, "[DEBUG-native-graphics] frame %s 0x%lx\n",
-                 info.dli_fname, static_cast<unsigned long>(
-                     address - reinterpret_cast<uintptr_t>(info.dli_fbase)));
-  }
+  FrameAddress(static_cast<uintptr_t>(_Unwind_GetIP(context)));
   return _URC_NO_REASON;
 }
 
-void Crash(int signal) {
+void Crash(int signal, siginfo_t*, void* data) {
   std::fprintf(stderr, "[DEBUG-native-graphics] signal %d\n", signal);
+  const auto* context = static_cast<const ucontext_t*>(data);
+  const auto address = static_cast<uintptr_t>(context->uc_mcontext.gregs[REG_RIP]);
+  const auto stack = static_cast<uintptr_t>(context->uc_mcontext.gregs[REG_RSP]);
+  std::fprintf(stderr, "[DEBUG-native-graphics] fault_pc %s\n", address ? "nonzero" : "zero");
+  FrameAddress(address);
+  if (stack) FrameAddress(*reinterpret_cast<const uintptr_t*>(stack));
   unsigned count = 0;
   _Unwind_Backtrace(Frame, &count);
   _exit(128 + signal);
@@ -62,7 +79,11 @@ T Symbol(void* library, const char* name) {
 }  // namespace
 
 int main(int argc, char** argv) {
-  std::signal(SIGSEGV, Crash);
+  struct sigaction action = {};
+  action.sa_sigaction = Crash;
+  action.sa_flags = SA_SIGINFO;
+  sigemptyset(&action.sa_mask);
+  sigaction(SIGSEGV, &action, nullptr);
   Stage("entry");
   Require(argc == 3, "declared graphics library arguments");
   void* egl = Open(argv[1]);
