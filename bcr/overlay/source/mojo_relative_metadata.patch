@@ -1,0 +1,25 @@
+--- a/mojo/public/tools/mojom/mojom_parser.py
++++ b/mojo/public/tools/mojom/mojom_parser.py
+@@ -179,9 +179,9 @@
+ 
+ 
+ # multiprocessing helper.
+-def _ParseAstHelper(mojom_abspath, enabled_features):
++def _ParseAstHelper(mojom_abspath, enabled_features, mojom_path):
+   with codecs.open(mojom_abspath, encoding='utf-8') as f:
+-    ast = parser.Parse(f.read(), mojom_abspath)
++    ast = parser.Parse(f.read(), mojom_path)
+     conditional_features.RemoveDisabledDefinitions(ast, enabled_features)
+     return mojom_abspath, ast
+ 
+@@ -301,8 +301,8 @@
+       (path, abs_path) for abs_path, path in mojom_files_to_parse.items())
+ 
+   logging.info('Parsing %d .mojom into ASTs', len(mojom_files_to_parse))
+-  map_args = ((mojom_abspath, enabled_features)
+-              for mojom_abspath in mojom_files_to_parse)
++  map_args = ((mojom_abspath, enabled_features, mojom_path)
++              for mojom_abspath, mojom_path in mojom_files_to_parse.items())
+   for mojom_abspath, ast in _Shard(_ParseAstHelper, map_args):
+     loaded_mojom_asts[mojom_abspath] = ast
+ 
