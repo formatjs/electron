@@ -89,7 +89,9 @@ int main(int argc, char** argv) {
   Require(base::i18n::InitializeICUWithFileDescriptor(data.TakePlatformFile(), base::MemoryMappedFile::Region::kWholeFile), "ICU descriptor initialization");
   CheckI18n();
   Stage("snapshot");
-  gin::V8Initializer::LoadV8SnapshotFromFileName(snapshot_path.AsUTF8Unsafe(), gin::V8SnapshotFileType::kDefault);
+  gin::V8Initializer::LoadV8SnapshotFromFile(
+      base::File(snapshot_path, base::File::FLAG_OPEN | base::File::FLAG_READ),
+      nullptr, gin::V8SnapshotFileType::kDefault);
   v8::StartupData snapshot;
   gin::V8Initializer::GetV8ExternalSnapshotData(&snapshot);
   Require(snapshot.data && snapshot.raw_size > 0, "Gin mapped generated snapshot");
