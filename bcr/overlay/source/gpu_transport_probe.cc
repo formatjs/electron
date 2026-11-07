@@ -16,6 +16,7 @@
 #include "gpu/command_buffer/service/disk_cache_proto.pb.h"
 #include "gpu/config/gpu_preferences.h"
 #include "gpu/webgpu/dawn_commit_hash.h"
+#include "libyuv/convert_from_argb.h"
 
 namespace {
 void Require(bool condition, const char* check) {
@@ -68,7 +69,23 @@ int main(int argc, char** argv) {
   int32_t transfer_id = 0;
   auto buffer = service.CreateTransferBuffer(64, &transfer_id);
   Require(buffer && transfer_id > 0, "native transfer buffer allocation");
-  const unsigned char payload[] = {1, 3, 5, 7, 9, 11, 13, 15};
+  unsigned char argb[64] = {};
+  unsigned char luma[16] = {};
+  unsigned char chroma[8] = {};
+  for (int pixel = 0; pixel < 16; ++pixel) {
+    argb[pixel * 4 + 2] = 255;
+    argb[pixel * 4 + 3] = 255;
+  }
+  Require(libyuv::ARGBToNV12(argb, 16, luma, 4, chroma, 4, 4, 4) == 0,
+          "native libyuv NV12 conversion");
+  for (unsigned char value : luma) {
+    Require(value == 82, "native libyuv BT601 luma bytes");
+  }
+  for (int pair = 0; pair < 4; ++pair) {
+    Require(chroma[pair * 2] == 90 && chroma[pair * 2 + 1] == 240,
+            "native libyuv BT601 chroma bytes");
+  }
+  const auto& payload = chroma;
   std::memcpy(static_cast<unsigned char*>(buffer->memory()) + 16,
               payload, sizeof(payload));
   gpu::cmd::SetBucketSize size;
