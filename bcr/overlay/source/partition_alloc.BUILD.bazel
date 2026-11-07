@@ -1,0 +1,5 @@
+load("@electron//source:partition_alloc_rules.bzl", "electron_partition_alloc")
+
+package(default_visibility = ["//visibility:public"])
+
+electron_partition_alloc()

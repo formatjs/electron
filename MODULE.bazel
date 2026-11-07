@@ -49,6 +49,7 @@ use_repo(
     "electron_mantle_sources",
     "electron_nan_sources",
     "electron_node_sources",
+    "electron_partition_alloc_sources",
     "electron_perfetto_sources",
     "electron_reactiveobjc_sources",
     "electron_reclient_configs_sources",
