@@ -42,7 +42,7 @@ int main(int argc, char** argv) {
       EGL_PLATFORM_ANGLE_TYPE_ANGLE, EGL_PLATFORM_ANGLE_TYPE_VULKAN_ANGLE,
       EGL_PLATFORM_ANGLE_DEVICE_TYPE_ANGLE,
       EGL_PLATFORM_ANGLE_DEVICE_TYPE_SWIFTSHADER_ANGLE, EGL_NONE};
-  EGLDisplay display = platform(EGL_PLATFORM_ANGLE_ANGLE, EGL_DEFAULT_DISPLAY,
+  EGLDisplay display = platform(EGL_PLATFORM_ANGLE_ANGLE, nullptr,
                                 display_attributes);
   EGLint major = 0, minor = 0;
   Require(display != EGL_NO_DISPLAY &&
