@@ -840,5 +840,46 @@ messages, empty/closed pipes, data pipes, shared mappings and cleanup.
 [consumer](https://formatjs.buildbuddy.io/invocation/376c61c9-c0a3-471b-b9a7-2d07d498f510)
 and [cross-compile](https://formatjs.buildbuddy.io/invocation/2b651fc7-4805-4297-8279-0e494a51e15f)
 checks passed, including the nonce vectors and fresh network-denial gate. This
-full profile remains Linux AMD64; typed Mojo bindings, Blink/content and the
-full Electron executable remain unfinished.
+full profile remains Linux AMD64. Typed bindings follow below; Blink/content
+and the full Electron executable remain unfinished.
+
+
+## Typed Mojo bindings
+
+`electron_mojo_sources` adds 214 captured C++ units, 29 original Python actions
+and four literal GN metadata targets. The actions produce 694 declared files:
+parsed Mojom modules, precompiled templates, type mappings, message IDs and C++
+bindings. Original response files, build metadata and typemap configurations
+remain declared inputs. Every generator compares bytes across changed paths and
+mtimes with an empty child `PATH`.
+
+The roots are Mojo C++ bindings, Mojo base types and service-manager interfaces.
+Existing native Base, IPCz, networking and compression stay shared. The 345
+original Mojo headers reuse the network repository's file identity; they are
+not projected again. Both captures use the same native compiler-settings helper;
+recapturing networking preserves its profile bytes.
+
+```mermaid
+flowchart TD
+  IDL[Original Mojom and typemaps] --> Parser[Original parser]
+  Templates[Original templates] --> Precompile[Template precompiler]
+  Parser --> Generator[Original C++ generator]
+  Precompile --> Generator
+  Generator --> Bindings[Native typed bindings]
+  Bindings --> IPC[Mojo core / IPCz]
+  IPC --> Child[Native child process]
+```
+
+`//source:mojo_test` launches itself through Chromium's platform channel and
+Mojo invitations. It checks a 65,537-byte binary message, a transferred shared
+buffer with cross-process coherence, generated `InterfaceProvider` dispatch,
+embedded-NUL strings, a transferred reply pipe, clean child exit and malformed
+message rejection. It also checks message/data pipes and invalid-handle errors.
+No replacement transport or generated-code stubs participate.
+
+[8261fc4 components](https://formatjs.buildbuddy.io/invocation/7616e6df-a464-4d31-9870-8675906e3d6c),
+[consumer](https://formatjs.buildbuddy.io/invocation/9a5dbde4-c22d-47b1-a9b9-c86ec8564d44)
+and [cross-compile](https://formatjs.buildbuddy.io/invocation/a503d8d2-6a4a-466c-82c0-7c78eb528c8d)
+checks passed. This complete typed profile and runtime probe remain Linux AMD64;
+the cross-compile check covers existing platform probes, not complete typed
+bindings on every target. Full Electron linking remains unfinished.

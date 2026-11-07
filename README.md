@@ -8,7 +8,7 @@ ASAR, installers, signing and app runtime toolchains belong in a separate
 
 Full source-built Electron remains unfinished. Current components include
 the full patched V8 engine and snapshots, patched libnode, Chromium base, ICU,
-Perfetto, libuv, BoringSSL, Node builtin generators, all eight Electron webpack bundles, fuses
+Perfetto, native networking and typed Mojo IPC, libuv, BoringSSL, Node builtin generators, all eight Electron webpack bundles, fuses
 and eleven Node support libraries (136 C/C++ units; Postject is header-only).
 No target links a complete Electron executable.
 See [source status and reproduction](docs/source-build.md).
