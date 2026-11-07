@@ -2,6 +2,7 @@ load("@electron_base_sources//:profile.bzl", BASE_PROFILE = "PROFILE")
 load("@electron_codecs_sources//:profile.bzl", CODECS_PROFILE = "PROFILE")
 load("@electron_display_sources//:profile.bzl", DISPLAY_PROFILE = "PROFILE")
 load("@electron_embedder_sources//:profile.bzl", EMBEDDER_PROFILE = "PROFILE")
+load("@electron_events_sources//:profile.bzl", EVENTS_PROFILE = "PROFILE")
 load("@electron_fonts_sources//:profile.bzl", FONTS_PROFILE = "PROFILE")
 load("@electron_gfx_sources//:profile.bzl", GFX_PROFILE = "PROFILE")
 load("@electron_ipcz_sources//:profile.bzl", IPCZ_PROFILE = "PROFILE")
@@ -55,6 +56,33 @@ cc_test(
     deps = [
         "@electron_embedder_sources//:base_i18n",
         "@electron_skia_sources//:skia",
+    ],
+)
+
+cc_test(
+    name = "events_test",
+    srcs = ["events_test.cc"],
+    args = ["$(rootpath @electron_icu_sources//:common/icudtl.dat)"],
+    copts = EVENTS_PROFILE["libraries"]["//ui/events:events"]["copts"],
+    data = ["@electron_icu_sources//:common/icudtl.dat"],
+    env = {
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+    },
+    linkstatic = True,
+    local_defines = EVENTS_PROFILE["libraries"]["//ui/events:events"]["defines"],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    deps = [
+        "@electron_embedder_sources//:base_i18n",
+        "@electron_events_sources//:events",
+        "@electron_events_sources//:keycodes",
+        "@electron_events_sources//:layout",
+        "@electron_events_sources//:snappy",
+        "@electron_events_sources//:x11",
     ],
 )
 
@@ -968,4 +996,9 @@ cc_test(
 alias(
     name = "display_libraries",
     actual = "@electron_display_sources//:libraries",
+)
+
+alias(
+    name = "events_libraries",
+    actual = "@electron_events_sources//:libraries",
 )

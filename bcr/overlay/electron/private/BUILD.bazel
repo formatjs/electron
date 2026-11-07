@@ -83,3 +83,5 @@ py_binary(
     name = "artifact_file",
     srcs = ["artifact_file.py"],
 )
+
+exports_files(["copy_files.py"])

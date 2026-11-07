@@ -1,0 +1,5 @@
+load("@electron//source:xcb_rules.bzl", "electron_xcb")
+
+package(default_visibility = ["//visibility:public"])
+
+electron_xcb()

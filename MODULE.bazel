@@ -4,6 +4,10 @@ module(
     bazel_compatibility = [">=9.2.0"],
 )
 
+bazel_dep(name = "libxau", version = "1.0.12.bcr.1")
+bazel_dep(name = "xcb-proto", version = "1.17.0")
+bazel_dep(name = "libxcb", version = "1.17.0.bcr.3")
+bazel_dep(name = "xkbcommon", version = "1.9.2.bcr.beta.2")
 bazel_dep(name = "libexpat", version = "2.9.0")
 bazel_dep(name = "libuuid", version = "2.41.2.bcr.1")
 bazel_dep(name = "rules_license", version = "1.0.0")
@@ -58,6 +62,7 @@ use_repo(
     "electron_display_sources",
     "electron_dragonbox_upstream",
     "electron_embedder_sources",
+    "electron_events_sources",
     "electron_fast_float_upstream",
     "electron_ffmpeg_sources",
     "electron_fontconfig_upstream",
@@ -97,6 +102,7 @@ use_repo(
     "electron_rust_sources",
     "electron_skia_sources",
     "electron_skia_upstream",
+    "electron_snappy_upstream",
     "electron_sqlite_sources",
     "electron_squirrel_mac_sources",
     "electron_v8_engine_sources",
@@ -106,6 +112,7 @@ use_repo(
     "electron_webp_upstream",
     "electron_webrtc_sources",
     "electron_wuffs_upstream",
+    "electron_xcb_sources",
     "electron_zstd_upstream",
     "nspr",
     "nss",

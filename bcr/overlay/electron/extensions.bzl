@@ -6,6 +6,7 @@ load(":base_repository.bzl", "electron_base_repository")
 load(":codecs_repository.bzl", "electron_codecs_repository")
 load(":display_repository.bzl", "electron_display_repository")
 load(":embedder_repository.bzl", "electron_embedder_repository")
+load(":events_repository.bzl", "electron_events_repository")
 load(":fonts_repository.bzl", "electron_fonts_repository")
 load(":gfx_repository.bzl", "electron_gfx_repository")
 load(":icu_repository.bzl", "electron_icu_repository")
@@ -22,6 +23,7 @@ load(":skia_repository.bzl", "electron_skia_repository")
 load(":source_repositories.bzl", "electron_abseil_repository", "electron_node_repository", "electron_patched_upstream")
 load(":v8_engine_repository.bzl", "electron_v8_engine_repository")
 load(":v8_support_repository.bzl", "electron_v8_support_repository")
+load(":xcb_repository.bzl", "electron_xcb_repository")
 
 _VERSION = "39.0.0"
 
@@ -142,6 +144,12 @@ def _impl(ctx):
         ("libsync", "https://chromium.googlesource.com/aosp/platform/system/core/libsync.git", "f4f4387b6bf2387efbcfd1453af4892e8982faf6", "sync.c"),
     ]:
         new_git_repository(name = "electron_" + name + "_upstream", remote = remote, commit = commit, build_file_content = "exports_files([" + repr(anchor) + "], visibility = [\"//visibility:public\"])\n")
+    for name, remote, commit, anchor in [
+        ("snappy", "https://chromium.googlesource.com/external/github.com/google/snappy.git", "32ded457c0b1fe78ceb8397632c416568d6714a0", "COPYING"),
+    ]:
+        new_git_repository(name = "electron_" + name + "_upstream", remote = remote, commit = commit, build_file_content = "exports_files([" + repr(anchor) + "], visibility = [\"//visibility:public\"])\n")
+    electron_xcb_repository(name = "electron_xcb_sources", source = "@libxcb//:BUILD.bazel", protocol = "@xcb-proto//:COPYING")
+    electron_events_repository(name = "electron_events_sources", chromium = "@electron_chromium_sources//:DEPS", snappy = "@electron_snappy_upstream//:COPYING", protobuf_javascript = "@electron_protobuf_javascript_upstream//:BUILD.bazel", perfetto = "@electron_perfetto_sources//:BUILD.gn")
     electron_display_repository(name = "electron_display_sources", chromium = "@electron_chromium_sources//:DEPS")
     electron_gfx_repository(name = "electron_gfx_sources", chromium = "@electron_chromium_sources//:DEPS", libdrm = "@electron_libdrm_upstream//:xf86drm.h", libsync = "@electron_libsync_upstream//:sync.c")
     electron_skia_repository(name = "electron_skia_sources", chromium = "@electron_chromium_sources//:DEPS", skia = "@electron_skia_upstream//:LICENSE", dawn = "@electron_dawn_upstream//:LICENSE", vulkan = "@electron_vulkan_upstream//:LICENSE.md")
@@ -239,6 +247,6 @@ def _impl(ctx):
     )
     electron_node_repository(name = "electron_node_sources", electron = "@electron//:DEPS")
     direct = ["electron_embedder_sources", "electron_ced_upstream", "electron_libnode_sources", "electron_zstd_upstream", "electron_base_sources", "electron_lss_upstream", "electron_node_sources", "electron_v8_sources", "electron_chromium_sources", "electron_cast_core_sources", "electron_glslang_sources", "electron_abseil_sources", "electron_icu_sources", "electron_partition_alloc_sources", "electron_rust_sources", "electron_v8_support_sources", "electron_protobuf_sources", "electron_protobuf_javascript_upstream", "electron_perfetto_native_sources", "electron_jsoncpp_upstream", "electron_v8_engine_sources", "electron_fp16_upstream"] + dependency_repos + support_repos
-    return ctx.extension_metadata(reproducible = True, root_module_direct_deps = direct + ["electron_display_sources", "electron_gfx_sources", "electron_libdrm_upstream", "electron_libsync_upstream", "electron_skia_sources", "electron_skia_upstream", "electron_dawn_upstream", "electron_vulkan_upstream", "electron_codecs_sources", "electron_jpeg_upstream", "electron_webp_upstream", "electron_wuffs_upstream", "electron_nasm_upstream", "electron_fontconfig_upstream", "electron_freetype_upstream", "electron_harfbuzz_upstream", "electron_fonts_sources", "electron_mojo_sources", "electron_ipcz_sources", "electron_chromium_native_support", "electron_nspr_upstream", "electron_nss_upstream", "nspr", "nss", "electron_quiche_upstream", "electron_re2_upstream", "electron_network_platform_headers", "electron_network_sources"], root_module_direct_dev_deps = [])
+    return ctx.extension_metadata(reproducible = True, root_module_direct_deps = direct + ["electron_xcb_sources", "electron_events_sources", "electron_snappy_upstream", "electron_display_sources", "electron_gfx_sources", "electron_libdrm_upstream", "electron_libsync_upstream", "electron_skia_sources", "electron_skia_upstream", "electron_dawn_upstream", "electron_vulkan_upstream", "electron_codecs_sources", "electron_jpeg_upstream", "electron_webp_upstream", "electron_wuffs_upstream", "electron_nasm_upstream", "electron_fontconfig_upstream", "electron_freetype_upstream", "electron_harfbuzz_upstream", "electron_fonts_sources", "electron_mojo_sources", "electron_ipcz_sources", "electron_chromium_native_support", "electron_nspr_upstream", "electron_nss_upstream", "nspr", "nss", "electron_quiche_upstream", "electron_re2_upstream", "electron_network_platform_headers", "electron_network_sources"], root_module_direct_dev_deps = [])
 
 electron = module_extension(implementation = _impl, tag_classes = {"version": tag_class(attrs = {"version": attr.string(mandatory = True)})})
