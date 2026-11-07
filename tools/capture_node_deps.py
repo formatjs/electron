@@ -7,12 +7,16 @@ import hashlib
 import json
 from pathlib import Path
 
-LIBRARIES = ("ada", "cares", "histogram", "llhttp", "nghttp2", "simdjson", "sqlite", "uvwasi")
+LIBRARIES = ("ada", "cares", "histogram", "llhttp", "nbytes", "ncrypto", "nghttp2", "postject", "simdjson", "sqlite", "uvwasi")
 PREFIX = "//third_party/electron_node/"
 TOOLCHAIN_DEPS = {
     "//buildtools/third_party/libc++:all_modules",
     "//buildtools/third_party/libc++:custom_headers",
     "//buildtools/third_party/libc++:libcxx_headers",
+}
+DEPENDENCIES = {
+    "uvwasi": {PREFIX + "deps/uv:uv": ":libuv"},
+    "ncrypto": {"//third_party/boringssl:boringssl": "@electron_boringssl_sources//:ssl"},
 }
 
 
@@ -26,36 +30,44 @@ def capture(graph):
         label = PREFIX + "deps/" + name + ":" + name
         target = graph["targets"][label]
         sources = [path for path in target["sources"] if path.endswith((".c", ".cc", ".cpp"))]
-        if not sources or any(not path.startswith(PREFIX + "deps/" + name + "/") for path in sources):
+        header_only = name == "postject"
+        if header_only and target["sources"] != [PREFIX + "deps/postject/postject-api.h"]:
+            raise ValueError("Unexpected Postject header inventory")
+        if (not sources and not header_only) or any(not path.startswith(PREFIX + "deps/" + name + "/") for path in sources):
             raise ValueError("Unexpected dependency source inventory: " + label)
         languages = {"c" if path.endswith(".c") else "cc" for path in sources}
-        if len(languages) != 1:
+        if len(languages) != 1 and not header_only:
             raise ValueError("Mixed-language dependency needs separate compilation rules")
         deps = set(target.get("deps", [])) - TOOLCHAIN_DEPS
-        expected = {PREFIX + "deps/uv:uv"} if name == "uvwasi" else set()
-        if deps != expected:
+        mapping = DEPENDENCIES.get(name, {})
+        if deps != set(mapping):
             raise ValueError("Untranslated dependency edge: " + label)
-        includes, omitted_includes = [], []
+        includes, omitted_includes, mapped_includes = [], [], {}
         for path in value(target, "include_dirs"):
             if path.startswith(PREFIX):
                 includes.append(path.removeprefix(PREFIX).rstrip("/"))
             elif path in ("//", "//out/bazel-import/gen/", "//buildtools/third_party/libc++/"):
                 omitted_includes.append(path)
+            elif name == "ncrypto" and path == "//third_party/boringssl/src/include/":
+                mapped_includes[path] = mapping["//third_party/boringssl:boringssl"]
             else:
                 raise ValueError("Untranslated include directory: " + path)
         flags, omitted_flags = [], []
-        for flag in value(target, "cflags") + value(target, "cflags_" + next(iter(languages))):
+        language = "cc" if header_only else next(iter(languages))
+        for flag in value(target, "cflags") + value(target, "cflags_" + language):
             if flag in ("-Werror", "-nostdinc++") or flag.startswith(("--sysroot=", "--target=", "-isystem../../", "-fcrash-diagnostics-dir=", "--warning-suppression-mappings=")):
                 omitted_flags.append(flag)
             else:
                 flags.append(flag)
         libraries[name] = {
             "gn_label": label,
+            "kind": "header" if header_only else "compiled",
             "srcs": [path.removeprefix(PREFIX) for path in sources],
             "includes": includes,
             "defines": value(target, "defines"),
             "copts": flags,
-            "deps": [":libuv"] if deps else [],
+            "deps": [mapping[dep] for dep in sorted(deps)],
+            "mapped_dependency_includes": mapped_includes,
             "omitted_toolchain_and_diagnostic_flags": omitted_flags,
             "omitted_global_and_toolchain_includes": omitted_includes,
         }

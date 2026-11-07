@@ -45,6 +45,16 @@ alias(
     actual = "@electron_node_sources//:node_deps",
 )
 
+cc_library(
+    name = "node_resource_fixture",
+    testonly = True,
+    srcs = ["node_resource_fixture.S"],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)
+
 cc_test(
     name = "node_dependencies_test",
     srcs = ["node_dependencies_test.cc"],
@@ -58,12 +68,15 @@ cc_test(
         "@platforms//os:linux",
         "@platforms//cpu:x86_64",
     ],
-    deps = ["@electron_node_sources//:node_deps_" + library for library in [
+    deps = [":node_resource_fixture"] + ["@electron_node_sources//:node_deps_" + library for library in [
         "ada",
         "cares",
         "histogram",
         "llhttp",
+        "nbytes",
+        "ncrypto",
         "nghttp2",
+        "postject",
         "simdjson",
         "sqlite",
         "uvwasi",

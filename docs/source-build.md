@@ -89,6 +89,16 @@ and [BCR consumer](https://formatjs.buildbuddy.io/invocation/af1a822c-1bd7-4b88-
 both passed compilation and the linked probe. This does not link libnode or
 Electron. Other target profiles remain unsupported for these libraries.
 
+The expanded profile adds nbytes, ncrypto and header-only Postject: 136 compiled
+units across ten libraries plus one header library. ncrypto uses the existing
+Electron-patched BoringSSL provider; its GN include mapping remains recorded.
+The linked probe checks unaligned byte swaps and invalid lengths, the
+[RFC 5869 A.1 HKDF vector](https://www.rfc-editor.org/rfc/rfc5869.html#appendix-A.1)
+and output-length limits, plus Postject lookup of a declared ELF note and missing
+resources. The note is assembled by the execution toolchain. No host binary
+editing tool or alternate crypto runtime is used. Hosted results must establish
+this expansion before claiming validation.
+
 Regenerate the inventory from the same graph:
 
 ```sh
