@@ -16,6 +16,7 @@ actions:
         merge_with_base: false
     steps:
       - run: |
+          set -euo pipefail
           registry="$(mktemp -d /tmp/electron-registry.XXXXXX)"
           python3 tools/stage_bcr_entry.py --source-registry bcr \
             --target-registry "$registry" --module electron --version 39.0.0
@@ -45,6 +46,7 @@ actions:
         merge_with_base: false
     steps:
       - run: |
+          set -euo pipefail
           registry="$(mktemp -d /tmp/electron-registry.XXXXXX)"
           python3 tools/stage_bcr_entry.py --source-registry bcr \
             --target-registry "$registry" --module electron --version 39.0.0
@@ -70,10 +72,14 @@ actions:
         merge_with_base: false
     steps:
       - run: |
+          set -euo pipefail
           registry="$(mktemp -d /tmp/electron-registry.XXXXXX)"
           python3 tools/stage_bcr_entry.py --source-registry bcr \
             --target-registry "$registry" --module electron --version 39.0.0
           cd tests/bcr
+          bazel test --config=buildbuddy --strategy=TestRunner=remote \
+            --registry="file://$registry" --registry=https://bcr.bazel.build \
+            @electron//tests:hermetic_execution_test
           bazel test --config=buildbuddy --strategy=TestRunner=local \
             --registry="file://$registry" --registry=https://bcr.bazel.build \
             //:loop_consumer_test @electron//:source_tests

@@ -8,7 +8,8 @@ App supplies credentials through its Bazel wrapper; none are checked in.
 Remote build actions use a digest-pinned Ubuntu 22.04 OCI image with external
 networking disabled. `dockerNetwork=off` is intentional: BuildBuddy's generic
 network property currently normalizes to `none`, while its OCI isolation check
-expects `off`. A fresh remote TLS-denial test runs before source compilation;
+expects `off`. A fresh remote TLS-denial test runs in both the development and
+BCR consumer workspaces before source compilation;
 `external`/`no-cache` tags prevent cached success from hiding executor changes.
 Repository fetching remains outside build actions. C++/Apple/Swift host toolchain
 discovery is disabled; target compilers and sysroots stay declared inputs.

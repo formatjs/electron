@@ -7,6 +7,15 @@ package(default_visibility = ["//visibility:public"])
 execution_node(name = "execution_node")
 
 py_test(
+    name = "hermetic_execution_test",
+    srcs = ["hermetic_execution_test.py"],
+    tags = [
+        "external",
+        "no-cache",
+    ],
+)
+
+py_test(
     name = "electron_bundles_test",
     srcs = ["electron_bundles_test.py"],
     args = [
