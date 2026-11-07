@@ -31,6 +31,7 @@ py_test(
         "nss_integrity.py",
         "nss_integrity_test.py",
     ],
+    imports = ["."],
     main = "nss_integrity_test.py",
 )
 
