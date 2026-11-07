@@ -73,6 +73,9 @@ def capture(graph, digest, chromium, libdrm, libsync, profiles):
         headers[directory] = sorted(inventory)
         for path in inventory:
             input_file("//" + path)
+    headers["cc"] = sorted(path.relative_to(chromium).as_posix() for path in (chromium / "cc").glob("*.h"))
+    for path in headers["cc"]:
+        input_file("//" + path)
     actions, libraries, metadata = {}, {}, {}
     for label in sorted(seen):
         target = targets[label]

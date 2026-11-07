@@ -23502,6 +23502,9 @@
       "ui/linux/status_icon_linux.h",
       "ui/linux/window_button_order_observer.h",
       "ui/linux/window_frame_provider.h"
+    ],
+    "cc": [
+      "cc/cc_export.h"
     ]
   },
   "files": [
@@ -23544,6 +23547,7 @@
     "cc/base/tiling_data.h",
     "cc/base/unique_notifier.cc",
     "cc/base/unique_notifier.h",
+    "cc/cc_export.h",
     "cc/debug/debug_colors.cc",
     "cc/debug/debug_colors.h",
     "cc/debug/debug_export.h",
@@ -25521,8 +25525,8 @@
     "//out/bazel-import/gen/ui/gfx/range/mojom/mojom__generate_message_ids.rsp": "../../ui/gfx/range/mojom/range.mojom\n",
     "//out/bazel-import/gen/ui/gfx/range/mojom/mojom__generator.rsp": "../../ui/gfx/range/mojom/range.mojom\n",
     "//out/bazel-import/gen/ui/gfx/range/mojom/mojom__parser_action.rsp": "../../ui/gfx/range/mojom/range.mojom\n",
-    "//out/bazel-import/gen/ui/gfx/range/mojom/mojom.typemap_config": "[\n  {\n    \"traits_headers\": [\n      \"ui/gfx/range/mojom/range_mojom_traits.h\"\n    ],\n    \"traits_public_deps\": [\n      \":mojom_traits\"\n    ],\n    \"types\": [\n      {\n        \"cpp\": \"::gfx::Range\",\n        \"mojom\": \"gfx.mojom.Range\"\n      },\n      {\n        \"cpp\": \"::gfx::RangeF\",\n        \"mojom\": \"gfx.mojom.RangeF\"\n      }\n    ]\n  }\n]",
     "//out/bazel-import/gen/ui/gfx/range/mojom/mojom.ts_typemap_config": "[\n\n]",
+    "//out/bazel-import/gen/ui/gfx/range/mojom/mojom.typemap_config": "[\n  {\n    \"traits_headers\": [\n      \"ui/gfx/range/mojom/range_mojom_traits.h\"\n    ],\n    \"traits_public_deps\": [\n      \":mojom_traits\"\n    ],\n    \"types\": [\n      {\n        \"cpp\": \"::gfx::Range\",\n        \"mojom\": \"gfx.mojom.Range\"\n      },\n      {\n        \"cpp\": \"::gfx::RangeF\",\n        \"mojom\": \"gfx.mojom.RangeF\"\n      }\n    ]\n  }\n]",
     "//out/bazel-import/gen/ui/gfx/range/mojom/mojom_shared__generator.rsp": "../../ui/gfx/range/mojom/range.mojom\n"
   },
   "toolchain_deps": [
