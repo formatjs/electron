@@ -5,6 +5,7 @@ import argparse
 import gzip
 import hashlib
 import json
+import re
 from pathlib import Path
 
 from capture_mojo import SCRIPTS as MOJO_SCRIPTS
@@ -116,11 +117,21 @@ def capture(graph, digest, chromium, snappy, protobuf_javascript, perfetto, prof
             libraries[label] = capture_library(graph, target, record, input_file, label)
         else:
             raise ValueError("Untranslated events target kind: " + kind)
+    textual_headers = set()
+    for library in libraries.values():
+        for path in library["srcs"] + library["c_srcs"]:
+            if path.startswith(BUILD):
+                continue
+            for include in re.findall(r'^\s*#\s*include\s*"(third_party/[^"\n]+\.(?:c|cc))"', physical(path[2:]).read_text(), re.M):
+                if not physical(include).is_file():
+                    raise ValueError("Missing original textual implementation: " + include)
+                textual_headers.add(include)
+                input_file("//" + include)
     for path in files:
         if not physical(path).is_file():
             raise ValueError("Missing original events input: " + path)
     used = {dep for label in seen for dep in targets[label].get("deps", []) if dep in external}
-    return dict(roots=ROOTS, graph_sha256=digest, names=names, libraries=libraries, actions=actions, metadata=metadata, copies=copies, execution_tools=sorted(set(tools.values())), source_revisions=PINS, producers=producers, headers=headers, files=sorted(files), external_files={path: shared[path] for path in sorted(used_shared)}, external={label: external[label] for label in sorted(used)}, generated_files=generated, toolchain_deps=sorted(TOOLCHAIN))
+    return dict(roots=ROOTS, graph_sha256=digest, names=names, libraries=libraries, actions=actions, metadata=metadata, copies=copies, execution_tools=sorted(set(tools.values())), source_revisions=PINS, producers=producers, headers=headers, textual_headers=sorted(textual_headers), files=sorted(files), external_files={path: shared[path] for path in sorted(used_shared)}, external={label: external[label] for label in sorted(used)}, generated_files=generated, toolchain_deps=sorted(TOOLCHAIN))
 
 
 def main():

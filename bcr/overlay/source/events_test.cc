@@ -60,7 +60,7 @@ void CheckDeclaredKeyboardLayout() {
   constexpr char layout[] = R"XKB(xkb_keymap {
     xkb_keycodes "fixture" { minimum=8; maximum=255; <AC01>=38; <LFSH>=50; };
     xkb_types "fixture" { type "TWO_LEVEL" { modifiers=Shift; map[Shift]=Level2; level_name[Level1]="Base"; level_name[Level2]="Shift"; }; };
-    xkb_compatibility "fixture" { };
+    xkb_compatibility "fixture" { interpret Shift_L { action=SetMods(modifiers=Shift); }; };
     xkb_symbols "fixture" { key <AC01> { type="TWO_LEVEL", [a,A] }; key <LFSH> { [Shift_L] }; modifier_map Shift { <LFSH> }; };
   };)XKB";
   auto* keymap = xkb_keymap_new_from_string(context, layout, XKB_KEYMAP_FORMAT_TEXT_V1, XKB_KEYMAP_COMPILE_NO_FLAGS);

@@ -23,6 +23,7 @@ def electron_events():
     cc_library(
         name = "source_headers",
         hdrs = {_file("//" + path): True for headers in PROFILE["headers"].values() for path in headers}.keys() + [_file(path) for action in PROFILE["actions"].values() for path in action["outputs"] if path.endswith(".h")],
+        textual_hdrs = [_file("//" + path) for path in PROFILE["textual_headers"]],
         includes = [".", "gen", "gen/third_party/perfetto", "gen/third_party/perfetto/build_config"],
         deps = ["@electron_display_sources//:source_headers", "@electron_xcb_sources//:libxcb", "@xkbcommon//:xkbcommon", "@electron_mojo_sources//:bindings", "@electron_partition_alloc_sources//:raw_ptr"],
         target_compatible_with = _COMPATIBLE,
