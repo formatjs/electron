@@ -302,6 +302,47 @@ python3 tools/capture_temporal.py \
 buildifier bcr/overlay/source/native/v8_temporal_inputs.bzl
 ```
 
+## Complete captured Perfetto closure
+
+The native profile translates all 329 captured Perfetto targets plus matching
+JsonCpp: 68 original generator actions, 721 generated outputs and 564 C++
+compilation units, including generated protocol implementations and host
+plugins. Source sets retain object inclusion semantics; each target keeps its
+captured compiler flags, definitions and dependencies.
+
+Perfetto comes from Electron's patched `d5bbee7afdf259af4212929ccbff467dd5349953`
+source. JsonCpp uses Chromium's exact DEPS revision
+`42e892d96e47b1f6e29844cc705e148ec4856448` and a hashed archive, rather than a
+newer BCR version. Its iterator `.inl` is a declared implementation input.
+The projection declares 1,463 source/header/schema/script/license files.
+
+The original protoc wrapper, buildflag writer, descriptor/table generators and
+stamp script run through a declared Python action. Native protoc/plugins are
+execution-platform inputs. Child processes get isolated Python, empty `PATH`
+and an explicit environment. Every generator runs twice with different staging
+paths, including spaces, and different source mtimes; output bytes must match.
+The registered LLVM toolchain supplies the compiler-runtime archive formerly
+named through GN's `$LLVM_ROOT`; no source action resolves that host path.
+
+`@electron//source:perfetto_test` starts/stops real in-process tracing, decodes
+packet-scoped interned names and debug annotations, and checks disabled-category
+filtering. It also checks binary-string JsonCpp roundtrips and its captured
+abort-on-invalid-conversion behavior, with core dumps disabled.
+[7177c35 components](https://formatjs.buildbuddy.io/invocation/3072778c-6b5f-4d26-ad16-aa721e45c7f4),
+[BCR consumer](https://formatjs.buildbuddy.io/invocation/781d378c-801e-46f9-a1a9-45bfd2007deb)
+and [cross checks](https://formatjs.buildbuddy.io/invocation/73a5d16b-bf93-4f1a-8e97-25159bb6bb41)
+passed. These native profiles remain Linux AMD64. Inspector, full V8 objects,
+snapshots and final Electron linking remain open.
+
+```sh
+python3 tools/capture_perfetto.py \
+  --graph=bcr/overlay/source/native/linux_amd64.partial.json.gz \
+  --chromium-root=/path/to/matching/patched/chromium \
+  --perfetto-root=/path/to/matching/patched/perfetto \
+  --jsoncpp-root=/path/to/pinned/jsoncpp \
+  --output=bcr/overlay/source/native/perfetto_inputs.json
+```
+
 ## Matching Protobuf runtime and compiler
 
 Perfetto's generators require a matching protocol tool/runtime. The native
@@ -326,8 +367,8 @@ messages, malformed packed fields and invalid UTF-8.
 [687dc7f components](https://formatjs.buildbuddy.io/invocation/a70db8a5-8eee-417a-9cfd-53c1564ad657),
 [BCR consumer](https://formatjs.buildbuddy.io/invocation/e87c3f3f-4c89-4a11-9d22-0ce75b75d180)
 and [cross checks](https://formatjs.buildbuddy.io/invocation/21521a1e-126f-4532-a745-8c2b84650786)
-passed. These new profiles remain Linux AMD64. Perfetto's own protocol/runtime
-closure and the full V8 engine still need translation.
+passed. These new profiles remain Linux AMD64. Perfetto's protocol/runtime
+closure now uses this matching compiler and runtime; full V8 remains open.
 
 ```sh
 python3 tools/capture_protobuf.py \
@@ -361,7 +402,7 @@ corrupt checksummed streams and CRC32/Adler32 vectors.
 [BCR consumer](https://formatjs.buildbuddy.io/invocation/11a4a3fd-25ce-4651-8115-0773a0923553)
 and [cross checks](https://formatjs.buildbuddy.io/invocation/7766ab37-94e9-43d4-94f9-3c0f1469505e)
 passed. The new library profiles themselves remain Linux AMD64. Full V8 still
-needs Perfetto, inspector generators, engine objects and snapshots.
+needs inspector generators, engine objects and snapshots.
 
 ## Native V8 base/task slice
 
