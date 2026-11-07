@@ -399,7 +399,14 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [
+        "//out/bazel-import/gen/base/version_info/version_info_values.h"
+      ],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//base/version_info:version_info": {
       "name": "target_f69d39c4c7e97bd6",
@@ -758,7 +765,15 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [
+        "//base/version_info/version_info.h"
+      ],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/unsafe_buffers_paths.txt",
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//build/config:common_deps": {
       "name": "target_ed70b5b92940cdea",
@@ -783,7 +798,10 @@
       "gn_include_dirs": [],
       "gn_ldflags": [],
       "omitted_toolchain_and_diagnostic_flags": [],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": []
     },
     "//build/config:common_deps_without_libcxx": {
       "name": "target_62511b5b4d415880",
@@ -804,7 +822,10 @@
       "gn_include_dirs": [],
       "gn_ldflags": [],
       "omitted_toolchain_and_diagnostic_flags": [],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": []
     },
     "//build/config:executable_deps": {
       "name": "target_a25bb68e24a3659f",
@@ -827,7 +848,10 @@
       "gn_include_dirs": [],
       "gn_ldflags": [],
       "omitted_toolchain_and_diagnostic_flags": [],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": []
     },
     "//build/config:toolchain_marker_clang_x64": {
       "name": "target_69e82cc6d4924cdd",
@@ -846,7 +870,10 @@
       "gn_include_dirs": [],
       "gn_ldflags": [],
       "omitted_toolchain_and_diagnostic_flags": [],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": []
     },
     "//components/cbor:cbor": {
       "name": "target_18fdbbc956f2620f",
@@ -1207,7 +1234,20 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [
+        "//components/cbor/constants.h",
+        "//components/cbor/diagnostic_writer.h",
+        "//components/cbor/float_conversions.h",
+        "//components/cbor/reader.h",
+        "//components/cbor/values.h",
+        "//components/cbor/writer.h"
+      ],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/unsafe_buffers_paths.txt",
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//components/miracle_parameter/common:common": {
       "name": "target_0b8264d7eb7b2ad9",
@@ -1564,7 +1604,15 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [
+        "//components/miracle_parameter/common/public/miracle_parameter.h"
+      ],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/unsafe_buffers_paths.txt",
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//components/network_time/time_tracker:time_tracker": {
       "name": "target_3d42a633c3e954bc",
@@ -1920,7 +1968,15 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [
+        "//components/network_time/time_tracker/time_tracker.h"
+      ],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/unsafe_buffers_paths.txt",
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//components/performance_manager/scenario_api:scenario_api": {
       "name": "target_c57b918e9148e3ae",
@@ -2279,7 +2335,18 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [
+        "//components/performance_manager/scenario_api/performance_scenario_memory.h",
+        "//components/performance_manager/scenario_api/performance_scenario_memory_forward.h",
+        "//components/performance_manager/scenario_api/performance_scenario_observer.h",
+        "//components/performance_manager/scenario_api/performance_scenarios.h"
+      ],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/unsafe_buffers_paths.txt",
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//components/sqlite_proto:sqlite_proto": {
       "name": "target_2c17b3344f800fae",
@@ -2642,7 +2709,18 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [
+        "//components/sqlite_proto/key_value_data.h",
+        "//components/sqlite_proto/key_value_table.h",
+        "//components/sqlite_proto/proto_table_manager.h",
+        "//components/sqlite_proto/table_manager.h"
+      ],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/unsafe_buffers_paths.txt",
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//components/unexportable_keys:unexportable_keys": {
       "name": "target_12f64e8082dc6a5c",
@@ -3015,7 +3093,28 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [
+        "//components/unexportable_keys/background_long_task_scheduler.h",
+        "//components/unexportable_keys/background_task.h",
+        "//components/unexportable_keys/background_task_impl.h",
+        "//components/unexportable_keys/background_task_priority.h",
+        "//components/unexportable_keys/background_task_type.h",
+        "//components/unexportable_keys/features.h",
+        "//components/unexportable_keys/ref_counted_unexportable_signing_key.h",
+        "//components/unexportable_keys/service_error.h",
+        "//components/unexportable_keys/unexportable_key_id.h",
+        "//components/unexportable_keys/unexportable_key_loader.h",
+        "//components/unexportable_keys/unexportable_key_service.h",
+        "//components/unexportable_keys/unexportable_key_service_impl.h",
+        "//components/unexportable_keys/unexportable_key_task_manager.h",
+        "//components/unexportable_keys/unexportable_key_tasks.h"
+      ],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/unsafe_buffers_paths.txt",
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//crypto:crypto": {
       "name": "target_1309f2d3a056201c",
@@ -3411,7 +3510,46 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [
+        "//crypto/aead.h",
+        "//crypto/aes_cbc.h",
+        "//crypto/aes_ctr.h",
+        "//crypto/cose.h",
+        "//crypto/crypto_export.h",
+        "//crypto/evp.h",
+        "//crypto/features.h",
+        "//crypto/hash.h",
+        "//crypto/hkdf.h",
+        "//crypto/hmac.h",
+        "//crypto/kdf.h",
+        "//crypto/kex.h",
+        "//crypto/keypair.h",
+        "//crypto/obsolete/md5.h",
+        "//crypto/openssl_util.h",
+        "//crypto/pem.h",
+        "//crypto/process_bound_string.h",
+        "//crypto/random.h",
+        "//crypto/scoped_nss_types.h",
+        "//crypto/secure_hash.h",
+        "//crypto/secure_util.h",
+        "//crypto/sha2.h",
+        "//crypto/sign.h",
+        "//crypto/signature_verifier.h",
+        "//crypto/subtle_passkey.h",
+        "//crypto/unexportable_key.h",
+        "//crypto/unexportable_key_metrics.h",
+        "//crypto/user_verifying_key.h",
+        "//crypto/nss_crypto_module_delegate.h",
+        "//crypto/nss_key_util.h",
+        "//crypto/nss_util.h",
+        "//crypto/nss_util_internal.h"
+      ],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/unsafe_buffers_paths.txt",
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//mojo/core/embedder:embedder": {
       "name": "target_b03227ebe255126d",
@@ -3795,6 +3933,12 @@
         "//mojo/core/embedder/configuration.h",
         "//mojo/core/embedder/embedder.h",
         "//mojo/core/embedder/scoped_ipc_support.h"
+      ],
+      "source_headers": [],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/unsafe_buffers_paths.txt",
+        "//build/config/warning_suppression.txt"
       ]
     },
     "//mojo/core/embedder:features": {
@@ -4155,6 +4299,12 @@
       ],
       "public_headers": [
         "//mojo/core/embedder/features.h"
+      ],
+      "source_headers": [],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/unsafe_buffers_paths.txt",
+        "//build/config/warning_suppression.txt"
       ]
     },
     "//mojo/core:embedder_internal": {
@@ -4525,7 +4675,12 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//mojo/core:impl_for_embedder": {
       "name": "target_14c17813d8bca5d1",
@@ -4955,6 +5110,21 @@
         "//mojo/core/platform_handle_utils.h",
         "//mojo/core/scoped_ipcz_handle.h",
         "//mojo/core/channel_linux.h"
+      ],
+      "source_headers": [
+        "//mojo/core/broker.h",
+        "//mojo/core/ipcz_driver/data_pipe.h",
+        "//mojo/core/ipcz_driver/mojo_trap.h",
+        "//mojo/core/ipcz_driver/validate_enum.h",
+        "//mojo/core/platform_handle_in_transit.h",
+        "//mojo/core/channel_posix.h",
+        "//mojo/core/channel_linux.h",
+        "//mojo/core/broker_host.h"
+      ],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/unsafe_buffers_paths.txt",
+        "//build/config/warning_suppression.txt"
       ]
     },
     "//mojo/public/c/system:headers": {
@@ -5277,6 +5447,11 @@
         "//mojo/public/c/system/thunks.h",
         "//mojo/public/c/system/trap.h",
         "//mojo/public/c/system/types.h"
+      ],
+      "source_headers": [],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/warning_suppression.txt"
       ]
     },
     "//mojo/public/c/system:system": {
@@ -5635,7 +5810,13 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/unsafe_buffers_paths.txt",
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//mojo/public/cpp/bindings:default_construct_tag": {
       "name": "target_a0a574b85b23c3a3",
@@ -5944,7 +6125,14 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [
+        "//mojo/public/cpp/bindings/default_construct_tag.h"
+      ],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//mojo/public/cpp/platform:platform": {
       "name": "target_ca6d70bb724def92",
@@ -6345,6 +6533,12 @@
         "//mojo/public/cpp/platform/socket_utils_posix.h",
         "//mojo/public/cpp/platform/platform_channel_server.h",
         "//mojo/public/cpp/platform/named_platform_channel.h"
+      ],
+      "source_headers": [],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/unsafe_buffers_paths.txt",
+        "//build/config/warning_suppression.txt"
       ]
     },
     "//net/cert:root_store_proto_full": {
@@ -6667,7 +6861,17 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [
+        "//out/bazel-import/gen/net/cert/root_store_proto_full/root_store.pb.h"
+      ],
+      "compiler_inputs": [
+        "//net/cert/root_store.proto"
+      ],
+      "omitted_diagnostic_inputs": [
+        "//build/config/unsafe_buffers_paths.txt",
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//net/cert:root_store_proto_full_input_group": {
       "name": "target_70cb27cbc740a591",
@@ -6686,7 +6890,12 @@
       "gn_include_dirs": [],
       "gn_ldflags": [],
       "omitted_toolchain_and_diagnostic_flags": [],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [],
+      "compiler_inputs": [
+        "//net/cert/root_store.proto"
+      ],
+      "omitted_diagnostic_inputs": []
     },
     "//net/cert:root_store_proto_lite": {
       "name": "target_ee4fbee20609553b",
@@ -7008,7 +7217,17 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [
+        "//out/bazel-import/gen/net/cert/root_store_proto_lite/root_store.pb.h"
+      ],
+      "compiler_inputs": [
+        "//net/cert/root_store.proto"
+      ],
+      "omitted_diagnostic_inputs": [
+        "//build/config/unsafe_buffers_paths.txt",
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//net/cert:root_store_proto_lite_input_group": {
       "name": "target_4b26f2c332808ac1",
@@ -7027,7 +7246,12 @@
       "gn_include_dirs": [],
       "gn_ldflags": [],
       "omitted_toolchain_and_diagnostic_flags": [],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [],
+      "compiler_inputs": [
+        "//net/cert/root_store.proto"
+      ],
+      "omitted_diagnostic_inputs": []
     },
     "//net/dns/public:public": {
       "name": "target_29a09fb96f80f53b",
@@ -7437,7 +7661,29 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [
+        "//net/dns/public/dns_config_overrides.h",
+        "//net/dns/public/dns_over_https_config.h",
+        "//net/dns/public/dns_over_https_server_config.h",
+        "//net/dns/public/dns_protocol.h",
+        "//net/dns/public/dns_query_type.h",
+        "//net/dns/public/doh_provider_entry.h",
+        "//net/dns/public/host_resolver_results.h",
+        "//net/dns/public/host_resolver_source.h",
+        "//net/dns/public/mdns_listener_update_type.h",
+        "//net/dns/public/resolve_error_info.h",
+        "//net/dns/public/secure_dns_mode.h",
+        "//net/dns/public/secure_dns_policy.h",
+        "//net/dns/public/util.h",
+        "//net/dns/public/resolv_reader.h",
+        "//net/dns/public/scoped_res_state.h"
+      ],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/unsafe_buffers_paths.txt",
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//net/dns:dns": {
       "name": "target_907728a31a81f45f",
@@ -7894,7 +8140,53 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [
+        "//net/dns/address_info.h",
+        "//net/dns/address_sorter.h",
+        "//net/dns/context_host_resolver.h",
+        "//net/dns/dns_alias_utility.h",
+        "//net/dns/dns_config_service.h",
+        "//net/dns/dns_hosts.h",
+        "//net/dns/dns_names_util.h",
+        "//net/dns/dns_query.h",
+        "//net/dns/dns_reloader.h",
+        "//net/dns/dns_response_result_extractor.h",
+        "//net/dns/dns_server_iterator.h",
+        "//net/dns/dns_session.h",
+        "//net/dns/dns_task_results_manager.h",
+        "//net/dns/dns_udp_tracker.h",
+        "//net/dns/dns_util.h",
+        "//net/dns/filtering_details_url_generator.h",
+        "//net/dns/host_resolver_cache.h",
+        "//net/dns/host_resolver_dns_task.h",
+        "//net/dns/host_resolver_internal_result.h",
+        "//net/dns/host_resolver_manager_job.h",
+        "//net/dns/host_resolver_manager_request_impl.h",
+        "//net/dns/host_resolver_manager_service_endpoint_request_impl.h",
+        "//net/dns/host_resolver_mdns_listener_impl.h",
+        "//net/dns/host_resolver_mdns_task.h",
+        "//net/dns/host_resolver_nat64_task.h",
+        "//net/dns/host_resolver_proc.h",
+        "//net/dns/host_resolver_system_task.h",
+        "//net/dns/httpssvc_metrics.h",
+        "//net/dns/loopback_only.h",
+        "//net/dns/nsswitch_reader.h",
+        "//net/dns/resolve_context.h",
+        "//net/dns/serial_worker.h",
+        "//net/dns/stale_host_resolver.h",
+        "//net/dns/system_dns_config_change_notifier.h",
+        "//net/dns/test_dns_config_service.h",
+        "//net/dns/dns_config_service_linux.h",
+        "//net/dns/address_sorter_posix.h",
+        "//net/dns/mdns_cache.h",
+        "//net/dns/mdns_client_impl.h"
+      ],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/unsafe_buffers_paths.txt",
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//net/dns:dns_client": {
       "name": "target_e8a7401b2d5ed5f4",
@@ -8293,7 +8585,20 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [
+        "//net/dns/dns_client.h",
+        "//net/dns/dns_response.h",
+        "//net/dns/dns_transaction.h",
+        "//net/dns/https_record_rdata.h",
+        "//net/dns/opt_record_rdata.h",
+        "//net/dns/record_parsed.h",
+        "//net/dns/record_rdata.h"
+      ],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//net/dns:host_resolver": {
       "name": "target_8afdac9e2f8792ca",
@@ -8691,7 +8996,17 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [
+        "//net/dns/dns_config.h",
+        "//net/dns/host_cache.h",
+        "//net/dns/host_resolver.h",
+        "//net/dns/mapped_host_resolver.h"
+      ],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//net/dns:host_resolver_manager": {
       "name": "target_3eb0649cf3bdb25a",
@@ -9090,7 +9405,14 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [
+        "//net/dns/host_resolver_manager.h"
+      ],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//net/dns:mdns_client": {
       "name": "target_11729a43bb3c6b7e",
@@ -9489,7 +9811,14 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [
+        "//net/dns/mdns_client.h"
+      ],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//net/http:transport_security_state_generated_files": {
       "name": "target_ae2fc68c459a6e0c",
@@ -9893,7 +10222,13 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/unsafe_buffers_paths.txt",
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//net/third_party/quiche:net_quic_proto": {
       "name": "target_feb3f72cb1c5428c",
@@ -10263,7 +10598,21 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [
+        "//out/bazel-import/gen/net/third_party/quiche/src/quiche/quic/core/proto/cached_network_parameters.pb.h",
+        "//out/bazel-import/gen/net/third_party/quiche/src/quiche/quic/core/proto/crypto_server_config.pb.h",
+        "//out/bazel-import/gen/net/third_party/quiche/src/quiche/quic/core/proto/source_address_token.pb.h"
+      ],
+      "compiler_inputs": [
+        "//net/third_party/quiche/src/quiche/quic/core/proto/cached_network_parameters.proto",
+        "//net/third_party/quiche/src/quiche/quic/core/proto/crypto_server_config.proto",
+        "//net/third_party/quiche/src/quiche/quic/core/proto/source_address_token.proto"
+      ],
+      "omitted_diagnostic_inputs": [
+        "//build/config/unsafe_buffers_paths.txt",
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//net/third_party/quiche:net_quic_proto_input_group": {
       "name": "target_23bebefd901b5a82",
@@ -10282,7 +10631,14 @@
       "gn_include_dirs": [],
       "gn_ldflags": [],
       "omitted_toolchain_and_diagnostic_flags": [],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [],
+      "compiler_inputs": [
+        "//net/third_party/quiche/src/quiche/quic/core/proto/cached_network_parameters.proto",
+        "//net/third_party/quiche/src/quiche/quic/core/proto/crypto_server_config.proto",
+        "//net/third_party/quiche/src/quiche/quic/core/proto/source_address_token.proto"
+      ],
+      "omitted_diagnostic_inputs": []
     },
     "//net/third_party/quiche:net_quic_test_tools_proto": {
       "name": "target_8230d4a8e742ff95",
@@ -10606,7 +10962,17 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [
+        "//out/bazel-import/gen/net/third_party/quiche/src/quiche/quic/test_tools/send_algorithm_test_result.pb.h"
+      ],
+      "compiler_inputs": [
+        "//net/third_party/quiche/src/quiche/quic/test_tools/send_algorithm_test_result.proto"
+      ],
+      "omitted_diagnostic_inputs": [
+        "//build/config/unsafe_buffers_paths.txt",
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//net/third_party/quiche:net_quic_test_tools_proto_input_group": {
       "name": "target_4ce37201e824583d",
@@ -10625,7 +10991,12 @@
       "gn_include_dirs": [],
       "gn_ldflags": [],
       "omitted_toolchain_and_diagnostic_flags": [],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [],
+      "compiler_inputs": [
+        "//net/third_party/quiche/src/quiche/quic/test_tools/send_algorithm_test_result.proto"
+      ],
+      "omitted_diagnostic_inputs": []
     },
     "//net/third_party/quiche:quiche": {
       "name": "target_f5e49912b5aa4571",
@@ -11323,7 +11694,441 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [
+        "//net/third_party/quiche/overrides/quiche_platform_impl/quiche_bug_tracker_impl.h",
+        "//net/third_party/quiche/overrides/quiche_platform_impl/quiche_client_stats_impl.h",
+        "//net/third_party/quiche/overrides/quiche_platform_impl/quiche_containers_impl.h",
+        "//net/third_party/quiche/overrides/quiche_platform_impl/quiche_export_impl.h",
+        "//net/third_party/quiche/overrides/quiche_platform_impl/quiche_iovec_impl.h",
+        "//net/third_party/quiche/overrides/quiche_platform_impl/quiche_logging_impl.h",
+        "//net/third_party/quiche/overrides/quiche_platform_impl/quiche_reference_counted_impl.h",
+        "//net/third_party/quiche/overrides/quiche_platform_impl/quiche_server_stats_impl.h",
+        "//net/third_party/quiche/overrides/quiche_platform_impl/quiche_stack_trace_impl.h",
+        "//net/third_party/quiche/overrides/quiche_platform_impl/quiche_url_utils_impl.h",
+        "//net/third_party/quiche/src/quiche/common/platform/default/quiche_platform_impl/quiche_flags_impl.h",
+        "//net/third_party/quiche/src/quiche/common/platform/default/quiche_platform_impl/quiche_time_utils_impl.h",
+        "//net/third_party/quiche/src/quiche/http2/hpack/hpack_static_table_entries.inc",
+        "//net/third_party/quiche/src/quiche/common/btree_scheduler.h",
+        "//net/third_party/quiche/src/quiche/common/bug_utils.h",
+        "//net/third_party/quiche/src/quiche/common/bug_utils_test_helper.h",
+        "//net/third_party/quiche/src/quiche/common/capsule.h",
+        "//net/third_party/quiche/src/quiche/common/http/http_header_block.h",
+        "//net/third_party/quiche/src/quiche/common/http/http_header_storage.h",
+        "//net/third_party/quiche/src/quiche/common/internet_checksum.h",
+        "//net/third_party/quiche/src/quiche/common/lifetime_tracking.h",
+        "//net/third_party/quiche/src/quiche/common/masque/connect_ip_datagram_payload.h",
+        "//net/third_party/quiche/src/quiche/common/masque/connect_udp_datagram_payload.h",
+        "//net/third_party/quiche/src/quiche/common/platform/api/quiche_bug_tracker.h",
+        "//net/third_party/quiche/src/quiche/common/platform/api/quiche_client_stats.h",
+        "//net/third_party/quiche/src/quiche/common/platform/api/quiche_containers.h",
+        "//net/third_party/quiche/src/quiche/common/platform/api/quiche_export.h",
+        "//net/third_party/quiche/src/quiche/common/platform/api/quiche_flag_utils.h",
+        "//net/third_party/quiche/src/quiche/common/platform/api/quiche_flags.h",
+        "//net/third_party/quiche/src/quiche/common/platform/api/quiche_googleurl.h",
+        "//net/third_party/quiche/src/quiche/common/platform/api/quiche_header_policy.h",
+        "//net/third_party/quiche/src/quiche/common/platform/api/quiche_hostname_utils.h",
+        "//net/third_party/quiche/src/quiche/common/platform/api/quiche_iovec.h",
+        "//net/third_party/quiche/src/quiche/common/platform/api/quiche_logging.h",
+        "//net/third_party/quiche/src/quiche/common/platform/api/quiche_lower_case_string.h",
+        "//net/third_party/quiche/src/quiche/common/platform/api/quiche_reference_counted.h",
+        "//net/third_party/quiche/src/quiche/common/platform/api/quiche_server_stats.h",
+        "//net/third_party/quiche/src/quiche/common/platform/api/quiche_stack_trace.h",
+        "//net/third_party/quiche/src/quiche/common/platform/api/quiche_testvalue.h",
+        "//net/third_party/quiche/src/quiche/common/platform/api/quiche_thread.h",
+        "//net/third_party/quiche/src/quiche/common/platform/api/quiche_time_utils.h",
+        "//net/third_party/quiche/src/quiche/common/platform/api/quiche_url_utils.h",
+        "//net/third_party/quiche/src/quiche/common/print_elements.h",
+        "//net/third_party/quiche/src/quiche/common/quiche_buffer_allocator.h",
+        "//net/third_party/quiche/src/quiche/common/quiche_callbacks.h",
+        "//net/third_party/quiche/src/quiche/common/quiche_circular_deque.h",
+        "//net/third_party/quiche/src/quiche/common/quiche_crypto_logging.h",
+        "//net/third_party/quiche/src/quiche/common/quiche_data_reader.h",
+        "//net/third_party/quiche/src/quiche/common/quiche_data_writer.h",
+        "//net/third_party/quiche/src/quiche/common/quiche_endian.h",
+        "//net/third_party/quiche/src/quiche/common/quiche_feature_flags_list.h",
+        "//net/third_party/quiche/src/quiche/common/quiche_intrusive_list.h",
+        "//net/third_party/quiche/src/quiche/common/quiche_ip_address.h",
+        "//net/third_party/quiche/src/quiche/common/quiche_ip_address_family.h",
+        "//net/third_party/quiche/src/quiche/common/quiche_linked_hash_map.h",
+        "//net/third_party/quiche/src/quiche/common/quiche_mem_slice.h",
+        "//net/third_party/quiche/src/quiche/common/quiche_mem_slice_storage.h",
+        "//net/third_party/quiche/src/quiche/common/quiche_protocol_flags_list.h",
+        "//net/third_party/quiche/src/quiche/common/quiche_random.h",
+        "//net/third_party/quiche/src/quiche/common/quiche_simple_arena.h",
+        "//net/third_party/quiche/src/quiche/common/quiche_socket_address.h",
+        "//net/third_party/quiche/src/quiche/common/quiche_status_utils.h",
+        "//net/third_party/quiche/src/quiche/common/quiche_stream.h",
+        "//net/third_party/quiche/src/quiche/common/quiche_text_utils.h",
+        "//net/third_party/quiche/src/quiche/common/quiche_weak_ptr.h",
+        "//net/third_party/quiche/src/quiche/common/simple_buffer_allocator.h",
+        "//net/third_party/quiche/src/quiche/common/structured_headers.h",
+        "//net/third_party/quiche/src/quiche/common/vectorized_io_utils.h",
+        "//net/third_party/quiche/src/quiche/common/wire_serialization.h",
+        "//net/third_party/quiche/src/quiche/http2/adapter/chunked_buffer.h",
+        "//net/third_party/quiche/src/quiche/http2/adapter/data_source.h",
+        "//net/third_party/quiche/src/quiche/http2/adapter/event_forwarder.h",
+        "//net/third_party/quiche/src/quiche/http2/adapter/header_validator.h",
+        "//net/third_party/quiche/src/quiche/http2/adapter/header_validator_base.h",
+        "//net/third_party/quiche/src/quiche/http2/adapter/http2_adapter.h",
+        "//net/third_party/quiche/src/quiche/http2/adapter/http2_protocol.h",
+        "//net/third_party/quiche/src/quiche/http2/adapter/http2_session.h",
+        "//net/third_party/quiche/src/quiche/http2/adapter/http2_util.h",
+        "//net/third_party/quiche/src/quiche/http2/adapter/http2_visitor_interface.h",
+        "//net/third_party/quiche/src/quiche/http2/adapter/noop_header_validator.h",
+        "//net/third_party/quiche/src/quiche/http2/adapter/oghttp2_adapter.h",
+        "//net/third_party/quiche/src/quiche/http2/adapter/oghttp2_session.h",
+        "//net/third_party/quiche/src/quiche/http2/adapter/oghttp2_util.h",
+        "//net/third_party/quiche/src/quiche/http2/adapter/window_manager.h",
+        "//net/third_party/quiche/src/quiche/http2/core/array_output_buffer.h",
+        "//net/third_party/quiche/src/quiche/http2/core/header_byte_listener_interface.h",
+        "//net/third_party/quiche/src/quiche/http2/core/http2_constants.h",
+        "//net/third_party/quiche/src/quiche/http2/core/http2_frame_decoder_adapter.h",
+        "//net/third_party/quiche/src/quiche/http2/core/http2_header_block_hpack_listener.h",
+        "//net/third_party/quiche/src/quiche/http2/core/http2_structures.h",
+        "//net/third_party/quiche/src/quiche/http2/core/http2_trace_logging.h",
+        "//net/third_party/quiche/src/quiche/http2/core/no_op_headers_handler.h",
+        "//net/third_party/quiche/src/quiche/http2/core/priority_write_scheduler.h",
+        "//net/third_party/quiche/src/quiche/http2/core/recording_headers_handler.h",
+        "//net/third_party/quiche/src/quiche/http2/core/spdy_alt_svc_wire_format.h",
+        "//net/third_party/quiche/src/quiche/http2/core/spdy_bitmasks.h",
+        "//net/third_party/quiche/src/quiche/http2/core/spdy_frame_builder.h",
+        "//net/third_party/quiche/src/quiche/http2/core/spdy_framer.h",
+        "//net/third_party/quiche/src/quiche/http2/core/spdy_headers_handler_interface.h",
+        "//net/third_party/quiche/src/quiche/http2/core/spdy_no_op_visitor.h",
+        "//net/third_party/quiche/src/quiche/http2/core/spdy_protocol.h",
+        "//net/third_party/quiche/src/quiche/http2/core/zero_copy_output_buffer.h",
+        "//net/third_party/quiche/src/quiche/http2/decoder/decode_buffer.h",
+        "//net/third_party/quiche/src/quiche/http2/decoder/decode_http2_structures.h",
+        "//net/third_party/quiche/src/quiche/http2/decoder/decode_status.h",
+        "//net/third_party/quiche/src/quiche/http2/decoder/frame_decoder_state.h",
+        "//net/third_party/quiche/src/quiche/http2/decoder/http2_frame_decoder.h",
+        "//net/third_party/quiche/src/quiche/http2/decoder/http2_frame_decoder_listener.h",
+        "//net/third_party/quiche/src/quiche/http2/decoder/http2_structure_decoder.h",
+        "//net/third_party/quiche/src/quiche/http2/decoder/payload_decoders/altsvc_payload_decoder.h",
+        "//net/third_party/quiche/src/quiche/http2/decoder/payload_decoders/continuation_payload_decoder.h",
+        "//net/third_party/quiche/src/quiche/http2/decoder/payload_decoders/data_payload_decoder.h",
+        "//net/third_party/quiche/src/quiche/http2/decoder/payload_decoders/goaway_payload_decoder.h",
+        "//net/third_party/quiche/src/quiche/http2/decoder/payload_decoders/headers_payload_decoder.h",
+        "//net/third_party/quiche/src/quiche/http2/decoder/payload_decoders/ping_payload_decoder.h",
+        "//net/third_party/quiche/src/quiche/http2/decoder/payload_decoders/priority_payload_decoder.h",
+        "//net/third_party/quiche/src/quiche/http2/decoder/payload_decoders/priority_update_payload_decoder.h",
+        "//net/third_party/quiche/src/quiche/http2/decoder/payload_decoders/push_promise_payload_decoder.h",
+        "//net/third_party/quiche/src/quiche/http2/decoder/payload_decoders/rst_stream_payload_decoder.h",
+        "//net/third_party/quiche/src/quiche/http2/decoder/payload_decoders/settings_payload_decoder.h",
+        "//net/third_party/quiche/src/quiche/http2/decoder/payload_decoders/unknown_payload_decoder.h",
+        "//net/third_party/quiche/src/quiche/http2/decoder/payload_decoders/window_update_payload_decoder.h",
+        "//net/third_party/quiche/src/quiche/http2/hpack/decoder/hpack_block_decoder.h",
+        "//net/third_party/quiche/src/quiche/http2/hpack/decoder/hpack_decoder.h",
+        "//net/third_party/quiche/src/quiche/http2/hpack/decoder/hpack_decoder_listener.h",
+        "//net/third_party/quiche/src/quiche/http2/hpack/decoder/hpack_decoder_state.h",
+        "//net/third_party/quiche/src/quiche/http2/hpack/decoder/hpack_decoder_string_buffer.h",
+        "//net/third_party/quiche/src/quiche/http2/hpack/decoder/hpack_decoder_tables.h",
+        "//net/third_party/quiche/src/quiche/http2/hpack/decoder/hpack_decoding_error.h",
+        "//net/third_party/quiche/src/quiche/http2/hpack/decoder/hpack_entry_decoder.h",
+        "//net/third_party/quiche/src/quiche/http2/hpack/decoder/hpack_entry_decoder_listener.h",
+        "//net/third_party/quiche/src/quiche/http2/hpack/decoder/hpack_entry_type_decoder.h",
+        "//net/third_party/quiche/src/quiche/http2/hpack/decoder/hpack_string_decoder.h",
+        "//net/third_party/quiche/src/quiche/http2/hpack/decoder/hpack_string_decoder_listener.h",
+        "//net/third_party/quiche/src/quiche/http2/hpack/decoder/hpack_whole_entry_buffer.h",
+        "//net/third_party/quiche/src/quiche/http2/hpack/decoder/hpack_whole_entry_listener.h",
+        "//net/third_party/quiche/src/quiche/http2/hpack/hpack_constants.h",
+        "//net/third_party/quiche/src/quiche/http2/hpack/hpack_decoder_adapter.h",
+        "//net/third_party/quiche/src/quiche/http2/hpack/hpack_encoder.h",
+        "//net/third_party/quiche/src/quiche/http2/hpack/hpack_entry.h",
+        "//net/third_party/quiche/src/quiche/http2/hpack/hpack_header_table.h",
+        "//net/third_party/quiche/src/quiche/http2/hpack/hpack_output_stream.h",
+        "//net/third_party/quiche/src/quiche/http2/hpack/hpack_static_table.h",
+        "//net/third_party/quiche/src/quiche/http2/hpack/http2_hpack_constants.h",
+        "//net/third_party/quiche/src/quiche/http2/hpack/huffman/hpack_huffman_decoder.h",
+        "//net/third_party/quiche/src/quiche/http2/hpack/huffman/hpack_huffman_encoder.h",
+        "//net/third_party/quiche/src/quiche/http2/hpack/huffman/huffman_spec_tables.h",
+        "//net/third_party/quiche/src/quiche/http2/hpack/varint/hpack_varint_decoder.h",
+        "//net/third_party/quiche/src/quiche/http2/hpack/varint/hpack_varint_encoder.h",
+        "//net/third_party/quiche/src/quiche/quic/core/chlo_extractor.h",
+        "//net/third_party/quiche/src/quiche/quic/core/congestion_control/bandwidth_sampler.h",
+        "//net/third_party/quiche/src/quiche/quic/core/congestion_control/bbr2_drain.h",
+        "//net/third_party/quiche/src/quiche/quic/core/congestion_control/bbr2_misc.h",
+        "//net/third_party/quiche/src/quiche/quic/core/congestion_control/bbr2_probe_bw.h",
+        "//net/third_party/quiche/src/quiche/quic/core/congestion_control/bbr2_probe_rtt.h",
+        "//net/third_party/quiche/src/quiche/quic/core/congestion_control/bbr2_sender.h",
+        "//net/third_party/quiche/src/quiche/quic/core/congestion_control/bbr2_startup.h",
+        "//net/third_party/quiche/src/quiche/quic/core/congestion_control/bbr_sender.h",
+        "//net/third_party/quiche/src/quiche/quic/core/congestion_control/cubic_bytes.h",
+        "//net/third_party/quiche/src/quiche/quic/core/congestion_control/general_loss_algorithm.h",
+        "//net/third_party/quiche/src/quiche/quic/core/congestion_control/hybrid_slow_start.h",
+        "//net/third_party/quiche/src/quiche/quic/core/congestion_control/loss_detection_interface.h",
+        "//net/third_party/quiche/src/quiche/quic/core/congestion_control/pacing_sender.h",
+        "//net/third_party/quiche/src/quiche/quic/core/congestion_control/prague_sender.h",
+        "//net/third_party/quiche/src/quiche/quic/core/congestion_control/prr_sender.h",
+        "//net/third_party/quiche/src/quiche/quic/core/congestion_control/rtt_stats.h",
+        "//net/third_party/quiche/src/quiche/quic/core/congestion_control/send_algorithm_interface.h",
+        "//net/third_party/quiche/src/quiche/quic/core/congestion_control/tcp_cubic_sender_bytes.h",
+        "//net/third_party/quiche/src/quiche/quic/core/congestion_control/uber_loss_algorithm.h",
+        "//net/third_party/quiche/src/quiche/quic/core/congestion_control/windowed_filter.h",
+        "//net/third_party/quiche/src/quiche/quic/core/connecting_client_socket.h",
+        "//net/third_party/quiche/src/quiche/quic/core/connection_id_generator.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/aead_base_decrypter.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/aead_base_encrypter.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/aes_128_gcm_12_decrypter.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/aes_128_gcm_12_encrypter.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/aes_128_gcm_decrypter.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/aes_128_gcm_encrypter.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/aes_256_gcm_decrypter.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/aes_256_gcm_encrypter.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/aes_base_decrypter.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/aes_base_encrypter.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/boring_utils.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/cert_compressor.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/certificate_util.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/certificate_view.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/chacha20_poly1305_decrypter.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/chacha20_poly1305_encrypter.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/chacha20_poly1305_tls_decrypter.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/chacha20_poly1305_tls_encrypter.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/chacha_base_decrypter.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/chacha_base_encrypter.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/channel_id.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/client_proof_source.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/crypto_framer.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/crypto_handshake.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/crypto_handshake_message.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/crypto_message_parser.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/crypto_protocol.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/crypto_secret_boxer.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/crypto_utils.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/curve25519_key_exchange.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/key_exchange.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/null_decrypter.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/null_encrypter.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/p256_key_exchange.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/proof_source.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/proof_source_x509.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/proof_verifier.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/quic_client_session_cache.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/quic_compressed_certs_cache.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/quic_crypter.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/quic_crypto_client_config.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/quic_crypto_proof.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/quic_crypto_server_config.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/quic_decrypter.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/quic_encrypter.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/quic_hkdf.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/quic_random.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/tls_client_connection.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/tls_connection.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/tls_server_connection.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/transport_parameters.h",
+        "//net/third_party/quiche/src/quiche/quic/core/crypto/web_transport_fingerprint_proof_verifier.h",
+        "//net/third_party/quiche/src/quiche/quic/core/deterministic_connection_id_generator.h",
+        "//net/third_party/quiche/src/quiche/quic/core/flow_label.h",
+        "//net/third_party/quiche/src/quiche/quic/core/frames/quic_ack_frame.h",
+        "//net/third_party/quiche/src/quiche/quic/core/frames/quic_ack_frequency_frame.h",
+        "//net/third_party/quiche/src/quiche/quic/core/frames/quic_blocked_frame.h",
+        "//net/third_party/quiche/src/quiche/quic/core/frames/quic_connection_close_frame.h",
+        "//net/third_party/quiche/src/quiche/quic/core/frames/quic_crypto_frame.h",
+        "//net/third_party/quiche/src/quiche/quic/core/frames/quic_datagram_frame.h",
+        "//net/third_party/quiche/src/quiche/quic/core/frames/quic_frame.h",
+        "//net/third_party/quiche/src/quiche/quic/core/frames/quic_goaway_frame.h",
+        "//net/third_party/quiche/src/quiche/quic/core/frames/quic_handshake_done_frame.h",
+        "//net/third_party/quiche/src/quiche/quic/core/frames/quic_immediate_ack_frame.h",
+        "//net/third_party/quiche/src/quiche/quic/core/frames/quic_inlined_frame.h",
+        "//net/third_party/quiche/src/quiche/quic/core/frames/quic_max_streams_frame.h",
+        "//net/third_party/quiche/src/quiche/quic/core/frames/quic_mtu_discovery_frame.h",
+        "//net/third_party/quiche/src/quiche/quic/core/frames/quic_new_connection_id_frame.h",
+        "//net/third_party/quiche/src/quiche/quic/core/frames/quic_new_token_frame.h",
+        "//net/third_party/quiche/src/quiche/quic/core/frames/quic_padding_frame.h",
+        "//net/third_party/quiche/src/quiche/quic/core/frames/quic_path_challenge_frame.h",
+        "//net/third_party/quiche/src/quiche/quic/core/frames/quic_path_response_frame.h",
+        "//net/third_party/quiche/src/quiche/quic/core/frames/quic_ping_frame.h",
+        "//net/third_party/quiche/src/quiche/quic/core/frames/quic_reset_stream_at_frame.h",
+        "//net/third_party/quiche/src/quiche/quic/core/frames/quic_retire_connection_id_frame.h",
+        "//net/third_party/quiche/src/quiche/quic/core/frames/quic_rst_stream_frame.h",
+        "//net/third_party/quiche/src/quiche/quic/core/frames/quic_stop_sending_frame.h",
+        "//net/third_party/quiche/src/quiche/quic/core/frames/quic_stop_waiting_frame.h",
+        "//net/third_party/quiche/src/quiche/quic/core/frames/quic_stream_frame.h",
+        "//net/third_party/quiche/src/quiche/quic/core/frames/quic_streams_blocked_frame.h",
+        "//net/third_party/quiche/src/quiche/quic/core/frames/quic_window_update_frame.h",
+        "//net/third_party/quiche/src/quiche/quic/core/handshaker_delegate_interface.h",
+        "//net/third_party/quiche/src/quiche/quic/core/http/http_constants.h",
+        "//net/third_party/quiche/src/quiche/quic/core/http/http_decoder.h",
+        "//net/third_party/quiche/src/quiche/quic/core/http/http_encoder.h",
+        "//net/third_party/quiche/src/quiche/quic/core/http/http_frames.h",
+        "//net/third_party/quiche/src/quiche/quic/core/http/metadata_decoder.h",
+        "//net/third_party/quiche/src/quiche/quic/core/http/quic_connection_migration_manager.h",
+        "//net/third_party/quiche/src/quiche/quic/core/http/quic_header_list.h",
+        "//net/third_party/quiche/src/quiche/quic/core/http/quic_headers_stream.h",
+        "//net/third_party/quiche/src/quiche/quic/core/http/quic_receive_control_stream.h",
+        "//net/third_party/quiche/src/quiche/quic/core/http/quic_send_control_stream.h",
+        "//net/third_party/quiche/src/quiche/quic/core/http/quic_server_initiated_spdy_stream.h",
+        "//net/third_party/quiche/src/quiche/quic/core/http/quic_server_session_base.h",
+        "//net/third_party/quiche/src/quiche/quic/core/http/quic_spdy_client_session.h",
+        "//net/third_party/quiche/src/quiche/quic/core/http/quic_spdy_client_session_base.h",
+        "//net/third_party/quiche/src/quiche/quic/core/http/quic_spdy_client_session_with_migration.h",
+        "//net/third_party/quiche/src/quiche/quic/core/http/quic_spdy_client_stream.h",
+        "//net/third_party/quiche/src/quiche/quic/core/http/quic_spdy_server_stream_base.h",
+        "//net/third_party/quiche/src/quiche/quic/core/http/quic_spdy_session.h",
+        "//net/third_party/quiche/src/quiche/quic/core/http/quic_spdy_stream.h",
+        "//net/third_party/quiche/src/quiche/quic/core/http/quic_spdy_stream_body_manager.h",
+        "//net/third_party/quiche/src/quiche/quic/core/http/spdy_utils.h",
+        "//net/third_party/quiche/src/quiche/quic/core/http/web_transport_http3.h",
+        "//net/third_party/quiche/src/quiche/quic/core/http/web_transport_stream_adapter.h",
+        "//net/third_party/quiche/src/quiche/quic/core/legacy_quic_stream_id_manager.h",
+        "//net/third_party/quiche/src/quiche/quic/core/packet_number_indexed_queue.h",
+        "//net/third_party/quiche/src/quiche/quic/core/proto/cached_network_parameters_proto.h",
+        "//net/third_party/quiche/src/quiche/quic/core/proto/crypto_server_config_proto.h",
+        "//net/third_party/quiche/src/quiche/quic/core/proto/source_address_token_proto.h",
+        "//net/third_party/quiche/src/quiche/quic/core/qpack/new_qpack_blocking_manager.h",
+        "//net/third_party/quiche/src/quiche/quic/core/qpack/qpack_decoded_headers_accumulator.h",
+        "//net/third_party/quiche/src/quiche/quic/core/qpack/qpack_decoder.h",
+        "//net/third_party/quiche/src/quiche/quic/core/qpack/qpack_decoder_stream_receiver.h",
+        "//net/third_party/quiche/src/quiche/quic/core/qpack/qpack_decoder_stream_sender.h",
+        "//net/third_party/quiche/src/quiche/quic/core/qpack/qpack_encoder.h",
+        "//net/third_party/quiche/src/quiche/quic/core/qpack/qpack_encoder_stream_receiver.h",
+        "//net/third_party/quiche/src/quiche/quic/core/qpack/qpack_encoder_stream_sender.h",
+        "//net/third_party/quiche/src/quiche/quic/core/qpack/qpack_header_table.h",
+        "//net/third_party/quiche/src/quiche/quic/core/qpack/qpack_index_conversions.h",
+        "//net/third_party/quiche/src/quiche/quic/core/qpack/qpack_instruction_decoder.h",
+        "//net/third_party/quiche/src/quiche/quic/core/qpack/qpack_instruction_encoder.h",
+        "//net/third_party/quiche/src/quiche/quic/core/qpack/qpack_instructions.h",
+        "//net/third_party/quiche/src/quiche/quic/core/qpack/qpack_progressive_decoder.h",
+        "//net/third_party/quiche/src/quiche/quic/core/qpack/qpack_receive_stream.h",
+        "//net/third_party/quiche/src/quiche/quic/core/qpack/qpack_required_insert_count.h",
+        "//net/third_party/quiche/src/quiche/quic/core/qpack/qpack_send_stream.h",
+        "//net/third_party/quiche/src/quiche/quic/core/qpack/qpack_static_table.h",
+        "//net/third_party/quiche/src/quiche/quic/core/qpack/qpack_stream_receiver.h",
+        "//net/third_party/quiche/src/quiche/quic/core/qpack/qpack_stream_sender_delegate.h",
+        "//net/third_party/quiche/src/quiche/quic/core/qpack/value_splitting_header_list.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_ack_listener_interface.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_alarm.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_alarm_factory.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_alarm_factory_proxy.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_arena_scoped_ptr.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_bandwidth.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_blocked_writer_interface.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_blocked_writer_list.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_buffered_packet_store.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_chaos_protector.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_clock.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_coalesced_packet.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_config.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_connection.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_connection_alarms.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_connection_context.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_connection_id.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_connection_id_manager.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_connection_stats.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_constants.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_control_frame_manager.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_crypto_client_handshaker.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_crypto_client_stream.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_crypto_handshaker.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_crypto_server_stream.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_crypto_server_stream_base.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_crypto_stream.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_data_reader.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_data_writer.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_datagram_queue.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_default_clock.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_default_connection_helper.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_dispatcher.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_dispatcher_stats.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_error_codes.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_flow_controller.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_force_blockable_packet_writer.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_framer.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_generic_session.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_idle_network_detector.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_inlined_string_view.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_interval.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_interval_deque.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_interval_set.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_lru_cache.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_mtu_discovery.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_network_blackhole_detector.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_one_block_arena.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_packet_creator.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_packet_number.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_packet_writer.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_packet_writer_wrapper.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_packets.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_path_context_factory.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_path_validator.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_ping_manager.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_process_packet_interface.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_queue_alarm_factory.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_received_packet_manager.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_sent_packet_manager.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_server_id.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_session.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_socket_address_coder.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_stream.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_stream_frame_data_producer.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_stream_id_manager.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_stream_priority.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_stream_send_buffer.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_stream_send_buffer_base.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_stream_send_buffer_inlining.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_stream_sequencer.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_stream_sequencer_buffer.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_sustained_bandwidth_recorder.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_tag.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_time.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_time_accumulator.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_time_wait_list_manager.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_transmission_info.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_types.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_unacked_packet_map.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_utils.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_version_manager.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_versions.h",
+        "//net/third_party/quiche/src/quiche/quic/core/quic_write_blocked_list.h",
+        "//net/third_party/quiche/src/quiche/quic/core/session_notifier_interface.h",
+        "//net/third_party/quiche/src/quiche/quic/core/socket_factory.h",
+        "//net/third_party/quiche/src/quiche/quic/core/stream_delegate_interface.h",
+        "//net/third_party/quiche/src/quiche/quic/core/tls_chlo_extractor.h",
+        "//net/third_party/quiche/src/quiche/quic/core/tls_client_handshaker.h",
+        "//net/third_party/quiche/src/quiche/quic/core/tls_handshaker.h",
+        "//net/third_party/quiche/src/quiche/quic/core/tls_server_handshaker.h",
+        "//net/third_party/quiche/src/quiche/quic/core/uber_quic_stream_id_manager.h",
+        "//net/third_party/quiche/src/quiche/quic/core/uber_received_packet_manager.h",
+        "//net/third_party/quiche/src/quiche/quic/core/web_transport_interface.h",
+        "//net/third_party/quiche/src/quiche/quic/core/web_transport_stats.h",
+        "//net/third_party/quiche/src/quiche/quic/core/web_transport_write_blocked_list.h",
+        "//net/third_party/quiche/src/quiche/quic/platform/api/quic_bug_tracker.h",
+        "//net/third_party/quiche/src/quiche/quic/platform/api/quic_client_stats.h",
+        "//net/third_party/quiche/src/quiche/quic/platform/api/quic_export.h",
+        "//net/third_party/quiche/src/quiche/quic/platform/api/quic_exported_stats.h",
+        "//net/third_party/quiche/src/quiche/quic/platform/api/quic_flag_utils.h",
+        "//net/third_party/quiche/src/quiche/quic/platform/api/quic_flags.h",
+        "//net/third_party/quiche/src/quiche/quic/platform/api/quic_hostname_utils.h",
+        "//net/third_party/quiche/src/quiche/quic/platform/api/quic_ip_address.h",
+        "//net/third_party/quiche/src/quiche/quic/platform/api/quic_ip_address_family.h",
+        "//net/third_party/quiche/src/quiche/quic/platform/api/quic_logging.h",
+        "//net/third_party/quiche/src/quiche/quic/platform/api/quic_server_stats.h",
+        "//net/third_party/quiche/src/quiche/quic/platform/api/quic_socket_address.h",
+        "//net/third_party/quiche/src/quiche/quic/platform/api/quic_stack_trace.h",
+        "//net/third_party/quiche/src/quiche/quic/platform/api/quic_testvalue.h",
+        "//net/third_party/quiche/src/quiche/quic/platform/api/quic_thread.h",
+        "//net/third_party/quiche/src/quiche/web_transport/complete_buffer_visitor.h",
+        "//net/third_party/quiche/src/quiche/web_transport/encapsulated/encapsulated_web_transport.h",
+        "//net/third_party/quiche/src/quiche/web_transport/web_transport.h",
+        "//net/third_party/quiche/src/quiche/web_transport/web_transport_headers.h",
+        "//net/third_party/quiche/src/quiche/web_transport/web_transport_priority_scheduler.h",
+        "//net/third_party/quiche/src/quiche/binary_http/binary_http_message.h",
+        "//net/third_party/quiche/src/quiche/oblivious_http/buffers/oblivious_http_request.h",
+        "//net/third_party/quiche/src/quiche/oblivious_http/buffers/oblivious_http_response.h",
+        "//net/third_party/quiche/src/quiche/oblivious_http/common/oblivious_http_chunk_handler.h",
+        "//net/third_party/quiche/src/quiche/oblivious_http/common/oblivious_http_definitions.h",
+        "//net/third_party/quiche/src/quiche/oblivious_http/common/oblivious_http_header_key_config.h",
+        "//net/third_party/quiche/src/quiche/oblivious_http/oblivious_http_client.h",
+        "//net/third_party/quiche/src/quiche/oblivious_http/oblivious_http_gateway.h"
+      ],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/unsafe_buffers_paths.txt",
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//net/third_party/uri_template:uri_template": {
       "name": "target_f685ac7801e25612",
@@ -11680,7 +12485,15 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [
+        "//net/third_party/uri_template/uri_template.h"
+      ],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/unsafe_buffers_paths.txt",
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//net/tools/huffman_trie:huffman_trie_generator_sources": {
       "name": "target_0273d2c4d63357bb",
@@ -12040,7 +12853,19 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [
+        "//net/tools/huffman_trie/bit_writer.h",
+        "//net/tools/huffman_trie/huffman/huffman_builder.h",
+        "//net/tools/huffman_trie/trie/trie_bit_buffer.h",
+        "//net/tools/huffman_trie/trie/trie_writer.h",
+        "//net/tools/huffman_trie/trie_entry.h"
+      ],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/unsafe_buffers_paths.txt",
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//net/tools/root_store_tool:root_store_tool": {
       "name": "target_1a38c535b92735f0",
@@ -12415,7 +13240,13 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/unsafe_buffers_paths.txt",
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//net/tools/transport_security_state_generator:transport_security_state_generator": {
       "name": "target_cbf54ca99cccfb8e",
@@ -12780,7 +13611,13 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/unsafe_buffers_paths.txt",
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//net/tools/transport_security_state_generator:transport_security_state_generator_sources": {
       "name": "target_b0b3f22d89ac3c00",
@@ -13144,7 +13981,21 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [
+        "//net/tools/transport_security_state_generator/cert_util.h",
+        "//net/tools/transport_security_state_generator/input_file_parsers.h",
+        "//net/tools/transport_security_state_generator/pinset.h",
+        "//net/tools/transport_security_state_generator/pinsets.h",
+        "//net/tools/transport_security_state_generator/preloaded_state_generator.h",
+        "//net/tools/transport_security_state_generator/spki_hash.h",
+        "//net/tools/transport_security_state_generator/transport_security_state_entry.h"
+      ],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/unsafe_buffers_paths.txt",
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//net/traffic_annotation:traffic_annotation": {
       "name": "target_61e9565d25d2832a",
@@ -13498,7 +14349,14 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [
+        "//net/traffic_annotation/network_traffic_annotation.h"
+      ],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//net:constants": {
       "name": "target_60ad37b37979b5c6",
@@ -13852,7 +14710,14 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [
+        "//net/base/trace_constants.h"
+      ],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//net:device_bound_sessions_storage_proto": {
       "name": "target_a29f0baaa501606b",
@@ -14174,7 +15039,17 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [
+        "//out/bazel-import/gen/net/device_bound_sessions/proto/storage.pb.h"
+      ],
+      "compiler_inputs": [
+        "//net/device_bound_sessions/proto/storage.proto"
+      ],
+      "omitted_diagnostic_inputs": [
+        "//build/config/unsafe_buffers_paths.txt",
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//net:device_bound_sessions_storage_proto_input_group": {
       "name": "target_c6d4c3ed93981e02",
@@ -14193,7 +15068,12 @@
       "gn_include_dirs": [],
       "gn_ldflags": [],
       "omitted_toolchain_and_diagnostic_flags": [],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [],
+      "compiler_inputs": [
+        "//net/device_bound_sessions/proto/storage.proto"
+      ],
+      "omitted_diagnostic_inputs": []
     },
     "//net:isolation_info_proto": {
       "name": "target_4dbbc26bd1a3c4c0",
@@ -14515,7 +15395,17 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [
+        "//out/bazel-import/gen/net/base/isolation_info.pb.h"
+      ],
+      "compiler_inputs": [
+        "//net/base/isolation_info.proto"
+      ],
+      "omitted_diagnostic_inputs": [
+        "//build/config/unsafe_buffers_paths.txt",
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//net:isolation_info_proto_input_group": {
       "name": "target_85dc710ff4f87d1e",
@@ -14534,7 +15424,12 @@
       "gn_include_dirs": [],
       "gn_ldflags": [],
       "omitted_toolchain_and_diagnostic_flags": [],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [],
+      "compiler_inputs": [
+        "//net/base/isolation_info.proto"
+      ],
+      "omitted_diagnostic_inputs": []
     },
     "//net:net": {
       "name": "target_211be4e8e759f7c4",
@@ -15530,7 +16425,671 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [
+        "//net/base/address_family.h",
+        "//net/base/address_list.h",
+        "//net/base/auth.h",
+        "//net/base/backoff_entry.h",
+        "//net/base/backoff_entry_serializer.h",
+        "//net/base/base64.h",
+        "//net/base/cache_type.h",
+        "//net/base/chunked_upload_data_stream.h",
+        "//net/base/completion_once_callback.h",
+        "//net/base/completion_repeating_callback.h",
+        "//net/base/connection_endpoint_metadata.h",
+        "//net/base/connection_migration_information.h",
+        "//net/base/data_url.h",
+        "//net/base/does_url_match_filter.h",
+        "//net/base/elements_upload_data_stream.h",
+        "//net/base/expiring_cache.h",
+        "//net/base/file_stream.h",
+        "//net/base/file_stream_context.h",
+        "//net/base/filename_util.h",
+        "//net/base/filename_util_internal.h",
+        "//net/base/hash_value.h",
+        "//net/base/hex_utils.h",
+        "//net/base/host_mapping_rules.h",
+        "//net/base/host_port_pair.h",
+        "//net/base/http_user_agent_settings.h",
+        "//net/base/idempotency.h",
+        "//net/base/interval.h",
+        "//net/base/io_buffer.h",
+        "//net/base/ip_address.h",
+        "//net/base/ip_address_util.h",
+        "//net/base/ip_endpoint.h",
+        "//net/base/isolation_info.h",
+        "//net/base/load_flags.h",
+        "//net/base/load_flags_list.h",
+        "//net/base/load_flags_to_string.h",
+        "//net/base/load_states.h",
+        "//net/base/load_states_list.h",
+        "//net/base/load_timing_info.h",
+        "//net/base/load_timing_internal_info.h",
+        "//net/base/logging_network_change_observer.h",
+        "//net/base/lookup_string_in_fixed_set.h",
+        "//net/base/mime_sniffer.h",
+        "//net/base/mime_util.h",
+        "//net/base/net_error_details.h",
+        "//net/base/net_error_list.h",
+        "//net/base/net_errors.h",
+        "//net/base/net_info_source_list.h",
+        "//net/base/net_module.h",
+        "//net/base/net_platform_api_util.h",
+        "//net/base/net_string_util.h",
+        "//net/base/network_activity_monitor.h",
+        "//net/base/network_anonymization_key.h",
+        "//net/base/network_change_notifier.h",
+        "//net/base/network_change_notifier_factory.h",
+        "//net/base/network_delegate.h",
+        "//net/base/network_delegate_impl.h",
+        "//net/base/network_handle.h",
+        "//net/base/network_interfaces.h",
+        "//net/base/network_isolation_key.h",
+        "//net/base/network_isolation_partition.h",
+        "//net/base/parse_number.h",
+        "//net/base/pickle.h",
+        "//net/base/pickle_base_types.h",
+        "//net/base/pickle_traits.h",
+        "//net/base/platform_mime_util.h",
+        "//net/base/port_util.h",
+        "//net/base/prioritized_dispatcher.h",
+        "//net/base/prioritized_task_runner.h",
+        "//net/base/priority_queue.h",
+        "//net/base/privacy_mode.h",
+        "//net/base/proxy_chain.h",
+        "//net/base/proxy_delegate.h",
+        "//net/base/proxy_server.h",
+        "//net/base/proxy_string_util.h",
+        "//net/base/rand_callback.h",
+        "//net/base/reconnect_notifier.h",
+        "//net/base/registry_controlled_domains/registry_controlled_domain.h",
+        "//net/base/request_priority.h",
+        "//net/base/scheme_host_port_matcher.h",
+        "//net/base/scheme_host_port_matcher_result.h",
+        "//net/base/scheme_host_port_matcher_rule.h",
+        "//net/base/schemeful_site.h",
+        "//net/base/session_usage.h",
+        "//net/base/sockaddr_storage.h",
+        "//net/base/sys_addrinfo.h",
+        "//net/base/task/task_runner.h",
+        "//net/base/trace_event_stub.h",
+        "//net/base/transport_info.h",
+        "//net/base/upload_bytes_element_reader.h",
+        "//net/base/upload_data_stream.h",
+        "//net/base/upload_element_reader.h",
+        "//net/base/upload_file_element_reader.h",
+        "//net/base/upload_progress.h",
+        "//net/base/url_search_params.h",
+        "//net/base/url_unescape_iterator.h",
+        "//net/base/url_util.h",
+        "//net/cert/asn1_util.h",
+        "//net/cert/caching_cert_verifier.h",
+        "//net/cert/cert_database.h",
+        "//net/cert/cert_net_fetcher.h",
+        "//net/cert/cert_status_flags.h",
+        "//net/cert/cert_status_flags_list.h",
+        "//net/cert/cert_verifier.h",
+        "//net/cert/cert_verify_proc.h",
+        "//net/cert/cert_verify_proc_blocklist.inc",
+        "//net/cert/cert_verify_proc_builtin.h",
+        "//net/cert/cert_verify_result.h",
+        "//net/cert/client_cert_verifier.h",
+        "//net/cert/coalescing_cert_verifier.h",
+        "//net/cert/crl_set.h",
+        "//net/cert/ct_log_response_parser.h",
+        "//net/cert/ct_log_verifier.h",
+        "//net/cert/ct_log_verifier_util.h",
+        "//net/cert/ct_objects_extractor.h",
+        "//net/cert/ct_policy_enforcer.h",
+        "//net/cert/ct_policy_status.h",
+        "//net/cert/ct_sct_to_string.h",
+        "//net/cert/ct_serialization.h",
+        "//net/cert/ct_signed_certificate_timestamp_log_param.h",
+        "//net/cert/ct_verifier.h",
+        "//net/cert/do_nothing_ct_verifier.h",
+        "//net/cert/ev_root_ca_metadata.h",
+        "//net/cert/internal/cert_issuer_source_aia.h",
+        "//net/cert/internal/platform_trust_store.h",
+        "//net/cert/internal/revocation_checker.h",
+        "//net/cert/internal/system_trust_store.h",
+        "//net/cert/known_roots.h",
+        "//net/cert/merkle_audit_proof.h",
+        "//net/cert/merkle_consistency_proof.h",
+        "//net/cert/merkle_tree_leaf.h",
+        "//net/cert/multi_log_ct_verifier.h",
+        "//net/cert/multi_threaded_cert_verifier.h",
+        "//net/cert/qwac.h",
+        "//net/cert/require_ct_delegate.h",
+        "//net/cert/root_cert_list_generated.h",
+        "//net/cert/sct_auditing_delegate.h",
+        "//net/cert/sct_status_flags.h",
+        "//net/cert/signed_certificate_timestamp.h",
+        "//net/cert/signed_certificate_timestamp_and_status.h",
+        "//net/cert/signed_tree_head.h",
+        "//net/cert/test_root_certs.h",
+        "//net/cert/time_conversions.h",
+        "//net/cert/two_qwac.h",
+        "//net/cert/x509_cert_types.h",
+        "//net/cert/x509_certificate.h",
+        "//net/cert/x509_certificate_net_log_param.h",
+        "//net/cert/x509_util.h",
+        "//net/cert_net/cert_net_fetcher_url_request.h",
+        "//net/cookies/canonical_cookie.h",
+        "//net/cookies/cookie_access_delegate.h",
+        "//net/cookies/cookie_access_params.h",
+        "//net/cookies/cookie_access_result.h",
+        "//net/cookies/cookie_base.h",
+        "//net/cookies/cookie_change_dispatcher.h",
+        "//net/cookies/cookie_constants.h",
+        "//net/cookies/cookie_deletion_info.h",
+        "//net/cookies/cookie_inclusion_status.h",
+        "//net/cookies/cookie_monster.h",
+        "//net/cookies/cookie_monster_change_dispatcher.h",
+        "//net/cookies/cookie_monster_netlog_params.h",
+        "//net/cookies/cookie_options.h",
+        "//net/cookies/cookie_partition_key.h",
+        "//net/cookies/cookie_partition_key_collection.h",
+        "//net/cookies/cookie_setting_override.h",
+        "//net/cookies/cookie_store.h",
+        "//net/cookies/cookie_util.h",
+        "//net/cookies/parsed_cookie.h",
+        "//net/cookies/ref_unique_cookie_key.h",
+        "//net/cookies/site_for_cookies.h",
+        "//net/cookies/static_cookie_policy.h",
+        "//net/cookies/unique_cookie_key.h",
+        "//net/device_bound_sessions/deletion_reason.h",
+        "//net/device_bound_sessions/session_access.h",
+        "//net/device_bound_sessions/session_key.h",
+        "//net/device_bound_sessions/session_usage.h",
+        "//net/disk_cache/backend_cleanup_tracker.h",
+        "//net/disk_cache/backend_experiment.h",
+        "//net/disk_cache/blockfile/addr.h",
+        "//net/disk_cache/blockfile/backend_impl.h",
+        "//net/disk_cache/blockfile/bitmap.h",
+        "//net/disk_cache/blockfile/block_files.h",
+        "//net/disk_cache/blockfile/disk_format.h",
+        "//net/disk_cache/blockfile/disk_format_base.h",
+        "//net/disk_cache/blockfile/entry_impl.h",
+        "//net/disk_cache/blockfile/errors.h",
+        "//net/disk_cache/blockfile/eviction.h",
+        "//net/disk_cache/blockfile/experiments.h",
+        "//net/disk_cache/blockfile/file.h",
+        "//net/disk_cache/blockfile/file_block.h",
+        "//net/disk_cache/blockfile/file_lock.h",
+        "//net/disk_cache/blockfile/in_flight_backend_io.h",
+        "//net/disk_cache/blockfile/in_flight_io.h",
+        "//net/disk_cache/blockfile/mapped_file.h",
+        "//net/disk_cache/blockfile/rankings.h",
+        "//net/disk_cache/blockfile/sparse_control.h",
+        "//net/disk_cache/blockfile/stats.h",
+        "//net/disk_cache/blockfile/storage_block-inl.h",
+        "//net/disk_cache/blockfile/storage_block.h",
+        "//net/disk_cache/blockfile/stress_support.h",
+        "//net/disk_cache/cache_util.h",
+        "//net/disk_cache/disk_cache.h",
+        "//net/disk_cache/memory/mem_backend_impl.h",
+        "//net/disk_cache/memory/mem_entry_impl.h",
+        "//net/disk_cache/memory_entry_data_hints.h",
+        "//net/disk_cache/net_log_parameters.h",
+        "//net/disk_cache/simple/post_operation_waiter.h",
+        "//net/disk_cache/simple/simple_backend_impl.h",
+        "//net/disk_cache/simple/simple_backend_version.h",
+        "//net/disk_cache/simple/simple_entry_format.h",
+        "//net/disk_cache/simple/simple_entry_impl.h",
+        "//net/disk_cache/simple/simple_entry_operation.h",
+        "//net/disk_cache/simple/simple_file_enumerator.h",
+        "//net/disk_cache/simple/simple_file_tracker.h",
+        "//net/disk_cache/simple/simple_histogram_macros.h",
+        "//net/disk_cache/simple/simple_index.h",
+        "//net/disk_cache/simple/simple_index_delegate.h",
+        "//net/disk_cache/simple/simple_index_file.h",
+        "//net/disk_cache/simple/simple_net_log_parameters.h",
+        "//net/disk_cache/simple/simple_synchronous_entry.h",
+        "//net/disk_cache/simple/simple_util.h",
+        "//net/disk_cache/simple/simple_version_upgrade.h",
+        "//net/filter/filter_source_stream.h",
+        "//net/filter/gzip_header.h",
+        "//net/filter/gzip_source_stream.h",
+        "//net/filter/source_stream.h",
+        "//net/filter/source_stream_type.h",
+        "//net/first_party_sets/addition_overlaps_union_find.h",
+        "//net/first_party_sets/first_party_set_entry.h",
+        "//net/first_party_sets/first_party_set_entry_override.h",
+        "//net/first_party_sets/first_party_set_metadata.h",
+        "//net/first_party_sets/first_party_sets_cache_filter.h",
+        "//net/first_party_sets/first_party_sets_context_config.h",
+        "//net/first_party_sets/first_party_sets_validator.h",
+        "//net/first_party_sets/global_first_party_sets.h",
+        "//net/first_party_sets/local_set_declaration.h",
+        "//net/first_party_sets/sets_mutation.h",
+        "//net/http/alternative_service.h",
+        "//net/http/bidirectional_stream.h",
+        "//net/http/bidirectional_stream_impl.h",
+        "//net/http/bidirectional_stream_request_info.h",
+        "//net/http/broken_alternative_services.h",
+        "//net/http/http_auth.h",
+        "//net/http/http_auth_cache.h",
+        "//net/http/http_auth_challenge_tokenizer.h",
+        "//net/http/http_auth_controller.h",
+        "//net/http/http_auth_filter.h",
+        "//net/http/http_auth_handler.h",
+        "//net/http/http_auth_handler_basic.h",
+        "//net/http/http_auth_handler_digest.h",
+        "//net/http/http_auth_handler_factory.h",
+        "//net/http/http_auth_handler_ntlm.h",
+        "//net/http/http_auth_mechanism.h",
+        "//net/http/http_auth_multi_round_parse.h",
+        "//net/http/http_auth_preferences.h",
+        "//net/http/http_auth_scheme.h",
+        "//net/http/http_basic_state.h",
+        "//net/http/http_basic_stream.h",
+        "//net/http/http_byte_range.h",
+        "//net/http/http_cache.h",
+        "//net/http/http_cache_transaction.h",
+        "//net/http/http_cache_util.h",
+        "//net/http/http_cache_writers.h",
+        "//net/http/http_chunked_decoder.h",
+        "//net/http/http_connection_info.h",
+        "//net/http/http_content_disposition.h",
+        "//net/http/http_cookie_indices.h",
+        "//net/http/http_log_util.h",
+        "//net/http/http_network_layer.h",
+        "//net/http/http_network_session.h",
+        "//net/http/http_network_session_peer.h",
+        "//net/http/http_network_transaction.h",
+        "//net/http/http_no_vary_search_data.h",
+        "//net/http/http_proxy_client_socket.h",
+        "//net/http/http_proxy_connect_job.h",
+        "//net/http/http_raw_request_headers.h",
+        "//net/http/http_request_headers.h",
+        "//net/http/http_request_info.h",
+        "//net/http/http_response_body_drainer.h",
+        "//net/http/http_response_headers.h",
+        "//net/http/http_response_info.h",
+        "//net/http/http_security_headers.h",
+        "//net/http/http_server_properties.h",
+        "//net/http/http_server_properties_manager.h",
+        "//net/http/http_status_code.h",
+        "//net/http/http_status_code_list.h",
+        "//net/http/http_stream.h",
+        "//net/http/http_stream_factory.h",
+        "//net/http/http_stream_factory_job.h",
+        "//net/http/http_stream_factory_job_controller.h",
+        "//net/http/http_stream_key.h",
+        "//net/http/http_stream_parser.h",
+        "//net/http/http_stream_pool.h",
+        "//net/http/http_stream_pool_attempt_manager.h",
+        "//net/http/http_stream_pool_group.h",
+        "//net/http/http_stream_pool_handle.h",
+        "//net/http/http_stream_pool_ip_endpoint_state_tracker.h",
+        "//net/http/http_stream_pool_job.h",
+        "//net/http/http_stream_pool_job_controller.h",
+        "//net/http/http_stream_pool_quic_attempt.h",
+        "//net/http/http_stream_pool_request_info.h",
+        "//net/http/http_stream_pool_tcp_based_attempt.h",
+        "//net/http/http_stream_request.h",
+        "//net/http/http_transaction.h",
+        "//net/http/http_transaction_factory.h",
+        "//net/http/http_util.h",
+        "//net/http/http_vary_data.h",
+        "//net/http/http_version.h",
+        "//net/http/no_vary_search_cache.h",
+        "//net/http/no_vary_search_cache_storage.h",
+        "//net/http/no_vary_search_cache_storage_file_operations.h",
+        "//net/http/partial_data.h",
+        "//net/http/proxy_client_socket.h",
+        "//net/http/proxy_fallback.h",
+        "//net/http/structured_headers.h",
+        "//net/http/transport_security_persister.h",
+        "//net/http/transport_security_state.h",
+        "//net/http/transport_security_state_source.h",
+        "//net/http/url_security_manager.h",
+        "//net/log/file_net_log_observer.h",
+        "//net/log/net_log.h",
+        "//net/log/net_log_capture_mode.h",
+        "//net/log/net_log_entry.h",
+        "//net/log/net_log_event_type.h",
+        "//net/log/net_log_event_type_list.h",
+        "//net/log/net_log_heavily_redacted_allowlist.h",
+        "//net/log/net_log_source.h",
+        "//net/log/net_log_source_type.h",
+        "//net/log/net_log_source_type_list.h",
+        "//net/log/net_log_util.h",
+        "//net/log/net_log_values.h",
+        "//net/log/net_log_with_source.h",
+        "//net/log/trace_net_log_observer.h",
+        "//net/nqe/cached_network_quality.h",
+        "//net/nqe/effective_connection_type.h",
+        "//net/nqe/effective_connection_type_observer.h",
+        "//net/nqe/event_creator.h",
+        "//net/nqe/network_id.h",
+        "//net/nqe/network_qualities_prefs_manager.h",
+        "//net/nqe/network_quality.h",
+        "//net/nqe/network_quality_estimator.h",
+        "//net/nqe/network_quality_estimator_params.h",
+        "//net/nqe/network_quality_estimator_util.h",
+        "//net/nqe/network_quality_observation.h",
+        "//net/nqe/network_quality_observation_source.h",
+        "//net/nqe/network_quality_store.h",
+        "//net/nqe/observation_buffer.h",
+        "//net/nqe/peer_to_peer_connections_count_observer.h",
+        "//net/nqe/pref_names.h",
+        "//net/nqe/rtt_throughput_estimates_observer.h",
+        "//net/nqe/socket_watcher.h",
+        "//net/nqe/socket_watcher_factory.h",
+        "//net/nqe/throughput_analyzer.h",
+        "//net/nqe/weighted_observation.h",
+        "//net/proxy_resolution/configured_proxy_resolution_request.h",
+        "//net/proxy_resolution/configured_proxy_resolution_service.h",
+        "//net/proxy_resolution/dhcp_pac_file_fetcher.h",
+        "//net/proxy_resolution/multi_threaded_proxy_resolver.h",
+        "//net/proxy_resolution/network_delegate_error_observer.h",
+        "//net/proxy_resolution/pac_file_data.h",
+        "//net/proxy_resolution/pac_file_decider.h",
+        "//net/proxy_resolution/pac_file_fetcher.h",
+        "//net/proxy_resolution/pac_file_fetcher_impl.h",
+        "//net/proxy_resolution/polling_proxy_config_service.h",
+        "//net/proxy_resolution/proxy_bypass_rules.h",
+        "//net/proxy_resolution/proxy_config.h",
+        "//net/proxy_resolution/proxy_config_service.h",
+        "//net/proxy_resolution/proxy_config_service_fixed.h",
+        "//net/proxy_resolution/proxy_config_with_annotation.h",
+        "//net/proxy_resolution/proxy_info.h",
+        "//net/proxy_resolution/proxy_list.h",
+        "//net/proxy_resolution/proxy_resolution_request.h",
+        "//net/proxy_resolution/proxy_resolution_service.h",
+        "//net/proxy_resolution/proxy_resolve_dns_operation.h",
+        "//net/proxy_resolution/proxy_resolver.h",
+        "//net/proxy_resolution/proxy_resolver_error_observer.h",
+        "//net/proxy_resolution/proxy_resolver_factory.h",
+        "//net/proxy_resolution/proxy_retry_info.h",
+        "//net/quic/address_utils.h",
+        "//net/quic/bidirectional_stream_quic_impl.h",
+        "//net/quic/crypto/proof_source_chromium.h",
+        "//net/quic/crypto/proof_verifier_chromium.h",
+        "//net/quic/dedicated_web_transport_http3_client.h",
+        "//net/quic/network_connection.h",
+        "//net/quic/platform/impl/quic_chromium_clock.h",
+        "//net/quic/properties_based_quic_server_info.h",
+        "//net/quic/quic_address_mismatch.h",
+        "//net/quic/quic_chromium_alarm_factory.h",
+        "//net/quic/quic_chromium_client_session.h",
+        "//net/quic/quic_chromium_client_stream.h",
+        "//net/quic/quic_chromium_connection_helper.h",
+        "//net/quic/quic_chromium_packet_reader.h",
+        "//net/quic/quic_chromium_packet_writer.h",
+        "//net/quic/quic_clock_skew_detector.h",
+        "//net/quic/quic_connection_logger.h",
+        "//net/quic/quic_connectivity_monitor.h",
+        "//net/quic/quic_context.h",
+        "//net/quic/quic_crypto_client_config_handle.h",
+        "//net/quic/quic_crypto_client_stream_factory.h",
+        "//net/quic/quic_endpoint.h",
+        "//net/quic/quic_event_logger.h",
+        "//net/quic/quic_http3_logger.h",
+        "//net/quic/quic_http_stream.h",
+        "//net/quic/quic_http_utils.h",
+        "//net/quic/quic_proxy_client_socket.h",
+        "//net/quic/quic_proxy_datagram_client_socket.h",
+        "//net/quic/quic_server_info.h",
+        "//net/quic/quic_session_alias_key.h",
+        "//net/quic/quic_session_attempt.h",
+        "//net/quic/quic_session_attempt_manager.h",
+        "//net/quic/quic_session_attempt_request.h",
+        "//net/quic/quic_session_key.h",
+        "//net/quic/quic_session_pool.h",
+        "//net/quic/quic_session_pool_direct_job.h",
+        "//net/quic/quic_session_pool_job.h",
+        "//net/quic/quic_session_pool_proxy_job.h",
+        "//net/quic/set_quic_flag.h",
+        "//net/quic/web_transport_client.h",
+        "//net/quic/web_transport_error.h",
+        "//net/shared_dictionary/shared_dictionary.h",
+        "//net/shared_dictionary/shared_dictionary_constants.h",
+        "//net/shared_dictionary/shared_dictionary_getter.h",
+        "//net/shared_dictionary/shared_dictionary_header_checker_source_stream.h",
+        "//net/shared_dictionary/shared_dictionary_isolation_key.h",
+        "//net/shared_dictionary/shared_dictionary_network_transaction.h",
+        "//net/shared_dictionary/shared_dictionary_network_transaction_factory.h",
+        "//net/socket/client_socket_factory.h",
+        "//net/socket/client_socket_handle.h",
+        "//net/socket/client_socket_pool.h",
+        "//net/socket/client_socket_pool_manager.h",
+        "//net/socket/client_socket_pool_manager_impl.h",
+        "//net/socket/connect_job.h",
+        "//net/socket/connect_job_factory.h",
+        "//net/socket/connect_job_params.h",
+        "//net/socket/connect_job_params_factory.h",
+        "//net/socket/connection_attempts.h",
+        "//net/socket/datagram_client_socket.h",
+        "//net/socket/datagram_server_socket.h",
+        "//net/socket/datagram_socket.h",
+        "//net/socket/diff_serv_code_point.h",
+        "//net/socket/network_binding_client_socket_factory.h",
+        "//net/socket/next_proto.h",
+        "//net/socket/server_socket.h",
+        "//net/socket/socket.h",
+        "//net/socket/socket_bio_adapter.h",
+        "//net/socket/socket_descriptor.h",
+        "//net/socket/socket_net_log_params.h",
+        "//net/socket/socket_options.h",
+        "//net/socket/socket_performance_watcher.h",
+        "//net/socket/socket_performance_watcher_factory.h",
+        "//net/socket/socket_tag.h",
+        "//net/socket/socks5_client_socket.h",
+        "//net/socket/socks_client_socket.h",
+        "//net/socket/socks_connect_job.h",
+        "//net/socket/ssl_client_socket.h",
+        "//net/socket/ssl_client_socket_impl.h",
+        "//net/socket/ssl_connect_job.h",
+        "//net/socket/ssl_server_socket.h",
+        "//net/socket/ssl_server_socket_impl.h",
+        "//net/socket/ssl_socket.h",
+        "//net/socket/stream_attempt.h",
+        "//net/socket/stream_socket.h",
+        "//net/socket/stream_socket_close_reason.h",
+        "//net/socket/stream_socket_handle.h",
+        "//net/socket/tcp_client_socket.h",
+        "//net/socket/tcp_server_socket.h",
+        "//net/socket/tcp_socket.h",
+        "//net/socket/tcp_stream_attempt.h",
+        "//net/socket/tls_stream_attempt.h",
+        "//net/socket/transport_client_socket.h",
+        "//net/socket/transport_client_socket_pool.h",
+        "//net/socket/transport_connect_job.h",
+        "//net/socket/transport_connect_sub_job.h",
+        "//net/socket/udp_client_socket.h",
+        "//net/socket/udp_net_log_parameters.h",
+        "//net/socket/udp_server_socket.h",
+        "//net/socket/udp_socket.h",
+        "//net/socket/udp_socket_global_limits.h",
+        "//net/socket/websocket_endpoint_lock_manager.h",
+        "//net/socket/websocket_transport_client_socket_pool.h",
+        "//net/spdy/alps_decoder.h",
+        "//net/spdy/bidirectional_stream_spdy_impl.h",
+        "//net/spdy/buffered_spdy_framer.h",
+        "//net/spdy/header_coalescer.h",
+        "//net/spdy/http2_priority_dependencies.h",
+        "//net/spdy/multiplexed_http_stream.h",
+        "//net/spdy/multiplexed_session.h",
+        "//net/spdy/multiplexed_session_creation_initiator.h",
+        "//net/spdy/spdy_buffer.h",
+        "//net/spdy/spdy_buffer_producer.h",
+        "//net/spdy/spdy_http_stream.h",
+        "//net/spdy/spdy_http_utils.h",
+        "//net/spdy/spdy_log_util.h",
+        "//net/spdy/spdy_proxy_client_socket.h",
+        "//net/spdy/spdy_read_queue.h",
+        "//net/spdy/spdy_session.h",
+        "//net/spdy/spdy_session_key.h",
+        "//net/spdy/spdy_session_pool.h",
+        "//net/spdy/spdy_stream.h",
+        "//net/spdy/spdy_write_queue.h",
+        "//net/ssl/cert_compression.h",
+        "//net/ssl/client_cert_identity.h",
+        "//net/ssl/client_cert_matcher.h",
+        "//net/ssl/client_cert_store.h",
+        "//net/ssl/client_cert_store_empty.h",
+        "//net/ssl/openssl_private_key.h",
+        "//net/ssl/openssl_ssl_util.h",
+        "//net/ssl/ssl_cert_request_info.h",
+        "//net/ssl/ssl_cipher_suite_names.h",
+        "//net/ssl/ssl_client_auth_cache.h",
+        "//net/ssl/ssl_client_session_cache.h",
+        "//net/ssl/ssl_config.h",
+        "//net/ssl/ssl_config_service.h",
+        "//net/ssl/ssl_config_service_defaults.h",
+        "//net/ssl/ssl_connection_status_flags.h",
+        "//net/ssl/ssl_handshake_details.h",
+        "//net/ssl/ssl_info.h",
+        "//net/ssl/ssl_key_logger.h",
+        "//net/ssl/ssl_key_logger_impl.h",
+        "//net/ssl/ssl_platform_key_util.h",
+        "//net/ssl/ssl_private_key.h",
+        "//net/ssl/ssl_server_config.h",
+        "//net/ssl/threaded_ssl_private_key.h",
+        "//net/storage_access_api/status.h",
+        "//net/url_request/clear_site_data.h",
+        "//net/url_request/redirect_info.h",
+        "//net/url_request/redirect_util.h",
+        "//net/url_request/referrer_policy.h",
+        "//net/url_request/static_http_user_agent_settings.h",
+        "//net/url_request/storage_access_status_cache.h",
+        "//net/url_request/url_request.h",
+        "//net/url_request/url_request_context.h",
+        "//net/url_request/url_request_context_builder.h",
+        "//net/url_request/url_request_context_getter.h",
+        "//net/url_request/url_request_context_getter_observer.h",
+        "//net/url_request/url_request_error_job.h",
+        "//net/url_request/url_request_http_job.h",
+        "//net/url_request/url_request_interceptor.h",
+        "//net/url_request/url_request_job.h",
+        "//net/url_request/url_request_job_factory.h",
+        "//net/url_request/url_request_netlog_params.h",
+        "//net/url_request/url_request_redirect_job.h",
+        "//net/url_request/websocket_handshake_userdata_key.h",
+        "//net/network_error_logging/network_error_logging_service.h",
+        "//net/network_error_logging/persistent_reporting_and_nel_store.h",
+        "//net/reporting/reporting_browsing_data_remover.h",
+        "//net/reporting/reporting_cache.h",
+        "//net/reporting/reporting_cache_impl.h",
+        "//net/reporting/reporting_cache_observer.h",
+        "//net/reporting/reporting_context.h",
+        "//net/reporting/reporting_delegate.h",
+        "//net/reporting/reporting_delivery_agent.h",
+        "//net/reporting/reporting_endpoint.h",
+        "//net/reporting/reporting_endpoint_manager.h",
+        "//net/reporting/reporting_garbage_collector.h",
+        "//net/reporting/reporting_header_parser.h",
+        "//net/reporting/reporting_network_change_observer.h",
+        "//net/reporting/reporting_policy.h",
+        "//net/reporting/reporting_report.h",
+        "//net/reporting/reporting_service.h",
+        "//net/reporting/reporting_target_type.h",
+        "//net/reporting/reporting_uploader.h",
+        "//net/device_bound_sessions/cookie_craving.h",
+        "//net/device_bound_sessions/host_patterns.h",
+        "//net/device_bound_sessions/jwk_utils.h",
+        "//net/device_bound_sessions/registration_fetcher.h",
+        "//net/device_bound_sessions/registration_fetcher_param.h",
+        "//net/device_bound_sessions/registration_request_param.h",
+        "//net/device_bound_sessions/registration_result.h",
+        "//net/device_bound_sessions/session.h",
+        "//net/device_bound_sessions/session_binding_utils.h",
+        "//net/device_bound_sessions/session_challenge_param.h",
+        "//net/device_bound_sessions/session_error.h",
+        "//net/device_bound_sessions/session_inclusion_rules.h",
+        "//net/device_bound_sessions/session_json_utils.h",
+        "//net/device_bound_sessions/session_params.h",
+        "//net/device_bound_sessions/session_service.h",
+        "//net/device_bound_sessions/session_service_impl.h",
+        "//net/device_bound_sessions/session_store.h",
+        "//net/device_bound_sessions/session_store_impl.h",
+        "//net/device_bound_sessions/unexportable_key_service_factory.h",
+        "//net/device_bound_sessions/url_fetcher.h",
+        "//net/base/network_change_notifier_linux.h",
+        "//net/proxy_resolution/proxy_config_service_linux.h",
+        "//net/base/address_map_linux.h",
+        "//net/base/address_tracker_linux.h",
+        "//net/base/network_interfaces_linux.h",
+        "//net/base/address_map_cache_linux.h",
+        "//net/http/http_auth_handler_negotiate.h",
+        "//net/base/network_interfaces_posix.h",
+        "//net/base/sockaddr_util_posix.h",
+        "//net/socket/socket_posix.h",
+        "//net/socket/tcp_socket_posix.h",
+        "//net/socket/udp_socket_posix.h",
+        "//net/base/network_change_notifier_passive.h",
+        "//net/http/http_auth_ntlm_mechanism.h",
+        "//net/ntlm/ntlm.h",
+        "//net/ntlm/ntlm_buffer_reader.h",
+        "//net/ntlm/ntlm_buffer_writer.h",
+        "//net/ntlm/ntlm_client.h",
+        "//net/ntlm/ntlm_constants.h",
+        "//net/http/http_auth_gssapi_posix.h",
+        "//net/cert/internal/trust_store_chrome.h",
+        "//net/cert/internal/trust_store_nss.h",
+        "//net/cert/nss_cert_database.h",
+        "//net/cert/x509_util_nss.h",
+        "//net/third_party/mozilla_security_manager/nsNSSCertificateDB.h",
+        "//net/third_party/mozilla_security_manager/nsPKCS12Blob.h",
+        "//net/ssl/client_cert_store_nss.h",
+        "//net/ssl/ssl_platform_key_nss.h",
+        "//net/socket/unix_domain_client_socket_posix.h",
+        "//net/socket/unix_domain_server_socket_posix.h",
+        "//net/base/directory_lister.h",
+        "//net/base/directory_listing.h",
+        "//net/server/http_connection.h",
+        "//net/server/http_server.h",
+        "//net/server/http_server_request_info.h",
+        "//net/server/http_server_response_info.h",
+        "//net/server/web_socket.h",
+        "//net/server/web_socket_encoder.h",
+        "//net/server/web_socket_parse_result.h",
+        "//net/websockets/websocket_basic_handshake_stream.h",
+        "//net/websockets/websocket_basic_stream.h",
+        "//net/websockets/websocket_basic_stream_adapters.h",
+        "//net/websockets/websocket_channel.h",
+        "//net/websockets/websocket_chunk_assembler.h",
+        "//net/websockets/websocket_deflate_parameters.h",
+        "//net/websockets/websocket_deflate_predictor.h",
+        "//net/websockets/websocket_deflate_predictor_impl.h",
+        "//net/websockets/websocket_deflate_stream.h",
+        "//net/websockets/websocket_deflater.h",
+        "//net/websockets/websocket_errors.h",
+        "//net/websockets/websocket_event_interface.h",
+        "//net/websockets/websocket_extension.h",
+        "//net/websockets/websocket_extension_parser.h",
+        "//net/websockets/websocket_frame.h",
+        "//net/websockets/websocket_frame_parser.h",
+        "//net/websockets/websocket_handshake_challenge.h",
+        "//net/websockets/websocket_handshake_constants.h",
+        "//net/websockets/websocket_handshake_request_info.h",
+        "//net/websockets/websocket_handshake_response_info.h",
+        "//net/websockets/websocket_handshake_stream_base.h",
+        "//net/websockets/websocket_handshake_stream_create_helper.h",
+        "//net/websockets/websocket_http2_handshake_stream.h",
+        "//net/websockets/websocket_http3_handshake_stream.h",
+        "//net/websockets/websocket_inflater.h",
+        "//net/websockets/websocket_quic_spdy_stream.h",
+        "//net/websockets/websocket_stream.h",
+        "//net/filter/brotli_source_stream.h",
+        "//net/filter/zstd_source_stream.h",
+        "//net/disk_cache/sql/cache_entry_key.h",
+        "//net/disk_cache/sql/exclusive_operation_coordinator.h",
+        "//net/disk_cache/sql/indexed_pair_set.h",
+        "//net/disk_cache/sql/sql_backend_constants.h",
+        "//net/disk_cache/sql/sql_backend_impl.h",
+        "//net/disk_cache/sql/sql_entry_impl.h",
+        "//net/disk_cache/sql/sql_persistent_store.h",
+        "//net/disk_cache/sql/sql_persistent_store_queries.h"
+      ],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/unsafe_buffers_paths.txt",
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//net:net_deps": {
       "name": "target_608e18526e5d54cf",
@@ -15927,7 +17486,12 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//net:net_export_header": {
       "name": "target_a8f579c34f91d38c",
@@ -16236,7 +17800,14 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [
+        "//net/base/net_export.h"
+      ],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//net:net_features": {
       "name": "target_ad8ba7dbad5fa137",
@@ -16594,7 +18165,14 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [
+        "//net/base/features.h"
+      ],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//net:net_nqe_proto": {
       "name": "target_9b4f81329dfd210b",
@@ -16918,7 +18496,17 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [
+        "//out/bazel-import/gen/net/nqe/proto/network_id_proto.pb.h"
+      ],
+      "compiler_inputs": [
+        "//net/nqe/proto/network_id_proto.proto"
+      ],
+      "omitted_diagnostic_inputs": [
+        "//build/config/unsafe_buffers_paths.txt",
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//net:net_nqe_proto_input_group": {
       "name": "target_8fb5955ab19f839c",
@@ -16937,7 +18525,12 @@
       "gn_include_dirs": [],
       "gn_ldflags": [],
       "omitted_toolchain_and_diagnostic_flags": [],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [],
+      "compiler_inputs": [
+        "//net/nqe/proto/network_id_proto.proto"
+      ],
+      "omitted_diagnostic_inputs": []
     },
     "//net:net_public_deps": {
       "name": "target_e6d5eaabe0fbdd6e",
@@ -17318,7 +18911,12 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//net:net_resources": {
       "name": "target_37b46184a17e5302",
@@ -17630,7 +19228,14 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [
+        "//out/bazel-import/gen/net/grit/net_resources.h"
+      ],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//net:preload_decoder": {
       "name": "target_8c389311d553d2c8",
@@ -17986,7 +19591,15 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [
+        "//net/extras/preload_data/decoder.h"
+      ],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/unsafe_buffers_paths.txt",
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//sql:sql": {
       "name": "target_a866aa0adf8cd857",
@@ -18401,7 +20014,32 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [
+        "//sql/database.h",
+        "//sql/database_memory_dump_provider.h",
+        "//sql/error_delegate_util.h",
+        "//sql/init_status.h",
+        "//sql/initialization.h",
+        "//sql/internal_api_token.h",
+        "//sql/meta_table.h",
+        "//sql/recovery.h",
+        "//sql/sandboxed_vfs.h",
+        "//sql/sandboxed_vfs_file.h",
+        "//sql/sql_memory_dump_provider.h",
+        "//sql/sqlite_result_code.h",
+        "//sql/sqlite_result_code_values.h",
+        "//sql/statement.h",
+        "//sql/statement_id.h",
+        "//sql/streaming_blob_handle.h",
+        "//sql/transaction.h",
+        "//sql/vfs_wrapper.h"
+      ],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/unsafe_buffers_paths.txt",
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//third_party/re2:re2": {
       "name": "target_588ba68fff29dde3",
@@ -18702,7 +20340,30 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [
+        "//third_party/re2/src/re2/bitmap256.h",
+        "//third_party/re2/src/re2/filtered_re2.h",
+        "//third_party/re2/src/re2/prefilter.h",
+        "//third_party/re2/src/re2/prefilter_tree.h",
+        "//third_party/re2/src/re2/prog.h",
+        "//third_party/re2/src/re2/re2.h",
+        "//third_party/re2/src/re2/regexp.h",
+        "//third_party/re2/src/re2/set.h",
+        "//third_party/re2/src/re2/sparse_array.h",
+        "//third_party/re2/src/re2/sparse_set.h",
+        "//third_party/re2/src/re2/stringpiece.h",
+        "//third_party/re2/src/re2/unicode_casefold.h",
+        "//third_party/re2/src/re2/unicode_groups.h",
+        "//third_party/re2/src/re2/walker-inl.h",
+        "//third_party/re2/src/util/strutil.h",
+        "//third_party/re2/src/util/utf.h"
+      ],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/unsafe_buffers_paths.txt",
+        "//build/config/warning_suppression.txt"
+      ]
     },
     "//third_party/sqlite:chromium_sqlite3": {
       "name": "target_dcc16bf90afada3d",
@@ -19055,6 +20716,18 @@
       ],
       "public_headers": [
         "//third_party/sqlite/sqlite3.h"
+      ],
+      "source_headers": [
+        "//third_party/sqlite/sqlite3_shim_fixups.h",
+        "//third_party/sqlite/src/amalgamation/rename_exports.h",
+        "//third_party/sqlite/src/amalgamation/sqlite3.h"
+      ],
+      "compiler_inputs": [
+        "//third_party/sqlite/src/amalgamation/sqlite3.c"
+      ],
+      "omitted_diagnostic_inputs": [
+        "//build/config/unsafe_buffers_paths.txt",
+        "//build/config/warning_suppression.txt"
       ]
     },
     "//third_party/sqlite:sqlite": {
@@ -19078,7 +20751,10 @@
       "gn_include_dirs": [],
       "gn_ldflags": [],
       "omitted_toolchain_and_diagnostic_flags": [],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": []
     },
     "//ui/base/glib:glib": {
       "name": "target_9987354472d4ebe1",
@@ -19446,6 +21122,12 @@
         "//ui/base/glib/scoped_gobject.h",
         "//ui/base/glib/scoped_gsignal.h",
         "//ui/base/glib/gsettings.h"
+      ],
+      "source_headers": [],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/unsafe_buffers_paths.txt",
+        "//build/config/warning_suppression.txt"
       ]
     },
     "//url:url": {
@@ -19844,7 +21526,32 @@
         "-isystem../../third_party/libc++abi/src/include",
         "-nostdinc++"
       ],
-      "public_headers": []
+      "public_headers": [],
+      "source_headers": [
+        "//url/gurl.h",
+        "//url/gurl_debug.h",
+        "//url/origin.h",
+        "//url/origin_debug.h",
+        "//url/scheme_host_port.h",
+        "//url/third_party/mozilla/url_parse.h",
+        "//url/url_canon.h",
+        "//url/url_canon_internal.h",
+        "//url/url_canon_internal_file.h",
+        "//url/url_canon_ip.h",
+        "//url/url_canon_stdstring.h",
+        "//url/url_constants.h",
+        "//url/url_features.h",
+        "//url/url_file.h",
+        "//url/url_parse_internal.h",
+        "//url/url_util.h",
+        "//url/url_util_internal.h",
+        "//url/url_canon_icu.h"
+      ],
+      "compiler_inputs": [],
+      "omitted_diagnostic_inputs": [
+        "//build/config/unsafe_buffers_paths.txt",
+        "//build/config/warning_suppression.txt"
+      ]
     }
   },
   "actions": {
@@ -25397,6 +27104,7 @@
     "third_party/sqlite/sqlite3_shim.c",
     "third_party/sqlite/sqlite3_shim_fixups.h",
     "third_party/sqlite/src/amalgamation/rename_exports.h",
+    "third_party/sqlite/src/amalgamation/sqlite3.c",
     "third_party/sqlite/src/amalgamation/sqlite3.h",
     "tools/grit/PRESUBMIT.py",
     "tools/grit/grit.py",

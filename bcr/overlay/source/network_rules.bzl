@@ -61,7 +61,8 @@ def electron_network():
         )
     for original, library in PROFILE["libraries"].items():
         settings = dict(
-            hdrs = {_file(path): True for path in library["generated_headers"] + library["public_headers"]}.keys(),
+            hdrs = {_file(path): True for path in library["source_headers"] + library["public_headers"]}.keys(),
+            textual_hdrs = [_file(path) for path in library["compiler_inputs"]],
             local_defines = library["defines"],
             includes = library["includes"],
             linkopts = ["-l" + name for name in library["libs"] if name in ["m", "dl", "rt", "pthread", "resolv"]],
@@ -82,6 +83,7 @@ def electron_network():
         if library["kind"] == "executable":
             settings.pop("includes")
             settings["srcs"] = [_file(path) for path in library["srcs"]] + settings.pop("hdrs")
+            settings["srcs"] += settings.pop("textual_hdrs")
             cc_binary(name = library["name"], copts = library["copts"], **settings)
         else:
             cc_library(name = library["name"], srcs = [_file(path) for path in library["srcs"]], copts = library["copts"], alwayslink = library["kind"] == "source_set", **settings)

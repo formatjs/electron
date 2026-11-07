@@ -10,6 +10,7 @@ from pathlib import Path
 BUILD = "//out/bazel-import/"
 ROOT = "//mojo/core/embedder:embedder"
 TOOLCHAIN = {"//buildtools/third_party/libc++:" + name for name in ("all_modules", "custom_headers", "libcxx_headers", "libc++")}
+DIAGNOSTIC_INPUTS = {"//build/config/unsafe_buffers_paths.txt", "//build/config/warning_suppression.txt"}
 SCRIPTS = {
     "//build/util/version.py", "//build/write_buildflag_header.py",
     "//net/tools/dafsa/make_dafsa.py", "//tools/protoc_wrapper/protoc_wrapper.py",
@@ -125,9 +126,10 @@ def capture(graph, chromium, quiche, re2, sqlite, profiles):
             sources = target.get("sources", [])
             public = target.get("public", [])
             public = public if isinstance(public, list) else []
+            compiler_inputs = [path for path in target.get("inputs", []) if path not in DIAGNOSTIC_INPUTS]
             if any(Path(path).suffix not in (".h", ".inc", ".cc", ".cpp", ".c", ".S", ".s") for path in sources):
                 raise ValueError("Untranslated network source language: " + label)
-            for path in sources + public:
+            for path in sources + public + compiler_inputs:
                 input_file(path)
             flags, omitted = {}, []
             for language, key in [("cc", "cflags_cc"), ("c", "cflags_c"), ("asm", "asmflags")]:
@@ -152,6 +154,9 @@ def capture(graph, chromium, quiche, re2, sqlite, profiles):
                 raise ValueError("Untranslated network library")
             record.update(srcs=[path for path in sources if path.endswith((".cc", ".cpp"))], c_srcs=[path for path in sources if path.endswith(".c")], asm_srcs=[path for path in sources if path.endswith((".S", ".s"))], generated_headers=[path for path in sources if path.startswith(BUILD) and path.endswith((".h", ".inc"))], copts=flags["cc"], c_copts=flags["c"], asm_copts=flags["asm"], defines=[item.replace('"', '\\"') for item in value(target, "defines")], includes=includes, libs=libs, gn_include_dirs=value(target, "include_dirs"), gn_ldflags=value(target, "ldflags"), omitted_toolchain_and_diagnostic_flags=sorted(set(omitted)))
             record["public_headers"] = public
+            record["source_headers"] = [path for path in sources if path.endswith((".h", ".inc"))]
+            record["compiler_inputs"] = compiler_inputs
+            record["omitted_diagnostic_inputs"] = [path for path in target.get("inputs", []) if path in DIAGNOSTIC_INPUTS]
             libraries[label] = record
         else:
             raise ValueError("Untranslated network target kind: " + kind)
