@@ -54,6 +54,7 @@ use_repo(
     "electron_highway_upstream",
     "electron_icu_sources",
     "electron_jsoncpp_upstream",
+    "electron_libnode_sources",
     "electron_lss_upstream",
     "electron_mantle_sources",
     "electron_nan_sources",
@@ -72,6 +73,7 @@ use_repo(
     "electron_v8_sources",
     "electron_v8_support_sources",
     "electron_webrtc_sources",
+    "electron_zstd_upstream",
 )
 
 rules_rust = use_extension("@rules_rs//rs:rules_rust.bzl", "rules_rust")

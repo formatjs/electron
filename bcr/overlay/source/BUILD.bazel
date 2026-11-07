@@ -1,4 +1,5 @@
 load("@electron_base_sources//:profile.bzl", BASE_PROFILE = "PROFILE")
+load("@electron_libnode_sources//:profile.bzl", LIBNODE_PROFILE = "PROFILE")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load("//electron:protobuf_probe_rules.bzl", "electron_protobuf_probe")
@@ -428,10 +429,7 @@ electron_js2c(
         "@platforms//os:linux",
         "@platforms//cpu:x86_64",
     ],
-    visibility = [
-        "//:__pkg__",
-        "//tests:__pkg__",
-    ],
+    visibility = ["//visibility:public"],
 )
 
 cc_test(
@@ -603,4 +601,37 @@ cc_test(
         "@platforms//cpu:x86_64",
     ],
     deps = ["@electron_base_sources//:base"],
+)
+
+alias(
+    name = "libnode_libraries",
+    actual = "@electron_libnode_sources//:libraries",
+)
+
+cc_test(
+    name = "libnode_test",
+    srcs = ["libnode_test.cc"],
+    args = [
+        "$(rootpath @electron_icu_sources//:common/icudtl.dat)",
+        "$(rootpath @electron_v8_engine_sources//:snapshot_blob.bin)",
+        "$(rootpath :libnode_fixture.txt)",
+    ],
+    copts = LIBNODE_PROFILE["libraries"][LIBNODE_PROFILE["root"]]["copts"],
+    data = [
+        "libnode_fixture.txt",
+        "@electron_icu_sources//:common/icudtl.dat",
+        "@electron_v8_engine_sources//:snapshot_blob.bin",
+    ],
+    env = {
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+    },
+    linkstatic = True,
+    local_defines = LIBNODE_PROFILE["libraries"][LIBNODE_PROFILE["root"]]["defines"],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    deps = ["@electron_libnode_sources//:libnode"],
 )
