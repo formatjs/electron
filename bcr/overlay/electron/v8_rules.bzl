@@ -1,8 +1,10 @@
-"""Captured V8 Torque compiler and hermetic generation action."""
+"""Captured V8 source libraries and hermetic execution generators."""
 
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("//source/native:v8_base_inputs.bzl", "V8_BASE_LIBRARIES")
 load("//source/native:v8_bytecode_inputs.bzl", "BYTECODE_GENERATOR")
+load("//source/native:v8_regexp_inputs.bzl", "REGEXP_GENERATOR")
 load("//source/native:v8_torque_inputs.bzl", "TORQUE_LIBRARIES", "TORQUE_PROFILE_SHA256", "TORQUE_RUN")
 
 _LINUX_AMD64 = ["@platforms//os:linux", "@platforms//cpu:x86_64"]
@@ -66,31 +68,65 @@ def v8_bytecode_compiler(name):
         deps = [":bytecode_generator_support"],
     )
 
-def _bytecodes_impl(ctx):
+def v8_regexp_compiler(name):
+    """Build the captured Unicode regexp table execution tool."""
+    cc_binary(
+        name = name,
+        srcs = REGEXP_GENERATOR["srcs"],
+        copts = REGEXP_GENERATOR["copts"],
+        local_defines = REGEXP_GENERATOR["defines"],
+        linkstatic = True,
+        target_compatible_with = _LINUX_AMD64,
+        deps = [":generator_headers", ":libbase", "@electron_icu_sources//:icu"],
+    )
+
+def _generator_impl(ctx):
     prefix = ctx.label.name + "/"
     if ctx.attr.output_subdir:
         prefix += _relative(ctx.attr.output_subdir) + "/"
-    output = ctx.actions.declare_file(prefix + BYTECODE_GENERATOR["output"])
+    output = ctx.actions.declare_file(prefix + _relative(ctx.attr.output))
     ctx.actions.run(
-        executable = ctx.attr._tool[DefaultInfo].files_to_run,
+        executable = ctx.attr.tool[DefaultInfo].files_to_run,
         arguments = [output.path],
         outputs = [output],
         env = {"LANG": "C", "LC_ALL": "C", "TZ": "UTC"},
-        mnemonic = "ElectronV8Bytecodes",
+        mnemonic = ctx.attr.mnemonic,
     )
     return [DefaultInfo(files = depset([output]))]
 
-electron_v8_bytecodes = rule(
-    implementation = _bytecodes_impl,
+_v8_generator = rule(
+    implementation = _generator_impl,
     attrs = {
         "output_subdir": attr.string(),
-        "_tool": attr.label(default = Label("@electron_v8_sources//:bytecode_builtins_list_generator"), executable = True, cfg = "exec"),
+        "output": attr.string(mandatory = True),
+        "tool": attr.label(executable = True, cfg = "exec", mandatory = True),
+        "mnemonic": attr.string(mandatory = True),
     },
 )
 
+def electron_v8_bytecodes(name, **kwargs):
+    """Generate the captured bytecode handler header."""
+    _v8_generator(
+        name = name,
+        tool = Label("@electron_v8_sources//:bytecode_builtins_list_generator"),
+        output = BYTECODE_GENERATOR["output"],
+        mnemonic = "ElectronV8Bytecodes",
+        **kwargs
+    )
+
+def electron_v8_regexp(name, **kwargs):
+    """Generate the captured Unicode regexp tables."""
+    _v8_generator(
+        name = name,
+        tool = Label("@electron_v8_sources//:gen-regexp-special-case"),
+        output = REGEXP_GENERATOR["output"],
+        mnemonic = "ElectronV8RegExp",
+        **kwargs
+    )
+
 def _relative(path):
     if not path or path.startswith("/") or "\\" in path or ":" in path or any([part in ["", ".", ".."] for part in path.split("/")]):
-        fail("Expected canonical relative Torque path: " + path)
+        fail("Expected canonical relative V8 path: " + path)
     return path
 
 def _torque_impl(ctx):
@@ -163,3 +199,49 @@ electron_v8_torque_tool = rule(
     implementation = _tool_impl,
     attrs = {"_tool": attr.label(default = Label("@electron_v8_sources//:torque"), executable = True, cfg = "exec")},
 )
+
+def v8_sources():
+    """Declare source targets behind the stable repository BUILD shim."""
+    native.exports_files(["electron_patches.json", "DEPS", "LICENSE"])
+    native.filegroup(name = "sources", srcs = native.glob(["**"], exclude = ["BUILD.bazel"]))
+
+    v8_generator_headers(name = "generator_headers")
+    v8_torque_compiler(name = "torque")
+    v8_bytecode_compiler(name = "bytecode_builtins_list_generator")
+    v8_regexp_compiler(name = "gen-regexp-special-case")
+
+    cc_library(
+        name = "base_headers",
+        hdrs = native.glob(["include/**/*.h", "src/base/**/*.h", "src/libplatform/**/*.h", "third_party/glibc/**/*.h", "testing/**/*.h"]),
+        includes = [".", "include"],
+        defines = V8_BASE_LIBRARIES["v8_libbase"]["defines"],
+        deps = ["@electron_abseil_sources//absl/synchronization", "@googletest//:gtest_prod"],
+    )
+
+    cc_library(
+        name = "libm",
+        linkstatic = True,
+        srcs = V8_BASE_LIBRARIES["libm"]["srcs"],
+        copts = V8_BASE_LIBRARIES["libm"]["copts"],
+        deps = [":base_headers"],
+        target_compatible_with = ["@platforms//os:linux", "@platforms//cpu:x86_64"],
+    )
+
+    cc_library(
+        name = "libbase",
+        linkstatic = True,
+        srcs = V8_BASE_LIBRARIES["v8_libbase"]["srcs"],
+        copts = V8_BASE_LIBRARIES["v8_libbase"]["copts"],
+        deps = [":base_headers", ":libm"],
+        linkopts = ["-pthread", "-ldl", "-lrt"],
+        target_compatible_with = ["@platforms//os:linux", "@platforms//cpu:x86_64"],
+    )
+
+    cc_library(
+        name = "platform_tasks",
+        linkstatic = True,
+        srcs = V8_BASE_LIBRARIES["v8_libplatform"]["srcs"],
+        copts = V8_BASE_LIBRARIES["v8_libplatform"]["copts"],
+        deps = [":libbase"],
+        target_compatible_with = ["@platforms//os:linux", "@platforms//cpu:x86_64"],
+    )
