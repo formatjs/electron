@@ -124,6 +124,7 @@ def capture(graph, digest, chromium, node_modules, profiles):
             uses_node = "node.RunNode(" in physical(target["script"][2:]).read_text()
             if uses_node:
                 inputs.update(helpers["third_party/node"])
+                inputs.update(helpers["tools/typescript"])
             args = [arg.replace("$SOURCE_ROOT/out/bazel-import/", "") for arg in target.get("args", [])]
             if target["script"] == "//mojo/public/tools/bindings/mojom_bindings_generator.py":
                 prefix = {"c++": "cpp_templates.zip", "typescript": "ts_templates.zip", "javascript": "js_templates.zip"}[args[args.index("-g") + 1]]
