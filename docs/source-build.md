@@ -1,7 +1,7 @@
 # Electron source import
 
 This overlay builds native Electron source components, including the complete
-V8 engine and generated snapshots. No target currently links a full Electron executable. Source pins and build inputs live in `bcr/overlay/source`.
+V8 engine, generated snapshots and Chromium base. No target currently links a full Electron executable. Source pins and build inputs live in `bcr/overlay/source`.
 Stage a local registry first as shown in the root README; add its registry flags
 to every Bazel command below. Native source work:
 
@@ -652,6 +652,14 @@ Cargo does not resolve dependencies. The combined Temporal/base closure contains
 85 Rust targets from 65 vendored packages; existing Temporal crates stay shared.
 
 The linked probe exercises original Rust JSON parsing, strict/malformed input
-rejection, JSON serialization, Base64 and native GLib task/idle dispatch. Hosted
-validation is pending. This profile remains Linux AMD64; complete libnode and
-Electron linking remain separate work.
+rejection, JSON serialization, Base64 and native GLib task/idle dispatch.
+[4746f81 components](https://formatjs.buildbuddy.io/invocation/88a49452-4b2d-4562-b922-e1cd177016cb),
+[consumer](https://formatjs.buildbuddy.io/invocation/37a9576f-eea3-4c65-8205-6dabc9b3426e)
+and [cross-compile](https://formatjs.buildbuddy.io/invocation/56160928-3964-45f8-9578-6cd78f14d964)
+checks passed. Base itself remains Linux AMD64; the cross check covers existing
+platform probes. Complete libnode and Electron linking remain separate work.
+
+Base also links PartitionAlloc's original two-unit `raw_ptr` implementation.
+This is distinct from its 66-unit allocator/shim closure. Its private headers
+stay separate from the existing allocator header target, keeping the full V8
+engine's action inputs unchanged during this extension.
