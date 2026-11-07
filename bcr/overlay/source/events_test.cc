@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <string>
+#include <vector>
 
 #include "base/at_exit.h"
 #include "base/command_line.h"
@@ -12,7 +13,6 @@
 #include "base/files/file_util.h"
 #include "base/files/memory_mapped_file.h"
 #include "base/i18n/icu_util.h"
-#include "base/memory/ref_counted.h"
 #include "base/task/single_thread_task_executor.h"
 #include "base/time/time.h"
 #include "third_party/snappy/src/snappy.h"
@@ -25,7 +25,8 @@
 #include "ui/gfx/geometry/vector2d.h"
 #include "ui/gfx/geometry/transform.h"
 #include "ui/gfx/x/xproto.h"
-#include "ui/gfx/x/xproto_internal.h"
+#include "ui/gfx/x/event.h"
+#include "ui/gfx/x/xproto_types.h"
 #include <xcb/xcb.h>
 #include <xkbcommon/xkbcommon.h>
 
@@ -93,7 +94,7 @@ void CheckProtocolAndCompression() {
   Store<int16_t>(packet, 24, -7);
   Store<uint16_t>(packet, 28, 1);
   packet[30] = 1;
-  x11::ReadBuffer buffer(base::MakeRefCounted<x11::UnretainedRefCountedMemory>(packet.data()));
+  x11::ReadBuffer buffer(x11::ThrowAwaySizeRefCountedMemory::From(std::vector<uint8_t>(packet.begin(), packet.end())));
   x11::KeyEvent event;
   x11::ReadEvent<x11::KeyEvent>(&event, &buffer);
   Require(static_cast<uint8_t>(event.detail) == 38 && event.sequence == 0x1234 && static_cast<uint32_t>(event.time) == 123456 && static_cast<uint32_t>(event.event) == 0x321 && event.root_x == -11 && event.event_x == -7 && static_cast<uint16_t>(event.state) == 1 && event.same_screen == 1 && buffer.offset == 32, "original X11 keyboard wire decoding");
