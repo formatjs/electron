@@ -22,7 +22,16 @@ PLATFORM_ROOTS = ["//ui/ozone:ozone", "//ui/gl:gl", "//gpu/command_buffer/client
 CORE_ROOTS = PLATFORM_ROOTS + ["//third_party/blink/renderer/core:core"]
 DEVTOOLS_ROOT = "//third_party/devtools-frontend/src:devtools_frontend_resources"
 CONTENT_METADATA = {"chromium_git_revision": "//build/util:chromium_git_revision", "tracing_config_proto": "//content/browser/resources/traces_internals:config_proto_gen"}
-ROOTS = CORE_ROOTS + ["//third_party/blink/renderer/modules:modules", DEVTOOLS_ROOT] + list(CONTENT_METADATA.values())
+CONTENT_RESOURCES = {
+    "download_file_types": "//components/safe_browsing/content/resources:make_file_types_protobuf",
+    "ssl_error_assistant": "//components/resources/ssl/ssl_error_assistant:make_ssl_error_assistant_protobuf",
+}
+CONTENT_PROTO_HEADER_ACTIONS = {
+    "//components/safe_browsing/content/common/proto:download_file_types_proto_gen",
+    "//components/security_interstitials/content:proto_gen",
+}
+CONTENT_PROTO_RUNTIME_COPIES = ["//third_party/protobuf:copy_google_protobuf", "//third_party/protobuf:copy_google_protobuf_internal"]
+ROOTS = CORE_ROOTS + ["//third_party/blink/renderer/modules:modules", DEVTOOLS_ROOT] + list(CONTENT_METADATA.values()) + list(CONTENT_RESOURCES.values())
 SOURCE_PREFIXES = ["third_party/libyuv", "third_party/angle", "third_party/dawn", "third_party/swiftshader", "third_party/spirv-tools/src", "third_party/spirv-headers/src", "third_party/vulkan-loader/src", "third_party/vulkan-tools/src", "third_party/vulkan-utility-libraries/src", "third_party/vulkan-headers/src", "third_party/vulkan_memory_allocator", "third_party/wayland/src", "third_party/wayland-protocols/src", "third_party/wayland-protocols/kde"]
 MEDIA_SOURCE_PREFIXES = ["third_party/flac", "media/cdm/api", "third_party/libaom/source/libaom", "third_party/crc32c/src", "third_party/ffmpeg", "third_party/libvpx/source/libvpx", "third_party/openh264/src", "third_party/dav1d/libdav1d", "third_party/libgav1/src", "third_party/leveldatabase/src", "third_party/libwebm/source"]
 COMPOSITOR_SOURCE_PREFIXES = ["third_party/webrtc", "third_party/federated_compute/src", "third_party/libsrtp"]
@@ -46,6 +55,8 @@ EXTRA_NATIVE_HEADERS = {
 SDK_LIBS = {"atspi", "Xcomposite", "Xdamage", "Xfixes", "Xrandr", "Xrender", "Xtst", "drm", "asound", "ffi_pic", "X11", "Xi", "Xext", "pci", "gbm", "dbus-1", "udev", "cairo", "harfbuzz", "pango-1.0", "pangocairo-1.0", "atk-1.0", "atk-bridge-2.0"}
 SCRIPTS = MOJO_SCRIPTS | {"//" + name for name in (
     "build/write_buildflag_header.py", "build/gn_run_binary.py", "build/util/version.py",
+    "components/safe_browsing/content/resources/gen_file_type_proto.py",
+    "components/resources/ssl/ssl_error_assistant/gen_ssl_error_assistant_proto.py",
     "third_party/node/node.py",
     "third_party/devtools-frontend/src/scripts/build/assert_grd.py",
     "third_party/devtools-frontend/src/scripts/build/assert_third_party_readmes.py",
@@ -318,6 +329,10 @@ def capture(graph, digest, chromium, source_roots, profiles):
         for label in sorted(labels):
             if targets[label]["type"] not in ("source_set", "static_library", "shared_library", "executable"):
                 continue
+            if label in {producer.removesuffix("_gen") for producer in CONTENT_PROTO_HEADER_ACTIONS}:
+                if not targets[label].get("sources") or any(not path.startswith(BUILD) for path in targets[label]["sources"]):
+                    raise ValueError("Scoped protobuf library gained original native sources: " + label)
+                continue
             directory = label[2:].rsplit(":", 1)[0]
             if not directory or any(directory == root or directory.startswith(root + "/") for root in selected):
                 continue
@@ -400,13 +415,26 @@ def capture(graph, digest, chromium, source_roots, profiles):
         if kind in ("action", "action_foreach"):
             if target["script"] not in SCRIPTS:
                 raise ValueError("Untranslated platform generator: " + target["script"])
+            if label in CONTENT_PROTO_HEADER_ACTIONS:
+                record["scoped_native_headers"] = True
             inputs = set(target.get("inputs", []) + target.get("sources", []) + [target["script"]]) | dependency_inputs(label)
+            if label in CONTENT_RESOURCES.values():
+                generators = [dep + "_gen" for dep in target.get("deps", []) if dep + "_gen" in CONTENT_PROTO_HEADER_ACTIONS]
+                if len(generators) != 1:
+                    raise ValueError("Expected one original resource protobuf provider: " + label)
+                modules = [output for output in targets[generators[0]]["outputs"] if output.endswith("_pb2.py")]
+                if len(modules) != 1:
+                    raise ValueError("Expected one generated resource Python module: " + label)
+                inputs.update(modules)
+                record["generated_proto_inputs"] = modules
             if target["script"] == "//tools/grit/grit.py":
                 inputs.update(grit_resource_inputs(inputs, physical))
             script_parent = physical(target["script"][2:]).parent
             for path in script_parent.glob("*.py"):
                 inputs.add(target["script"].rsplit("/", 1)[0] + "/" + path.name)
             helper_directories = []
+            if label in CONTENT_RESOURCES.values():
+                helper_directories.append("components/resources/protobufs")
             if target["script"].startswith("//tools/grit/") or target["script"] == "//third_party/blink/renderer/build/scripts/generate_permission_element_grd.py":
                 helper_directories.append("tools/grit")
             if target["script"].startswith("//tools/metrics/"):
@@ -572,6 +600,8 @@ def capture(graph, digest, chromium, source_roots, profiles):
                 input_file(path)
             record.update(script=target["script"][2:], inputs=sorted(inputs - tools.keys()), tools={path: tools[path] for path in sorted(inputs) if path in tools}, outputs=target["outputs"], runs=runs, response=target.get("response_file_contents", []))
             record["environment"] = {"ANGLE_UPSTREAM_HASH": revisions["third_party/angle"]["commit"][:12]} if target["script"] == "//third_party/angle/src/commit_id.py" else {}
+            if label in CONTENT_RESOURCES.values():
+                record["environment"]["PROTOBUF_PYTHON_IMPLEMENTATION"] = "python"
             actions[label] = record
         elif kind == "copy":
             if len(target["sources"]) != len(target["outputs"]):
@@ -710,7 +740,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
             if label in visited or label not in seen:
                 continue
             visited.add(label)
-            if label in actions:
+            if label in actions and not actions[label].get("scoped_native_headers"):
                 selected.add(label)
             pending.extend(targets[label].get("deps", []))
         selected.update(label for label in actions if label not in targets and not actions[label].get("scoped_checkout_hook"))
@@ -737,7 +767,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
     )
     used = {dep for label in seen for dep in targets[label].get("deps", []) if dep in external}
     devtools_actions = sorted(label for label in closure([DEVTOOLS_ROOT]) if label in actions)
-    return dict(content_metadata=CONTENT_METADATA, devtools_workspace=devtools_workspace, devtools_frontend_actions=devtools_actions, header_layers=header_layers, devtools_esbuild=devtools_esbuild, copies=copies, devtools_node_modules_files=devtools_packages, native_header_actions=sorted(native_header_actions), source_aliases=source_aliases, roots=ROOTS, graph_sha256=digest, source_revisions=revisions, names=names, libraries=libraries, actions=actions, metadata=metadata, literal_metadata=literal_metadata, execution_tools=sorted(set(tools.values())), execution_closure=sorted(execution_closure), producers=producers, headers=headers, files=sorted(files), external_files={path: shared[path] for path in sorted(used_shared)}, external={label: external[label] for label in sorted(used)}, generated_files=generated, toolchain_deps=sorted(TOOLCHAIN), sdk_libraries=sorted(SDK_LIBS))
+    return dict(content_resources=CONTENT_RESOURCES, content_protobuf_runtime=CONTENT_PROTO_RUNTIME_COPIES, content_metadata=CONTENT_METADATA, devtools_workspace=devtools_workspace, devtools_frontend_actions=devtools_actions, header_layers=header_layers, devtools_esbuild=devtools_esbuild, copies=copies, devtools_node_modules_files=devtools_packages, native_header_actions=sorted(native_header_actions), source_aliases=source_aliases, roots=ROOTS, graph_sha256=digest, source_revisions=revisions, names=names, libraries=libraries, actions=actions, metadata=metadata, literal_metadata=literal_metadata, execution_tools=sorted(set(tools.values())), execution_closure=sorted(execution_closure), producers=producers, headers=headers, files=sorted(files), external_files={path: shared[path] for path in sorted(used_shared)}, external={label: external[label] for label in sorted(used)}, generated_files=generated, toolchain_deps=sorted(TOOLCHAIN), sdk_libraries=sorted(SDK_LIBS))
 
 
 def main():

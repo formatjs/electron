@@ -66,3 +66,24 @@ py_test(
         "@platforms//cpu:x86_64",
     ],
 )
+
+_BINARY_PROTO_INPUTS = [
+    "@electron_platform_sources//:pyproto/google/protobuf/__init__.py",
+    "@electron_platform_sources//:pyproto/components/safe_browsing/content/common/proto/download_file_types_pb2.py",
+    "@electron_platform_sources//:pyproto/components/security_interstitials/content/ssl_error_assistant_pb2.py",
+    "@electron_platform_sources//:download_file_types",
+    "@electron_platform_sources//:ssl_error_assistant",
+    "@electron_platform_sources//:components/safe_browsing/content/resources/download_file_types.asciipb",
+    "@electron_platform_sources//:components/resources/ssl/ssl_error_assistant/ssl_error_assistant.asciipb",
+]
+
+py_test(
+    name = "binary_proto_test",
+    srcs = ["binary_proto_test.py"],
+    args = ["$(rootpath " + label + ")" for label in _BINARY_PROTO_INPUTS],
+    data = _BINARY_PROTO_INPUTS + ["@electron_platform_sources//:protobuf_python_runtime"],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)

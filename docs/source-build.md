@@ -1958,3 +1958,46 @@ Metadata analysis completed with zero actions. Against exact `b9b30d8`, the
 Python producer actions are added; no CMake/foreign actions appear. This checks
 cache-key preservation, not a measured runtime speedup. The repaired native
 plugin bootstrap passed on BB; tracing generation and runtime checks remain pending.
+
+
+### Binary protobuf resource policies
+
+The content resource closure now includes original Safe Browsing file-type and
+SSL error-assistant writers, their generated C++/Python bindings and protobuf's
+GN-listed Python runtime copies. Writers keep original arguments, including
+isolated Python re-execution, with the pure Python protobuf implementation
+explicitly selected. No host protobuf package or pip step is used.
+
+The two generated-only native libraries export their own generated headers.
+Capture rejects new raw native sources on those scoped libraries. Their parent
+source directories and generated headers do not expand shared Blink header
+layers; existing library/generator records remain unchanged.
+
+The resource test checks declared runtime provenance, Linux-specific/any/default
+file-type settings and policy identities. The SSL payload must decode to the
+entire declared source policy. These use actual generated bindings and runtime;
+hosted generation, native compilation and runtime assertions remain pending.
+
+
+### Blink ICU runfile paths
+
+The `b9b30d8` consumer passed source metadata and plugin checks. All three full
+Blink probes linked, then failed `pinned ICU data opens`. Their declared ICU
+rootpath contains a parent component; Chromium `base::File::Initialize` rejects
+such paths before any OS open. The shared test wrapper now canonicalizes only
+trailing declared data files. Its DLL/driver search layout stays intact.
+The existing three native probes remain the regression loop; hosted runtime
+validation of this path fix is pending. No native assertions were removed.
+
+
+The `b9b30d8` [source aggregate build](https://formatjs.buildbuddy.io/invocation/4e5c3e23-b304-4378-bdec-1982df289d60)
+completed successfully on BB in 1,545.062 seconds. Its subsequent full test phase
+failed only the three Blink ICU-open checks in the captured probe summaries.
+This proves the imported component aggregate, not a linked Electron executable
+or complete content resource closure.
+
+Final resource metadata analysis executed zero actions. The 86,856-action audit
+preserves all 37,382 CppCompile, 254 Rustc, 26 CargoBuildScriptRun and 6,332
+ElectronPython baseline keys. Additions include two native protobuf compilations
+and six generator/copy actions. No CMake/foreign actions appear; hosted execution
+of these resource additions and the canonical ICU path fix remains pending.

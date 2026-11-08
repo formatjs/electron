@@ -203,6 +203,10 @@ def electron_platform():
             cc_library(name = library["name"], srcs = [_file(path) for path in library["srcs"]], copts = library["copts"], alwayslink = library["kind"] == "source_set", **settings)
     icds = [_file(path) for action in PROFILE["actions"].values() if action["script"] in ["third_party/swiftshader/src/Vulkan/write_icd_json.py", "third_party/vulkan-tools/src/scripts/gn/generate_vulkan_icd_json.py"] for path in action["outputs"]]
     native.filegroup(name = "libraries", srcs = [_label(label) for label, library in PROFILE["libraries"].items() if library["kind"] != "executable"] + shared + icds)
+    for name, original in PROFILE.get("content_resources", {}).items():
+        native.alias(name = name, actual = ":" + PROFILE["actions"][original]["name"] + "_runs")
+    native.filegroup(name = "content_resources", srcs = [":" + PROFILE["actions"][label]["name"] + "_runs" for label in PROFILE.get("content_resources", {}).values()])
+    native.filegroup(name = "protobuf_python_runtime", srcs = [":" + PROFILE["copies"][label]["name"] + "_run" for label in PROFILE.get("content_protobuf_runtime", [])])
     for name, original in PROFILE.get("content_metadata", {}).items():
         native.alias(name = name, actual = _label(original))
     native.filegroup(name = "content_metadata", srcs = [":" + PROFILE["actions"][label]["name"] + "_runs" for label in PROFILE.get("content_metadata", {}).values()])

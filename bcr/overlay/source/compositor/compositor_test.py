@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""Run compositor checks with declared desktop shared libraries."""
+"""Run native checks with declared libraries and canonical data-file paths."""
 
 from pathlib import Path
 import subprocess
@@ -9,6 +9,7 @@ import tempfile
 if len(sys.argv) < 6:
     raise ValueError("Expected probe, EGL, driver manifest, SDK and native GLib")
 probe, egl, icd, sdk, glib = [Path(value).absolute() for value in sys.argv[1:6]]
+data_files = [str(Path(value).resolve(strict=True)) for value in sys.argv[6:]]
 with tempfile.TemporaryDirectory(prefix="electron-native-compositor-") as scratch:
     environment = {
         "PATH": "", "LANG": "C", "LC_ALL": "C", "TZ": "UTC",
@@ -18,5 +19,5 @@ with tempfile.TemporaryDirectory(prefix="electron-native-compositor-") as scratc
         "XDG_DATA_DIRS": scratch, "XDG_CONFIG_DIRS": scratch,
         "XDG_CACHE_HOME": scratch, "TMPDIR": scratch,
     }
-    result = subprocess.run([str(probe), *sys.argv[6:]], env=environment)
+    result = subprocess.run([str(probe), *data_files], env=environment)
     raise SystemExit(result.returncode)
