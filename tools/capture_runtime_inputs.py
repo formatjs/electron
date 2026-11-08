@@ -84,6 +84,12 @@ def main():
     result = capture(json.loads(raw), args.source_root.resolve())
     result["gn_project_sha256"] = hashlib.sha256(raw).hexdigest()
     args.output.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n")
+    metadata = {key: result[key] for key in ("gn_project_sha256", "manifest_sha256")}
+    metadata["producers"] = {label: result["producers"][label] for label in (
+        "//electron:electron_version_file", "//electron:electron_license", "//electron:chromium_licenses")}
+    args.output.with_name("runtime_metadata.bzl").write_text(
+        '"""Captured original distribution metadata producers; do not edit."""\n\nRUNTIME_METADATA = json.decode(' +
+        json.dumps(json.dumps(metadata, separators=(",", ":"))) + ")\n")
     print(json.dumps({"files": len(result["files"]), "producers": len(result["producers"]), "omitted": result["omitted"]}))
 
 

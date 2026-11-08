@@ -2600,6 +2600,11 @@ credits. Its 1,391 hashed inputs preserve 766 directories and 706 valid metadata
 records, including 466 shipped entries. Metadata analysis passed; hosted HTML
 generation and its complete shipped-license test remain pending.
 
+`source/distribution:metadata` stages the original Electron LICENSE and generated
+Chromium notices, plus `version` from Electron's original template action and
+generated version arguments. Its BB test checks release identity and unchanged
+notice bytes. Action analysis passed; hosted execution remains pending.
+
 Runtime assembly still requires portable shared-library layout and native
 launch. The main executable, sandbox and Crashpad staging actions now declare
 Python directly, use an empty PATH and normalize executable modes/timestamps.

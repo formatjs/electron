@@ -1,0 +1,73 @@
+load("@rules_python//python:defs.bzl", "py_test")
+load("//electron:artifact_file.bzl", "electron_artifact_file")
+load("//electron:source_action.bzl", "electron_source_action")
+load("//source/native:runtime_metadata.bzl", "RUNTIME_METADATA")
+
+package(default_visibility = ["//visibility:public"])
+
+_VERSION = RUNTIME_METADATA["producers"]["//electron:electron_version_file"]
+
+electron_source_action(
+    name = "generate_version",
+    srcs = {
+        "//:build/generate-template.py": _VERSION["script"][2:],
+        "//:build/templates/version_string.tmpl": _VERSION["inputs"][0][2:],
+        "@electron_platform_sources//:gen/electron/electron_version.args": _VERSION["inputs"][1][2:],
+    },
+    args = [arg.replace("$SOURCE_ROOT/", "../../") for arg in _VERSION["args"]],
+    exec_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    logical_outputs = ["version"],
+    out_files = ["version"],
+    script = _VERSION["script"][2:],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)
+
+electron_artifact_file(
+    name = "electron_license",
+    src = "//:LICENSE",
+    out = "LICENSE",
+)
+
+electron_artifact_file(
+    name = "chromium_licenses",
+    src = "//source/credits:about_credits.html",
+    out = "LICENSES.chromium.html",
+)
+
+filegroup(
+    name = "metadata",
+    srcs = [
+        ":LICENSE",
+        ":LICENSES.chromium.html",
+        ":version",
+    ],
+)
+
+py_test(
+    name = "metadata_test",
+    srcs = ["metadata_test.py"],
+    args = [
+        "$(rootpath :version)",
+        "$(rootpath :LICENSE)",
+        "$(rootpath //:LICENSE)",
+        "$(rootpath :LICENSES.chromium.html)",
+        "$(rootpath //source/credits:about_credits.html)",
+    ],
+    data = [
+        ":version",
+        ":LICENSE",
+        ":LICENSES.chromium.html",
+        "//:LICENSE",
+        "//source/credits:about_credits.html",
+    ],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)
