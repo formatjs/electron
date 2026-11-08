@@ -2259,3 +2259,23 @@ prerequisites are part of that closure; full executable integration remains open
 The 93,753-action audit adds two C++ compile actions and two Python producers.
 All previous C++/Rust/Python action keys remain present; no CMake or foreign-cc
 mnemonics matched. Metadata analysis does not establish hosted execution.
+
+
+### Electron fuse and Node macro generators
+
+The native profile now captures Electron's original fuse and Node macro
+generators with their GN arguments and declared inputs. Their outputs retain
+the paths consumed by `electron_lib`. Both scripts use the pinned Python
+toolchain; neither needs host Python or npm.
+
+A hosted artifact contract compares all four generated files against the
+existing Bazel producers: `fuses.h`, `fuses.cc`,
+`push_and_undef_node_defines.h` and `pop_node_defines.h`. This also checks the
+two Node source projections agree. Execution remains pending; metadata analysis
+does not prove byte equality.
+
+The dependency audit has 93,774 actions. All 41,456 C++ compile, 254 Rust,
+26 Cargo build-script and 6,993 existing Python action keys remain present;
+exactly two captured Python producer keys are added. No CMake or foreign-cc
+mnemonics matched. No build, generator or test ran locally. The executable
+frontier still has 2,076 uncaptured targets; full Electron linkage remains open.

@@ -70,6 +70,7 @@ filegroup(
         "@electron_platform_sources//:content_resources",
         "@electron_platform_sources//:content_web_assets",
         "@electron_platform_sources//:devtools_frontend",
+        "@electron_platform_sources//:electron_generated",
         "@electron_rust_sources//:content_crates",
     ],
 )
@@ -121,6 +122,7 @@ test_suite(
         "//source/content_metadata:catapult_test",
         "//source/content_metadata:content_webui_test",
         "//source/content_metadata:metadata_test",
+        "//source/content_metadata:native_generators_test",
         "//source/content_metadata:policy_test",
         "//source/content_metadata:runtime_abi_test",
         "//source/content_metadata:tracing_proto_test",

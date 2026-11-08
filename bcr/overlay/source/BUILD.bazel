@@ -789,6 +789,12 @@ filegroup(
     output_group = "headers",
 )
 
+filegroup(
+    name = "fuses_header",
+    srcs = [":fuses_generated"],
+    output_group = "fuse_header",
+)
+
 cc_library(
     name = "electron_fuses",
     srcs = [":fuses_sources"],
@@ -828,6 +834,18 @@ filegroup(
 )
 
 electron_node_defines(name = "node_defines")
+
+filegroup(
+    name = "node_defines_push",
+    srcs = [":node_defines"],
+    output_group = "push",
+)
+
+filegroup(
+    name = "node_defines_pop",
+    srcs = [":node_defines"],
+    output_group = "pop",
+)
 
 electron_buildflags(
     name = "electron_buildflags",

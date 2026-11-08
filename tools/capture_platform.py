@@ -53,8 +53,12 @@ CONTENT_GENERATORS = {
 }
 MODULE_ROOTS = CORE_ROOTS + ["//third_party/blink/renderer/modules:modules", DEVTOOLS_ROOT] + list(CONTENT_METADATA.values()) + list(CONTENT_RESOURCES.values()) + list(CONTENT_WEB_ASSETS.values()) + list(CONTENT_GENERATORS.values())
 CONTENT_ROOTS = MODULE_ROOTS + ["//content:content"]
+ELECTRON_GENERATORS = {
+    "fuses": "//electron:electron_fuses",
+    "node_defines": "//electron:electron_generate_node_defines",
+}
 ELECTRON_PLATFORM_ROOTS = ["//electron:electron_gtk_stubs", "//electron:libnotify_loader"]
-ROOTS = CONTENT_ROOTS + ELECTRON_PLATFORM_ROOTS
+ROOTS = CONTENT_ROOTS + ELECTRON_PLATFORM_ROOTS + list(ELECTRON_GENERATORS.values())
 SOURCE_PREFIXES = ["third_party/libyuv", "third_party/angle", "third_party/dawn", "third_party/swiftshader", "third_party/spirv-tools/src", "third_party/spirv-headers/src", "third_party/vulkan-loader/src", "third_party/vulkan-tools/src", "third_party/vulkan-utility-libraries/src", "third_party/vulkan-headers/src", "third_party/vulkan_memory_allocator", "third_party/wayland/src", "third_party/wayland-protocols/src", "third_party/wayland-protocols/kde"]
 MEDIA_SOURCE_PREFIXES = ["third_party/flac", "media/cdm/api", "third_party/libaom/source/libaom", "third_party/crc32c/src", "third_party/ffmpeg", "third_party/libvpx/source/libvpx", "third_party/openh264/src", "third_party/dav1d/libdav1d", "third_party/libgav1/src", "third_party/leveldatabase/src", "third_party/libwebm/source"]
 COMPOSITOR_SOURCE_PREFIXES = ["third_party/webrtc", "third_party/federated_compute/src", "third_party/libsrtp"]
@@ -80,6 +84,8 @@ SCRIPTS = MOJO_SCRIPTS | {"//" + name for name in (
     "build/write_buildflag_header.py", "build/gn_run_binary.py", "build/util/version.py",
     "components/safe_browsing/content/resources/gen_file_type_proto.py",
     "components/resources/ssl/ssl_error_assistant/gen_ssl_error_assistant_proto.py",
+    "electron/build/fuses/build.py",
+    "electron/build/generate_node_defines.py",
     "components/certificate_transparency/tools/make_ct_known_logs_list.py",
     "components/domain_reliability/bake_in_configs.py",
     "components/optimization_guide/tools/gen_on_device_proto_descriptors.py",
@@ -547,6 +553,9 @@ def capture(graph, digest, chromium, source_roots, profiles):
                     inputs.add(esbuild)
                 record["devtools_node_modules"] = True
             args = [arg.replace("$SOURCE_ROOT/out/bazel-import/", "") for arg in target.get("args", [])]
+            if label in ELECTRON_GENERATORS.values():
+                record["gn_args"] = target.get("args", [])
+                args = [arg.replace("$SOURCE_ROOT/", "../../") for arg in args]
             if "--protoc-gen-ts" in args:
                 if target["script"] != "//tools/protoc_wrapper/protoc_wrapper.py":
                     raise ValueError("Unexpected TypeScript protobuf plugin producer")
@@ -874,7 +883,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
     if physical(policy_script).read_text().count(original) != 1:
         raise ValueError("Original policy depfile writer changed")
     source_adapters = {"//" + policy_script: {original: "f.write(' '.join(os.path.relpath(path) for path in source_files))"}}
-    return dict(content_generators=CONTENT_GENERATORS, source_adapters=source_adapters, content_web_assets=CONTENT_WEB_ASSETS, content_resources=CONTENT_RESOURCES, content_protobuf_runtime=CONTENT_PROTO_RUNTIME_COPIES, content_metadata=CONTENT_METADATA, devtools_workspace=devtools_workspace, devtools_frontend_actions=devtools_actions, header_layers=header_layers, devtools_esbuild=devtools_esbuild, copies=copies, devtools_node_modules_files=devtools_packages, native_header_actions=sorted(native_header_actions), source_aliases=source_aliases, roots=ROOTS, graph_sha256=digest, source_revisions=revisions, names=names, libraries=libraries, actions=actions, metadata=metadata, literal_metadata=literal_metadata, execution_tools=sorted(set(tools.values())), execution_closure=sorted(execution_closure), producers=producers, headers=headers, files=sorted(files), external_files={path: shared[path] for path in sorted(used_shared)}, external={label: external[label] for label in sorted(used)}, generated_files=generated, toolchain_deps=sorted(TOOLCHAIN), sdk_libraries=sorted(SDK_LIBS))
+    return dict(electron_generators=ELECTRON_GENERATORS, content_generators=CONTENT_GENERATORS, source_adapters=source_adapters, content_web_assets=CONTENT_WEB_ASSETS, content_resources=CONTENT_RESOURCES, content_protobuf_runtime=CONTENT_PROTO_RUNTIME_COPIES, content_metadata=CONTENT_METADATA, devtools_workspace=devtools_workspace, devtools_frontend_actions=devtools_actions, header_layers=header_layers, devtools_esbuild=devtools_esbuild, copies=copies, devtools_node_modules_files=devtools_packages, native_header_actions=sorted(native_header_actions), source_aliases=source_aliases, roots=ROOTS, graph_sha256=digest, source_revisions=revisions, names=names, libraries=libraries, actions=actions, metadata=metadata, literal_metadata=literal_metadata, execution_tools=sorted(set(tools.values())), execution_closure=sorted(execution_closure), producers=producers, headers=headers, files=sorted(files), external_files={path: shared[path] for path in sorted(used_shared)}, external={label: external[label] for label in sorted(used)}, generated_files=generated, toolchain_deps=sorted(TOOLCHAIN), sdk_libraries=sorted(SDK_LIBS))
 
 
 def main():

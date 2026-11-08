@@ -154,7 +154,7 @@ def _fuses_impl(ctx):
     ctx.actions.write(definitions, "--flags " + " ".join(ctx.attr.debug_flags))
     ctx.actions.run(executable = ctx.executable._runner, arguments = [ctx.file._fuses.path, header.path, implementation.path], inputs = [ctx.file._fuses, ctx.file._fuse_defaults], outputs = [header, implementation], mnemonic = "ElectronFuses")
     ctx.actions.run(executable = ctx.executable._runner, arguments = [ctx.file._buildflags.path, "--output", "base/debug/debugging_buildflags.h", "--rulename", "//base:debugging_buildflags", "--gen-dir", debug_header.dirname + "/../..", "--definitions", definitions.path], inputs = [ctx.file._buildflags, definitions], outputs = [debug_header], mnemonic = "ElectronBuildflags")
-    return [DefaultInfo(files = depset([header, implementation, debug_header])), OutputGroupInfo(headers = depset([header, debug_header]), sources = depset([implementation]))]
+    return [DefaultInfo(files = depset([header, implementation, debug_header])), OutputGroupInfo(headers = depset([header, debug_header]), sources = depset([implementation]), fuse_header = depset([header]))]
 
 electron_fuses_generate = rule(
     implementation = _fuses_impl,
@@ -171,7 +171,7 @@ def _node_defines_impl(ctx):
     push = ctx.actions.declare_file(ctx.label.name + "/electron/push_and_undef_node_defines.h")
     pop = ctx.actions.declare_file(ctx.label.name + "/electron/pop_node_defines.h")
     ctx.actions.run(executable = ctx.executable._runner, arguments = [ctx.file._script.path, push.dirname] + [header.path for header in ctx.files._headers], inputs = [ctx.file._script] + ctx.files._headers, outputs = [push, pop], mnemonic = "ElectronNodeDefines")
-    return [DefaultInfo(files = depset([push, pop]))]
+    return [DefaultInfo(files = depset([push, pop])), OutputGroupInfo(push = depset([push]), pop = depset([pop]))]
 
 electron_node_defines = rule(
     implementation = _node_defines_impl,

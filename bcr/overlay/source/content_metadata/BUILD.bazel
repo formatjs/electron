@@ -181,3 +181,25 @@ py_test(
         "@platforms//cpu:x86_64",
     ],
 )
+
+_NATIVE_GENERATOR_INPUTS = [
+    "//source:fuses_header",
+    "@electron_platform_sources//:gen/electron/fuses.h",
+    "//source:fuses_sources",
+    "@electron_platform_sources//:gen/electron/fuses.cc",
+    "//source:node_defines_push",
+    "@electron_platform_sources//:gen/electron/push_and_undef_node_defines.h",
+    "//source:node_defines_pop",
+    "@electron_platform_sources//:gen/electron/pop_node_defines.h",
+]
+
+py_test(
+    name = "native_generators_test",
+    srcs = ["native_generators_test.py"],
+    args = ["$(rootpath " + label + ")" for label in _NATIVE_GENERATOR_INPUTS],
+    data = _NATIVE_GENERATOR_INPUTS,
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)

@@ -231,6 +231,7 @@ def electron_platform():
     for name, original in PROFILE.get("content_web_assets", {}).items():
         native.alias(name = name, actual = ":" + PROFILE["actions"][original]["name"] + "_runs")
     native.filegroup(name = "policy_python_runtime", srcs = [_file("//" + path) for path in PROFILE["files"] if path.startswith("third_party/pyyaml/") and path.endswith(".py")])
+    native.filegroup(name = "electron_generated", srcs = [":" + PROFILE["actions"][label]["name"] + "_runs" for label in PROFILE.get("electron_generators", {}).values()])
     native.filegroup(name = "content_generators", srcs = [":" + PROFILE["actions"][label]["name"] + "_runs" for label in PROFILE.get("content_generators", {}).values()])
     native.filegroup(name = "content_web_assets", srcs = [":" + PROFILE["actions"][label]["name"] + "_runs" for label in PROFILE.get("content_web_assets", {}).values()])
     for name, original in PROFILE.get("content_resources", {}).items():
