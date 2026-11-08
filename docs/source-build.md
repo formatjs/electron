@@ -1684,3 +1684,5 @@ and redirects to codeload. Its SHA-256 is exactly the existing BCR pin,
 `098ba13578e796c00c853a2161f382647f32eb9a77099e1c88bc5299333d0d6e`.
 The integrity check, module version and BCR patch remain unchanged. This avoids
 the failing release endpoint without substituting dependency contents.
+The same byte-identical rewrite covers the pinned `bazel_features` 1.50.0
+archive after its release endpoint also returned HTTP 504.
