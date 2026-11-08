@@ -1606,4 +1606,7 @@ component ownership, export metadata and native header directories.
 Only generator headers reachable from native C/C++ owners enter the shared
 compilation headers. Auxiliary testing IDLs no longer invalidate unrelated
 compilation. The selected header set matches the pre-IDL native profile.
-Hosted validation remains pending; full Blink platform integration is unfinished.
+Implementation `3888599` passed hosted components, BCR consumer and cross
+probes. Its aggregate profile records 26 generator actions, including native
+gperf generation, and the full source suite reports the binding probe PASSED.
+Full Blink platform integration is unfinished.
