@@ -15,7 +15,8 @@ from capture_mojo import SCRIPTS as MOJO_SCRIPTS
 from native_graph import BUILD, capture_library, load_profiles
 
 BLINK_BINDINGS_ROOTS = ["//third_party/blink/renderer/bindings:web_idl_database", "//third_party/blink/renderer/core:core_event_interfaces", "//third_party/blink/renderer/modules:modules_event_interfaces"]
-ROOTS = ["//ui/ozone:ozone", "//ui/gl:gl", "//gpu/command_buffer/client:gles2_implementation", "//gpu/command_buffer/service:gles2", "//components/viz/common:common", "//gpu/ipc/service:service", "//gpu/ipc/client:client", "//gpu/ipc/host:host", "//media:media", "//cc:cc"] + BLINK_BINDINGS_ROOTS
+BLINK_PLATFORM_GENERATORS = ['//third_party/blink/common:make_generated_document_policy_features', '//third_party/blink/common:make_generated_features', '//third_party/blink/common:make_generated_origin_trials', '//third_party/blink/common:make_runtime_feature_state_contexts_impl', '//third_party/blink/public/common:make_generated_permissions_policy_helper', '//third_party/blink/public/common:make_runtime_feature_state_contexts_headers', '//third_party/blink/public/mojom/origin_trials:generate_origin_trial_feature', '//third_party/blink/public/mojom/runtime_feature_state:generate_runtime_feature', '//third_party/blink/public:runtime_features_for_public', '//third_party/blink/renderer/core:make_core_generated_settings', '//third_party/blink/renderer/platform/loader:make_platform_loader_generated_delivery_type_names', '//third_party/blink/renderer/platform/loader:make_platform_loader_generated_fetch_initiator_type_names', '//third_party/blink/renderer/platform/network:http_names', '//third_party/blink/renderer/platform:color_data', '//third_party/blink/renderer/platform:font_family_names', '//third_party/blink/renderer/platform:runtime_enabled_features', '//third_party/blink/renderer/platform:runtime_feature_state_override_context']
+ROOTS = ["//ui/ozone:ozone", "//ui/gl:gl", "//gpu/command_buffer/client:gles2_implementation", "//gpu/command_buffer/service:gles2", "//components/viz/common:common", "//gpu/ipc/service:service", "//gpu/ipc/client:client", "//gpu/ipc/host:host", "//media:media", "//cc:cc"] + BLINK_BINDINGS_ROOTS + BLINK_PLATFORM_GENERATORS
 SOURCE_PREFIXES = ["third_party/libyuv", "third_party/angle", "third_party/dawn", "third_party/swiftshader", "third_party/spirv-tools/src", "third_party/spirv-headers/src", "third_party/vulkan-loader/src", "third_party/vulkan-tools/src", "third_party/vulkan-utility-libraries/src", "third_party/vulkan-headers/src", "third_party/vulkan_memory_allocator", "third_party/wayland/src", "third_party/wayland-protocols/src", "third_party/wayland-protocols/kde"]
 MEDIA_SOURCE_PREFIXES = ["third_party/flac", "media/cdm/api", "third_party/libaom/source/libaom", "third_party/crc32c/src", "third_party/ffmpeg", "third_party/libvpx/source/libvpx", "third_party/openh264/src", "third_party/dav1d/libdav1d", "third_party/libgav1/src", "third_party/leveldatabase/src", "third_party/libwebm/source"]
 COMPOSITOR_SOURCE_PREFIXES = ["third_party/webrtc", "third_party/federated_compute/src", "third_party/libsrtp"]
@@ -154,6 +155,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
                 producers[output] = label
     producers.update({path: hook_label for path in hook_outputs})
     tools = {output: label for label, target in targets.items() if target["type"] == "executable" and (label in seen or label in external) for output in target.get("outputs", [])[:1]}
+    tools[BUILD + "gperf"] = "@gperf//:gperf"
     execution_closure, pending = set(), [label for label in seen if targets[label]["type"] == "executable"]
     while pending:
         label = pending.pop()
@@ -260,6 +262,11 @@ def capture(graph, digest, chromium, source_roots, profiles):
                 # Original option avoids a wall-clock-dependent copyright header.
                 record["reproducibility_options"] = {"year": "2025", "basis": "Chromium 142 source release"}
                 args.append("--year=2025")
+            if "gperf" in args:
+                if target["script"] != "//third_party/blink/renderer/build/scripts/run_with_pythonpath.py" or "../../third_party/blink/renderer/build/scripts/gperf.py" not in args:
+                    raise ValueError("Unexpected original gperf invocation")
+                inputs.add(BUILD + "gperf")
+                args = ["./gperf" if arg == "gperf" else arg for arg in args]
             if target["script"] == "//build/gn_run_binary.py":
                 executable = BUILD + args[0] if args else ""
                 if executable not in tools:
@@ -412,8 +419,18 @@ def capture(graph, digest, chromium, source_roots, profiles):
     for path in sorted(files):
         if not physical(path).is_file():
             raise ValueError("Missing original platform input: " + path)
+    native_header_actions, visited, pending = set(), set(), [label for label, library in libraries.items() if library["kind"] != "group"]
+    while pending:
+        label = pending.pop()
+        if label in visited or label not in seen:
+            continue
+        visited.add(label)
+        if label in actions:
+            native_header_actions.add(label)
+        pending.extend(targets[label].get("deps", []))
+    native_header_actions.update(label for label in actions if label not in targets)
     used = {dep for label in seen for dep in targets[label].get("deps", []) if dep in external}
-    return dict(source_aliases=source_aliases, roots=ROOTS, graph_sha256=digest, source_revisions=revisions, names=names, libraries=libraries, actions=actions, metadata=metadata, literal_metadata=literal_metadata, execution_tools=sorted(set(tools.values())), execution_closure=sorted(execution_closure), producers=producers, headers=headers, files=sorted(files), external_files={path: shared[path] for path in sorted(used_shared)}, external={label: external[label] for label in sorted(used)}, generated_files=generated, toolchain_deps=sorted(TOOLCHAIN), sdk_libraries=sorted(SDK_LIBS))
+    return dict(native_header_actions=sorted(native_header_actions), source_aliases=source_aliases, roots=ROOTS, graph_sha256=digest, source_revisions=revisions, names=names, libraries=libraries, actions=actions, metadata=metadata, literal_metadata=literal_metadata, execution_tools=sorted(set(tools.values())), execution_closure=sorted(execution_closure), producers=producers, headers=headers, files=sorted(files), external_files={path: shared[path] for path in sorted(used_shared)}, external={label: external[label] for label in sorted(used)}, generated_files=generated, toolchain_deps=sorted(TOOLCHAIN), sdk_libraries=sorted(SDK_LIBS))
 
 
 def main():

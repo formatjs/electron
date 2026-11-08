@@ -71,7 +71,7 @@ def electron_platform():
     )
     cc_library(
         name = "source_headers",
-        hdrs = common_headers + [_file(path) for action in PROFILE["actions"].values() for path in action["outputs"] if path.endswith((".h", ".hpp", ".inc", ".inl"))],
+        hdrs = common_headers + [_file(path) for label in PROFILE.get("native_header_actions", PROFILE["actions"].keys()) for path in PROFILE["actions"][label]["outputs"] if path.endswith((".h", ".hpp", ".inc", ".inl"))],
         includes = [".", "gen", "src"],
         deps = [":upstream_headers", "@electron_platform_sdk//:headers"],
         target_compatible_with = _COMPATIBLE,

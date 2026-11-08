@@ -1585,3 +1585,25 @@ Implementation `4cc896e` passed hosted components, BCR consumer and cross probes
 The BCR source child reports the decode probe PASSED through cleanup and
 conversion. These source profiles cover Linux AMD64; this is not a complete
 Electron executable or renderer integration.
+
+## Blink generator prerequisites
+
+`@electron_platform_sources//:blink_bindings` builds the original Web IDL
+collections/database, testing IDLs and event tables, plus 17 original platform
+generators for runtime features, policy declarations, settings, names and color
+data. The profile has 551 generator targets and 1,491 native library/group
+records. Existing records stay unchanged; the extra group owns testing IDLs.
+
+Color generation uses declared, source-built `@gperf//:gperf` (3.1.bcr.2). The
+runner stages that executable explicitly with an empty PATH. Every generator
+runs twice under different source paths and mtimes. Inputs and response files
+come from the Electron-patched Chromium 142 graph.
+
+The source aggregate builds these outputs. The source suite includes
+`@electron//source/blink_bindings:bindings_test`, checking event inheritance,
+component ownership, export metadata and native header directories.
+
+Only generator headers reachable from native C/C++ owners enter the shared
+compilation headers. Auxiliary testing IDLs no longer invalidate unrelated
+compilation. The selected header set matches the pre-IDL native profile.
+Hosted validation remains pending; full Blink platform integration is unfinished.

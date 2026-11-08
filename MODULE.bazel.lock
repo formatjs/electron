@@ -88,6 +88,8 @@
     "https://bcr.bazel.build/modules/googletest/1.17.0.bcr.2/MODULE.bazel": "827f54f492a3ce549c940106d73de332c2b30cebd0c20c0bc5d786aba7f116cb",
     "https://bcr.bazel.build/modules/googletest/1.17.0.bcr.2/source.json": "3664514073a819992320ffbce5825e4238459df344d8b01748af2208f8d2e1eb",
     "https://bcr.bazel.build/modules/googletest/1.17.0/MODULE.bazel": "dbec758171594a705933a29fcf69293d2468c49ec1f2ebca65c36f504d72df46",
+    "https://bcr.bazel.build/modules/gperf/3.1.bcr.2/MODULE.bazel": "2740ed3e0728432ece115aa5e36bf1b05372af7974a270bf6aab3c65de1717d6",
+    "https://bcr.bazel.build/modules/gperf/3.1.bcr.2/source.json": "963e17013ae8124ca2ff3d08e62010699d2ed97d3cf9bd7b2f1fc92f0f050397",
     "https://bcr.bazel.build/modules/hermetic_launcher/0.0.8/MODULE.bazel": "3be7b0faca6f1e69e89197999e0b01ce058c42f3e764ef028466f7e0ff77c761",
     "https://bcr.bazel.build/modules/hermetic_launcher/0.0.8/source.json": "8403718636114198fca6ea04b437fa001ac7167b4d485102defb0a6f7d11bc08",
     "https://bcr.bazel.build/modules/jsoncpp/1.9.5/MODULE.bazel": "31271aedc59e815656f5736f282bb7509a97c7ecb43e927ac1a37966e0578075",
