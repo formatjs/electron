@@ -1677,3 +1677,9 @@ The [5371c2a rerun](https://formatjs.buildbuddy.io/invocation/9e176233-83a0-4b09
 failed before compilation when GitHub returned HTTP 504 for `rules_python`.
 The larger heap has not yet completed the full graph. Blink core runtime and
 the complete Electron executable remain unverified.
+
+CI rewrites only the `rules_python` 1.9.0 release URL to GitHub's corresponding
+codeload tag archive. Its SHA-256 is exactly the existing BCR pin,
+`098ba13578e796c00c853a2161f382647f32eb9a77099e1c88bc5299333d0d6e`.
+The integrity check, module version and BCR patch remain unchanged. This avoids
+the failing release endpoint without substituting dependency contents.

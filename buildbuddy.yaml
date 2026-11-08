@@ -18,24 +18,25 @@ actions:
       - run: |
           set -euo pipefail
           registry="$(mktemp -d /tmp/electron-registry.XXXXXX)"
+          source_downloader="$PWD/tools/public-downloader.cfg"
           python3 tools/stage_bcr_entry.py --source-registry bcr \
             --target-registry "$registry" --module electron --version 39.0.0
-          bazel --host_jvm_args=-Xmx24g test --config=buildbuddy --strategy=TestRunner=remote \
+          bazel --host_jvm_args=-Xmx24g test --config=buildbuddy --downloader_config="$source_downloader" --strategy=TestRunner=remote \
             --registry="file://$registry" --registry=https://bcr.bazel.build \
             //tests:hermetic_execution_test
-          bazel --host_jvm_args=-Xmx24g test --config=buildbuddy --strategy=TestRunner=local \
+          bazel --host_jvm_args=-Xmx24g test --config=buildbuddy --downloader_config="$source_downloader" --strategy=TestRunner=local \
             --registry="file://$registry" --registry=https://bcr.bazel.build \
             --profile="$BUILDBUDDY_ARTIFACTS_DIRECTORY/source-graphics-profile.json.gz" \
             @electron//source:platform_graphics_test
           # Keep compile-only archives in CAS; tests download their declared data.
-          bazel --host_jvm_args=-Xmx24g build --config=buildbuddy --remote_download_outputs=minimal --registry="file://$registry" \
+          bazel --host_jvm_args=-Xmx24g build --config=buildbuddy --downloader_config="$source_downloader" --remote_download_outputs=minimal --registry="file://$registry" \
             --profile="$BUILDBUDDY_ARTIFACTS_DIRECTORY/source-components-profile.json.gz" \
             --memory_profile="$BUILDBUDDY_ARTIFACTS_DIRECTORY/source-components.memory" \
             --experimental_profile_additional_tasks=remote_cache_check \
             --experimental_profile_additional_tasks=remote_download \
             --experimental_profile_additional_tasks=remote_queue \
             --registry=https://bcr.bazel.build //:source_components
-          bazel --host_jvm_args=-Xmx24g test --config=buildbuddy --strategy=TestRunner=local \
+          bazel --host_jvm_args=-Xmx24g test --config=buildbuddy --downloader_config="$source_downloader" --strategy=TestRunner=local \
             --registry="file://$registry" --registry=https://bcr.bazel.build \
             --profile="$BUILDBUDDY_ARTIFACTS_DIRECTORY/source-tests-profile.json.gz" \
             --memory_profile="$BUILDBUDDY_ARTIFACTS_DIRECTORY/source-tests.memory" \
@@ -62,9 +63,10 @@ actions:
       - run: |
           set -euo pipefail
           registry="$(mktemp -d /tmp/electron-registry.XXXXXX)"
+          source_downloader="$PWD/tools/public-downloader.cfg"
           python3 tools/stage_bcr_entry.py --source-registry bcr \
             --target-registry "$registry" --module electron --version 39.0.0
-          bazel build --config=buildbuddy --registry="file://$registry" \
+          bazel build --config=buildbuddy --downloader_config="$source_downloader" --registry="file://$registry" \
             --registry=https://bcr.bazel.build @electron//source:cross_probes \
             --repo_env=BAZEL_MSVC_RUNTIME_VISUAL_STUDIO_EULA=1 \
             --repo_env=BAZEL_WINDOWS_SDK_EULA=1
@@ -88,13 +90,14 @@ actions:
       - run: |
           set -euo pipefail
           registry="$(mktemp -d /tmp/electron-registry.XXXXXX)"
+          source_downloader="$PWD/tools/public-downloader.cfg"
           python3 tools/stage_bcr_entry.py --source-registry bcr \
             --target-registry "$registry" --module electron --version 39.0.0
           cd tests/bcr
-          bazel --host_jvm_args=-Xmx24g test --config=buildbuddy --strategy=TestRunner=remote \
+          bazel --host_jvm_args=-Xmx24g test --config=buildbuddy --downloader_config="$source_downloader" --strategy=TestRunner=remote \
             --registry="file://$registry" --registry=https://bcr.bazel.build \
             @electron//tests:hermetic_execution_test
-          bazel --host_jvm_args=-Xmx24g test --config=buildbuddy --strategy=TestRunner=local \
+          bazel --host_jvm_args=-Xmx24g test --config=buildbuddy --downloader_config="$source_downloader" --strategy=TestRunner=local \
             --registry="file://$registry" --registry=https://bcr.bazel.build \
             --profile="$BUILDBUDDY_ARTIFACTS_DIRECTORY/source-consumer-profile.json.gz" \
             --memory_profile="$BUILDBUDDY_ARTIFACTS_DIRECTORY/source-consumer.memory" \
