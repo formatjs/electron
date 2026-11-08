@@ -1790,3 +1790,29 @@ Aggregate builds and full source/consumer test phases now use `--keep_going`.
 Independent targets can finish and populate the remote cache after a compile
 failure, exposing more missing declarations in the same run. Any failed target
 still fails CI; bootstrap and graphics gates retain their earlier behavior.
+
+### Content Rust libraries
+
+The Linux content graph's additional vendor Rust dependencies form one
+`//third_party/rust/llguidance/v1:lib` subtree. Its declaration adds 15 runtime/host
+Rust targets and nine vendor package inventories from the same pinned Chromium
+source. All 122 existing crate records, 89 package inventories, native bridge
+records and bindgen declarations remain unchanged.
+
+The public `@electron_rust_sources//:llguidance` provider combines the original
+C header with its Rust library; the aggregate requests the actual root crate
+artifact. Platform capture recognizes that original GN root for the future
+content import. Original build scripts remain declared Bazel producers with
+pinned execution toolchains.
+
+A native C-ABI probe builds an ASCII tokenizer, validates/rejects regex grammars,
+checks token masks, consumes a matching sequence, resets and rejects an invalid
+token. Hosted compilation, linking and runtime validation remain pending.
+Other source profiles and the full content/Electron executable remain unfinished.
+
+Metadata analysis completed with zero build actions. The LLGuidance extension's
+86,827-action audit preserves all 37,382 CppCompile, 228 Rustc and 20
+CargoBuildScriptRun baseline keys from the VAAPI-fixed graph. Additions include
+one C++ probe, 26 Rust compile variants and six build-script run variants. No
+CMake/foreign action mnemonics matched. These counts do not prove runtime
+correctness or a performance improvement.

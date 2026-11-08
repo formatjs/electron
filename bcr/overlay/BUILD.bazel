@@ -65,6 +65,7 @@ filegroup(
         "//source/media:symphonia_libraries",
         "@electron_platform_sources//:blink_bindings",
         "@electron_platform_sources//:devtools_frontend",
+        "@electron_rust_sources//:content_crates",
     ],
 )
 
@@ -110,6 +111,7 @@ test_suite(
         "//source/blink_rust:crash_test",
         "//source/blink_rust:font_format_test",
         "//source/compositor:compositor_test",
+        "//source/content_rust:llguidance_test",
         "//source/crabbyavif:decode_test",
         "//source/devtools:resources_test",
         "//source/media:asound_abi_test",

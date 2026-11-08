@@ -163,6 +163,15 @@ def electron_temporal():
             rust_binary(**settings)
         else:
             fail("Unsupported Temporal Rust target kind")
+    for name, library in PROFILE.get("content_libraries", {}).items():
+        cc_library(
+            name = name,
+            hdrs = [_file(path) for path in library["headers"]],
+            includes = ["."],
+            deps = [":" + library["crate"]],
+            target_compatible_with = _LINUX_AMD64,
+        )
+    native.filegroup(name = "content_crates", srcs = [":" + library["crate"] for library in PROFILE.get("content_libraries", {}).values()])
     cc_library(
         name = "temporal_headers",
         hdrs = [_file(path) for path in PROFILE["cpp_headers"]],

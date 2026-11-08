@@ -188,6 +188,8 @@ def capture(graph, digest, chromium, source_roots, profiles):
     external["//media/filters:symphonia_glue"] = "@electron//source/media:symphonia"
     external["//media/filters:symphonia_glue_cxx_generated"] = "@electron//source/media:symphonia_bridge"
     temporal = json.loads((profiles / "temporal_inputs.json").read_text())
+    for name, library in temporal.get("content_libraries", {}).items():
+        external[library["root"]] = "@electron_rust_sources//:" + name
     for name, bridge in temporal["blink_bridges"].items():
         owner = "@electron//source/blink_rust:" + name
         external[bridge["root"]] = owner

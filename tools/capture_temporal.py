@@ -14,6 +14,7 @@ from native_graph import capture_library
 from capture_crabby import ROOT as CRABBY_ROOT, BINDINGS as CRABBY_BINDINGS, CODECS as CRABBY_CODECS, capture_binding, source_identity
 
 ROOT = "//third_party/rust/temporal_capi/v0_1:lib"
+CONTENT_ROOTS = {"llguidance": {"root": "//third_party/rust/llguidance/v1:lib", "headers": ["third_party/rust/chromium_crates_io/vendor/llguidance-v1/llguidance.h"]}}
 VENDOR = "third_party/rust/chromium_crates_io/vendor/"
 ALLOCATOR = "//build/rust/allocator:"
 HOST = "(//build/toolchain/linux:clang_x64_for_rust_host_build_tools)"
@@ -108,7 +109,7 @@ def capture(graph, source, fontconfig=None, skia=None, crabbyavif=None):
         for dep in target.get("deps", []):
             visit(dep)
 
-    for root in [ROOT, MEDIA_ROOT, CRABBY_ROOT] + list(BLINK_ROOTS.values()) + BASE_ROOTS + ([FONT_ROOT] if fontconfig else []) + (SKIA_ROOTS if skia else []):
+    for root in [ROOT, MEDIA_ROOT, CRABBY_ROOT] + list(BLINK_ROOTS.values()) + [library["root"] for library in CONTENT_ROOTS.values()] + BASE_ROOTS + ([FONT_ROOT] if fontconfig else []) + (SKIA_ROOTS if skia else []):
         visit(root)
     root_files = {"LICENSE", "build/build_config.h", "build/buildflag.h", "build/rust/bindings.rs"}
     packages, crates, cpp, bindings = {}, {}, {}, {}
@@ -384,7 +385,8 @@ def capture(graph, source, fontconfig=None, skia=None, crabbyavif=None):
     cpp_headers = [p for p in packages[temporal_package] if "/bindings/cpp/" in p and p.endswith((".h", ".hpp"))]
     if not cpp_headers:
         raise ValueError("Missing original Temporal C++ bindings")
-    return {"crabbyavif_source": crabby_source, "blink_font_fixtures": blink_font_fixtures, "blink_bridges": blink_bridges, "media_bridge": media_bridge, "root": name(ROOT), "base_roots": {label: name(label) for label in BASE_ROOTS}, "rust": crates, "cpp": cpp, "ffi": bindings, "packages": packages, "root_files": sorted(root_files), "cpp_headers": cpp_headers, "provided_by_toolchain": sorted(provided), "allocator_buildflags": {"output": "build/rust/allocator/buildflags.h", "rule": ALLOCATOR + "buildflags", "response": flags["response_file_contents"]}}
+    content_libraries = {key: dict(library, crate=name(library["root"])) for key, library in CONTENT_ROOTS.items()}
+    return {"content_libraries": content_libraries, "crabbyavif_source": crabby_source, "blink_font_fixtures": blink_font_fixtures, "blink_bridges": blink_bridges, "media_bridge": media_bridge, "root": name(ROOT), "base_roots": {label: name(label) for label in BASE_ROOTS}, "rust": crates, "cpp": cpp, "ffi": bindings, "packages": packages, "root_files": sorted(root_files), "cpp_headers": cpp_headers, "provided_by_toolchain": sorted(provided), "allocator_buildflags": {"output": "build/rust/allocator/buildflags.h", "rule": ALLOCATOR + "buildflags", "response": flags["response_file_contents"]}}
 
 
 def main():

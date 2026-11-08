@@ -1,0 +1,14 @@
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_test(
+    name = "llguidance_test",
+    srcs = ["llguidance_test.cc"],
+    linkstatic = True,
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    deps = ["@electron_rust_sources//:llguidance"],
+)
