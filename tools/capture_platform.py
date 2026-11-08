@@ -25,6 +25,10 @@ COMPOSITOR_SOURCE_PREFIXES = ["third_party/webrtc", "third_party/federated_compu
 BLINK_SOURCE_PREFIXES = ['third_party/cld_3/src', 'third_party/cpuinfo/src', 'third_party/devtools-frontend/src', 'third_party/eigen3/src', 'third_party/emoji-segmenter/src', 'third_party/farmhash/src', 'third_party/flatbuffers/src', 'third_party/fxdiv/src', 'third_party/gemmlowp/src', 'third_party/libphonenumber/dist', 'third_party/material_color_utilities/src', 'third_party/neon_2_sse/src', 'third_party/ots/src', 'third_party/pthreadpool/src', 'third_party/ruy/src', 'third_party/search_engines_data/resources', 'third_party/smhasher/src', 'third_party/tflite/src', 'third_party/xnnpack/src']
 SOURCE_PREFIXES += MEDIA_SOURCE_PREFIXES + COMPOSITOR_SOURCE_PREFIXES + BLINK_SOURCE_PREFIXES
 TOOLCHAIN = {"//buildtools/third_party/libc++:" + name for name in ("all_modules", "custom_headers", "libcxx_headers", "libc++")}
+EXTRA_NATIVE_HEADERS = {
+    "//printing/mojom:mojom": ["//printing/page_range.h"],
+    "//device/bluetooth:bluetooth": ["//chromeos/constants/chromeos_features.h"],
+}
 SDK_LIBS = {"atspi", "Xcomposite", "Xdamage", "Xfixes", "Xrandr", "Xrender", "Xtst", "drm", "asound", "ffi_pic", "X11", "Xi", "Xext", "pci", "gbm", "dbus-1", "udev", "cairo", "harfbuzz", "pango-1.0", "pangocairo-1.0", "atk-1.0", "atk-bridge-2.0"}
 SCRIPTS = MOJO_SCRIPTS | {"//" + name for name in (
     "build/write_buildflag_header.py", "build/gn_run_binary.py",
@@ -472,11 +476,11 @@ def capture(graph, digest, chromium, source_roots, profiles):
                 for header in ml_dtypes_headers:
                     input_file(header)
                 record["source_headers"] = sorted(set(record["source_headers"] + ml_dtypes_headers))
-            if label == "//printing/mojom:mojom":
-                # GN omits the header included by printing's Mojo traits.
-                header = "//printing/page_range.h"
-                input_file(header)
-                record["source_headers"] = sorted(set(record["source_headers"] + [header]))
+            if label in EXTRA_NATIVE_HEADERS:
+                # These source-root includes are omitted from GN's file lists.
+                for header in EXTRA_NATIVE_HEADERS[label]:
+                    input_file(header)
+                record["source_headers"] = sorted(set(record["source_headers"] + EXTRA_NATIVE_HEADERS[label]))
             record["outputs"] = target.get("outputs", [])
             replaced_rust_flags = [flag for flag in record["gn_ldflags"] if flag.startswith("prebuilt_rustc_sysroot/lib/rustlib/x86_64-unknown-linux-gnu/lib/lib") and flag.endswith(".rlib")]
             if replaced_rust_flags:
