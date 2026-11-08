@@ -161,3 +161,21 @@ py_test(
         "@platforms//cpu:x86_64",
     ],
 )
+
+_RUNTIME_ABI_INPUTS = [
+    "@electron_platform_sdk//:usr/lib/x86_64-linux-gnu/libcups.so.2",
+    "@electron_platform_runtime//:libcups.so.2",
+    "@electron_platform_sdk//:usr/lib/x86_64-linux-gnu/libxshmfence.so.1.0.0",
+    "@electron_platform_runtime//:libxshmfence.so.1",
+]
+
+py_test(
+    name = "runtime_abi_test",
+    srcs = ["runtime_abi_test.py"],
+    args = ["$(rootpath " + label + ")" for label in _RUNTIME_ABI_INPUTS],
+    data = _RUNTIME_ABI_INPUTS,
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)

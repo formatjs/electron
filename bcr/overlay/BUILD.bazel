@@ -122,6 +122,7 @@ test_suite(
         "//source/content_metadata:content_webui_test",
         "//source/content_metadata:metadata_test",
         "//source/content_metadata:policy_test",
+        "//source/content_metadata:runtime_abi_test",
         "//source/content_metadata:tracing_proto_test",
         "//source/content_metadata:web_assets_test",
         "//source/content_rust:llguidance_test",

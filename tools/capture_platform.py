@@ -72,7 +72,7 @@ EXTRA_NATIVE_HEADERS = {
     "//printing/mojom:mojom": ["//printing/page_range.h"],
     "//device/bluetooth:bluetooth": ["//chromeos/constants/chromeos_features.h", "//third_party/cros_system_api/dbus/service_constants.h"],
 }
-SDK_LIBS = {"atspi", "Xcomposite", "Xdamage", "Xfixes", "Xrandr", "Xrender", "Xtst", "drm", "asound", "ffi_pic", "X11", "Xi", "Xext", "pci", "gbm", "dbus-1", "udev", "cairo", "harfbuzz", "pango-1.0", "pangocairo-1.0", "atk-1.0", "atk-bridge-2.0"}
+SDK_LIBS = {"cups", "xshmfence", "atspi", "Xcomposite", "Xdamage", "Xfixes", "Xrandr", "Xrender", "Xtst", "drm", "asound", "ffi_pic", "X11", "Xi", "Xext", "pci", "gbm", "dbus-1", "udev", "cairo", "harfbuzz", "pango-1.0", "pangocairo-1.0", "atk-1.0", "atk-bridge-2.0"}
 SCRIPTS = MOJO_SCRIPTS | {"//" + name for name in (
     "build/write_buildflag_header.py", "build/gn_run_binary.py", "build/util/version.py",
     "components/safe_browsing/content/resources/gen_file_type_proto.py",

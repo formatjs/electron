@@ -2112,3 +2112,24 @@ The 87,459-action metadata audit passed: 37,384 C++ compile actions, 254 Rust
 and 26 Cargo build-script action keys are unchanged. Python actions increase
 from 6,592 to 6,606; every previous action key remains present. Zero CMake or
 foreign-cc actions matched. This does not replace hosted generator/runtime tests.
+
+
+### Content SDK link interfaces and runtime packages
+
+A full `//content:content` metadata capture succeeds after resolving two missing
+system providers: CUPS and xshmfence. The experiment adds 445 native libraries
+and 382 generators without changing existing library records. Those native
+targets are not imported or compiled yet; their header layers still need scoping.
+
+Both interfaces come from the existing pinned Chromium SDK. CUPS headers get a
+separate owner so existing SDK header consumers stay unchanged. Executable
+libraries come from 18 exact Debian packages, including their transitive runtime
+closure. All 18 archive SHA-256 hashes and original library MD5 records were
+verified against SDK package metadata; ELF dependency lists match the pinned
+runtime manifest. No host library lookup supplies these inputs.
+
+The runtime ABI test compares exported symbols, symbol versions and build IDs
+between each SDK interface and its executable Debian runtime. It also requires
+code in the runtime and no code in the SDK interface. This artifact check does
+not establish native CUPS/fence execution or a linked Electron. The 87,475-action audit preserves all previous C++/Rust/Python action keys
+and finds zero CMake/foreign-cc actions. Hosted ABI execution remains required.

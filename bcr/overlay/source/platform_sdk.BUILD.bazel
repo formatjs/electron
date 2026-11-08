@@ -6,6 +6,8 @@ load("@rules_cc//cc:cc_library.bzl", "cc_library")
 package(default_visibility = ["//visibility:public"])
 
 exports_files([
+    "usr/lib/x86_64-linux-gnu/libcups.so.2",
+    "usr/lib/x86_64-linux-gnu/libxshmfence.so.1.0.0",
     "usr/include/x86_64-linux-gnu/pci/config.h",
     "usr/lib/x86_64-linux-gnu/libasound.so.2.0.0",
 ])
@@ -25,6 +27,12 @@ cc_library(
     name = "va_headers",
     hdrs = glob(["usr/include/va/**/*.h"]),
     strip_include_prefix = "usr/include",
+)
+
+cc_library(
+    name = "cups_headers",
+    hdrs = glob(["usr/include/cups/**/*.h"]),
+    includes = ["usr/include"],
 )
 
 cc_library(
@@ -91,6 +99,8 @@ electron_source_headers(
 )
 
 _SONAMES = {
+    "cups": "libcups.so.2",
+    "xshmfence": "libxshmfence.so.1",
     "atspi": "libatspi.so.0",
     "Xcomposite": "libXcomposite.so.1",
     "Xdamage": "libXdamage.so.1",
@@ -122,5 +132,5 @@ _SHARED = {soname: ":shared_" + str(index) for index, soname in enumerate(LIBRAR
     deps = [
         ":headers",
         _SHARED[soname],
-    ],
+    ] + ([":cups_headers"] if name == "cups" else []),
 ) for name, soname in _SONAMES.items()]
