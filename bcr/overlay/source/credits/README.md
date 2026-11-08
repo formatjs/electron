@@ -19,4 +19,6 @@ source runner compares HTML bytes across two private roots and changed mtimes.
 `credits_test` checks every shipped dependency's name, URL and complete license
 text in the generated page.
 
-Local action analysis passed; hosted generation and test remain pending.
+[BB consumer preflight](https://formatjs.buildbuddy.io/invocation/5f518c70-a6df-4842-8a20-b9013d660105)
+passed the original generator, reproducibility check and complete shipped-license
+test. Full executable linkage and runtime launch remain separate work.

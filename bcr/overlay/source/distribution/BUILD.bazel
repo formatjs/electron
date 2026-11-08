@@ -1,9 +1,205 @@
+load("@electron_platform_runtime//:profile.bzl", "COMMON_LICENSES", "COPYRIGHTS", "LIBRARIES")
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+load("@rules_cc//cc:cc_import.bzl", "cc_import")
 load("@rules_python//python:defs.bzl", "py_test")
 load("//electron:artifact_file.bzl", "electron_artifact_file")
+load("//electron:node_project.bzl", "electron_node_project")
+load("//electron:runtime_archive.bzl", "electron_runtime_archive")
 load("//electron:source_action.bzl", "electron_source_action")
+load("//source/native:default_app_inputs.bzl", "DEFAULT_APP")
+load("//source/native:runtime_files.bzl", "RUNTIME_FILES")
 load("//source/native:runtime_metadata.bzl", "RUNTIME_METADATA")
 
 package(default_visibility = ["//visibility:public"])
+
+_COMPATIBLE = [
+    "@platforms//os:linux",
+    "@platforms//cpu:x86_64",
+]
+
+_NATIVE_LIBRARIES = {
+    "libz.so.1": "//source/glib:zlib",
+    "libglib-2.0.so.0": "//source/glib:glib",
+    "libgobject-2.0.so.0": "//source/glib:gobject",
+    "libgmodule-2.0.so.0": "//source/glib:gmodule",
+    "libgio-2.0.so.0": "//source/glib:gio",
+}
+
+_LIBRARIES = {"@electron_platform_runtime//:" + name: name for name in LIBRARIES if name not in _NATIVE_LIBRARIES}
+
+_LIBRARIES.update({label: name for name, label in _NATIVE_LIBRARIES.items()})
+
+_LIBRARIES["@electron_platform_pciutils//:libpci.so.3"] = "libpci.so.3"
+
+_HOST_ABI = [
+    "ld-linux-x86-64.so.2",
+    "libc.so.6",
+    "libdl.so.2",
+    "libgcc_s.so.1",
+    "libm.so.6",
+    "libpthread.so.0",
+    "libresolv.so.2",
+    "librt.so.1",
+    "libstdc++.so.6",
+    "libutil.so.1",
+]
+
+_FILES = {label: path for path, label in RUNTIME_FILES.items()}
+
+_FILES.update({"@electron_platform_runtime//:licenses/" + name: "licenses/debian/" + name + ".copyright" for name in COPYRIGHTS})
+
+_FILES.update({"@electron_platform_runtime//:licenses/common/" + name: "licenses/common/" + name for name in COMMON_LICENSES})
+
+_FILES.update({
+    "//:MODULE.bazel": "licenses/native/MODULE.bazel",
+    "//source:upstream_pins.json": "licenses/native/upstream_pins.json",
+    "//source/native:platform_runtime.json": "licenses/debian/packages.json",
+    ":licenses.txt": "licenses/README.txt",
+    "@glib//:COPYING": "licenses/native/glib.COPYING",
+    "@zlib//:LICENSE": "licenses/native/zlib.LICENSE",
+    "@electron_platform_pciutils//:COPYING": "licenses/native/pciutils.COPYING",
+})
+
+_NOTICE_HASHES = {"licenses/debian/" + name + ".copyright": notice["sha256"] for name, notice in COPYRIGHTS.items()}
+
+_NOTICE_HASHES.update({"licenses/common/" + name: notice["sha256"] for name, notice in COMMON_LICENSES.items()})
+
+_SMOKE_FONT = "@electron_harfbuzz_upstream//:test/shape/data/in-house/fonts/7bbd3175734d5d291e1c15271ec0cbb97b626ebf.ttf"
+
+_SMOKE_SOURCES = [
+    "smoke/main.cjs",
+    "smoke/preload.cjs",
+    "smoke/index.html",
+    "smoke/package.json",
+]
+
+_SMOKE_INPUTS = {":" + path: "electron/runtime_smoke/" + path.split("/")[-1] for path in _SMOKE_SOURCES}
+
+_SMOKE_INPUTS.update({"//:" + path: "electron/" + path for path in [
+    "package.json",
+    "yarn.lock",
+    "script/gn-asar.js",
+]})
+
+electron_node_project(
+    name = "smoke_asar",
+    srcs = _SMOKE_INPUTS,
+    commands = [json.encode([
+        "script/gn-asar.js",
+        "--base",
+        "$SOURCE_ROOT/electron/runtime_smoke",
+        "--files",
+    ] + ["$SOURCE_ROOT/electron/runtime_smoke/" + path.split("/")[-1] for path in _SMOKE_SOURCES] + [
+        "--out",
+        "$SOURCE_ROOT/electron/runtime-smoke.asar",
+    ])],
+    lock = "//source/native:electron_app_lock.json",
+    logical_outputs = ["electron/runtime-smoke.asar"],
+    npm_packages = DEFAULT_APP["packages"],
+    out_files = ["runtime-smoke.asar"],
+    project = "electron",
+    target_compatible_with = _COMPATIBLE,
+)
+
+electron_runtime_archive(
+    name = "runtime",
+    archive = "electron-linux-x64.zip",
+    exec_compatible_with = _COMPATIBLE,
+    expected_sha256 = _NOTICE_HASHES,
+    files = _FILES,
+    host_abi = _HOST_ABI,
+    libraries = _LIBRARIES,
+    report = "electron-linux-x64.elf.json",
+    target_compatible_with = _COMPATIBLE,
+)
+
+py_test(
+    name = "runtime_test",
+    srcs = ["runtime_test.py"],
+    args = [
+        "$(rootpath :electron-linux-x64.zip)",
+        str(len(RUNTIME_FILES)),
+    ] + sorted(RUNTIME_FILES) + [
+        "$(rootpath :runtime-smoke.asar)",
+        "$(rootpath " + _SMOKE_FONT + ")",
+    ],
+    data = [
+        ":electron-linux-x64.zip",
+        ":runtime-smoke.asar",
+        _SMOKE_FONT,
+    ],
+    target_compatible_with = _COMPATIBLE,
+)
+
+cc_binary(
+    name = "libfixture_base.so",
+    srcs = ["fixture_base.c"],
+    linkopts = ["-Wl,-soname,libfixture_base.so"],
+    linkshared = True,
+    linkstatic = True,
+    target_compatible_with = _COMPATIBLE,
+)
+
+cc_import(
+    name = "fixture_base",
+    shared_library = ":libfixture_base.so",
+    target_compatible_with = _COMPATIBLE,
+)
+
+cc_binary(
+    name = "libfixture_answer.so",
+    srcs = ["fixture_answer.c"],
+    linkopts = ["-Wl,-soname,libfixture_answer.so"],
+    linkshared = True,
+    linkstatic = True,
+    target_compatible_with = _COMPATIBLE,
+    deps = [":fixture_base"],
+)
+
+cc_binary(
+    name = "fixture_program",
+    srcs = ["fixture_program.c"],
+    linkopts = ["-ldl"],
+    target_compatible_with = _COMPATIBLE,
+)
+
+electron_runtime_archive(
+    name = "fixture_runtime",
+    archive = "fixture-runtime.zip",
+    exec_compatible_with = _COMPATIBLE,
+    executables = ["electron"],
+    files = {":fixture_program": "electron"},
+    host_abi = _HOST_ABI,
+    libraries = {
+        ":libfixture_answer.so": "libfixture_answer.so",
+        ":libfixture_base.so": "libfixture_base.so",
+    },
+    report = "fixture-runtime.elf.json",
+    target_compatible_with = _COMPATIBLE,
+)
+
+py_test(
+    name = "archive_test",
+    srcs = ["archive_test.py"],
+    args = ["$(rootpath " + label + ")" for label in [
+        ":fixture-runtime.zip",
+        ":fixture-runtime.elf.json",
+        "@patchelf//:patchelf",
+        ":fixture_program",
+        ":libfixture_answer.so",
+        ":libfixture_base.so",
+    ]],
+    data = [
+        ":fixture-runtime.elf.json",
+        ":fixture-runtime.zip",
+        ":fixture_program",
+        ":libfixture_answer.so",
+        ":libfixture_base.so",
+        "@patchelf",
+    ],
+    target_compatible_with = _COMPATIBLE,
+    deps = ["//electron/private:runtime_archive_lib"],
+)
 
 _VERSION = RUNTIME_METADATA["producers"]["//electron:electron_version_file"]
 
@@ -60,9 +256,9 @@ py_test(
         "$(rootpath //source/credits:about_credits.html)",
     ],
     data = [
-        ":version",
         ":LICENSE",
         ":LICENSES.chromium.html",
+        ":version",
         "//:LICENSE",
         "//source/credits:about_credits.html",
     ],

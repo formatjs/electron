@@ -1,8 +1,13 @@
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
-load("@rules_python//python:defs.bzl", "py_binary", "py_test")
+load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 load("//electron:source_action.bzl", "electron_source_action")
 
 package(default_visibility = ["//visibility:public"])
+
+py_library(
+    name = "runtime_archive_lib",
+    srcs = ["runtime_archive.py"],
+)
 
 cc_binary(
     name = "nss_checksum",
@@ -93,6 +98,7 @@ exports_files([
     "artifact_file.py",
     "copy_files.py",
     "source_action.py",
+    "runtime_archive.py",
     "source_tool.py",
 ])
 

@@ -6,6 +6,42 @@ import hashlib
 import json
 from pathlib import Path, PurePosixPath
 
+from native_graph import unpack_profile
+
+
+def bazel_files(runtime, platform):
+    overrides = {
+        "LICENSE": ("//electron:electron_license", "@electron//source/distribution:LICENSE"),
+        "LICENSES.chromium.html": ("//electron:chromium_licenses", "@electron//source/distribution:LICENSES.chromium.html"),
+        "version": ("//electron:electron_version_file", "@electron//source/distribution:version"),
+        "icudtl.dat": ("//third_party/icu:copy_icudata", "@electron_icu_sources//:common/icudtl.dat"),
+        "snapshot_blob.bin": ("//v8:run_mksnapshot_default", "@electron_v8_engine_sources//:snapshot_blob.bin"),
+        "resources/default_app.asar": ("//electron:default_app_asar", "@electron//source/default_app:default_app.asar"),
+        "electron": ("//electron:electron_app", "@electron_platform_sources//:programs/electron"),
+        "chrome-sandbox": ("//sandbox/linux:chrome_sandbox", "@electron_platform_sources//:programs/chrome-sandbox"),
+        "chrome_crashpad_handler": ("//components/crash/core/app:chrome_crashpad_handler", "@electron_platform_sources//:programs/chrome_crashpad_handler"),
+    }
+    files = {}
+    for path, entry in runtime["files"].items():
+        producer, output = entry["target"], entry["output"]
+        if path in overrides:
+            original, label = overrides[path]
+            if producer != original:
+                raise ValueError("Distribution adapter producer changed: " + path)
+        elif producer in platform["actions"]:
+            if output not in platform["actions"][producer]["outputs"]:
+                raise ValueError("Distribution output missing from native action: " + output)
+            label = "@electron_platform_sources//:" + output.removeprefix(runtime["build_dir"])
+        elif producer in platform["libraries"]:
+            library = platform["libraries"][producer]
+            if library["kind"] != "shared_library" or output not in library["outputs"]:
+                raise ValueError("Distribution library differs from native producer: " + path)
+            label = "@electron_platform_sources//:" + Path(output).name
+        else:
+            raise ValueError("Distribution input lacks a native provider: " + path)
+        files[path] = label
+    return files
+
 
 def capture(project, source_root):
     targets = project["targets"]
@@ -79,6 +115,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("project", "source-root", "output"):
         parser.add_argument("--" + name, type=Path, required=True)
+    parser.add_argument("--platform-profile", type=Path,
+                        default=Path(__file__).resolve().parents[1] / "bcr/overlay/source/native/platform_inputs.json")
     args = parser.parse_args()
     raw = args.project.read_bytes()
     result = capture(json.loads(raw), args.source_root.resolve())
@@ -90,6 +128,10 @@ def main():
     args.output.with_name("runtime_metadata.bzl").write_text(
         '"""Captured original distribution metadata producers; do not edit."""\n\nRUNTIME_METADATA = json.decode(' +
         json.dumps(json.dumps(metadata, separators=(",", ":"))) + ")\n")
+    files = bazel_files(result, unpack_profile(json.loads(args.platform_profile.read_text())))
+    args.output.with_name("runtime_files.bzl").write_text(
+        '"""Original distribution paths mapped to native Bazel producers; do not edit."""\n\nRUNTIME_FILES = ' +
+        json.dumps(files, indent=4, sort_keys=True) + "\n")
     print(json.dumps({"files": len(result["files"]), "producers": len(result["producers"]), "omitted": result["omitted"]}))
 
 

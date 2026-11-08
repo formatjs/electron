@@ -1867,6 +1867,23 @@
         "https://snapshot.debian.org/archive/debian/20250129T203412Z/pool/main/libx/libxinerama/libxinerama1_1.1.4-2_amd64.deb"
       ],
       "sha256": "f692c854935571ee44fe313541d8a9f678a4f11dc513bc43b9d0a501c6dff0bd"
+    },
+    {
+      "url": "https://archive.debian.org/debian/pool/main/g/gcc-10/gcc-10-base_10.2.1-6_amd64.deb",
+      "urls": [
+        "https://archive.debian.org/debian/pool/main/g/gcc-10/gcc-10-base_10.2.1-6_amd64.deb",
+        "https://deb.debian.org/debian/pool/main/g/gcc-10/gcc-10-base_10.2.1-6_amd64.deb",
+        "https://snapshot.debian.org/archive/debian/20250129T203412Z/pool/main/g/gcc-10/gcc-10-base_10.2.1-6_amd64.deb"
+      ],
+      "sha256": "be65535e94f95fbf04b104e8ab36790476f063374430f7dfc6c516cbe2d2cd1e"
+    },
+    {
+      "url": "https://archive.debian.org/debian/pool/main/b/base-files/base-files_11.1+deb11u11_amd64.deb",
+      "urls": [
+        "https://archive.debian.org/debian/pool/main/b/base-files/base-files_11.1+deb11u11_amd64.deb",
+        "https://snapshot.debian.org/archive/debian/20250129T203412Z/pool/main/b/base-files/base-files_11.1+deb11u11_amd64.deb"
+      ],
+      "sha256": "a7cc59f25ad7f3b87c000f33baf12678592be2c62776d03cf8f0f935f846acdc"
     }
   ],
   "header_interfaces": {
@@ -1879,6 +1896,520 @@
         "usr/include/libnotify/notify-features.h",
         "usr/include/libnotify/notify.h"
       ]
+    }
+  },
+  "copyrights": {
+    "libasound2": {
+      "package": "libasound2",
+      "path": "usr/share/doc/libasound2/copyright",
+      "sha256": "463274e2ae7153a7db247b43b436ba7b49ed9fe4fc090a55b2822a684cea3e6e"
+    },
+    "libatk-bridge2.0-0": {
+      "package": "libatk-bridge2.0-0",
+      "path": "usr/share/doc/libatk-bridge2.0-0/copyright",
+      "sha256": "87368802a069bed7640702c5932e4b2424b41f896fc4fdeea75ac5c212a5709b"
+    },
+    "libatk1.0-0": {
+      "package": "libatk1.0-0",
+      "path": "usr/share/doc/libatk1.0-0/copyright",
+      "sha256": "4ef60081ff6152f4c638c196a79bfe7510b4ef9f1056ff72e8a4e1a9301b2b39"
+    },
+    "libatomic1": {
+      "package": "gcc-10-base",
+      "path": "usr/share/doc/gcc-10-base/copyright",
+      "sha256": "719dd73912334e65a64c63fb1f7ccdacf70c27258570de0fb123b33d490eddf5"
+    },
+    "libatspi2.0-0": {
+      "package": "libatspi2.0-0",
+      "path": "usr/share/doc/libatspi2.0-0/copyright",
+      "sha256": "4c9fe678a08f789b1f48edac3865d307459dd2cc103ce7cce3bc1cad99692713"
+    },
+    "libavahi-client3": {
+      "package": "libavahi-client3",
+      "path": "usr/share/doc/libavahi-client3/copyright",
+      "sha256": "d604305bf515c09da9bb985e08fa872d8e5e15e26c08dddb9367cb31a0c1c6bd"
+    },
+    "libavahi-common3": {
+      "package": "libavahi-common3",
+      "path": "usr/share/doc/libavahi-common3/copyright",
+      "sha256": "d604305bf515c09da9bb985e08fa872d8e5e15e26c08dddb9367cb31a0c1c6bd"
+    },
+    "libblkid1": {
+      "package": "libblkid1",
+      "path": "usr/share/doc/libblkid1/copyright",
+      "sha256": "d6db95a03f79a59a6f632a165779974502da00b61247ff26a79dd8e823beafa6"
+    },
+    "libbrotli1": {
+      "package": "libbrotli1",
+      "path": "usr/share/doc/libbrotli1/copyright",
+      "sha256": "24a64e5bb83d0960d1835696a1e23c0896ad6055b0ca47c66ab0eb9a766324b1"
+    },
+    "libbsd0": {
+      "package": "libbsd0",
+      "path": "usr/share/doc/libbsd0/copyright",
+      "sha256": "ff2fdeeb0fe8bcb9045fe91d69e8312a5b477c54db48dffe34dd1c0d730c5864"
+    },
+    "libcairo-gobject2": {
+      "package": "libcairo-gobject2",
+      "path": "usr/share/doc/libcairo-gobject2/copyright",
+      "sha256": "e4dfd72c31eeb9054ea6fcbf7838cc3eb8058ffbc1b297811540cf60be070196"
+    },
+    "libcairo2": {
+      "package": "libcairo2",
+      "path": "usr/share/doc/libcairo2/copyright",
+      "sha256": "e4dfd72c31eeb9054ea6fcbf7838cc3eb8058ffbc1b297811540cf60be070196"
+    },
+    "libcom-err2": {
+      "package": "libcom-err2",
+      "path": "usr/share/doc/libcom-err2/copyright",
+      "sha256": "1ca415a294c0e56958c4f795b3f1f69ea3479bca53d7811f5cdd020a258949db"
+    },
+    "libcups2": {
+      "package": "libcups2",
+      "path": "usr/share/doc/libcups2/copyright",
+      "sha256": "c3694ef903c40610504c649668b1bc827e40e1c98d3c26d8ad143af0d0dc1833"
+    },
+    "libdatrie1": {
+      "package": "libdatrie1",
+      "path": "usr/share/doc/libdatrie1/copyright",
+      "sha256": "1169f159b101610f58bdc54949c153de129ef8363294f532f45912de9f94b69c"
+    },
+    "libdbus-1-3": {
+      "package": "libdbus-1-3",
+      "path": "usr/share/doc/libdbus-1-3/copyright",
+      "sha256": "151007a06fd9409b5fd1d743ce5749a1bbd94def4caee0e2bedf33318058a1a9"
+    },
+    "libdrm2": {
+      "package": "libdrm2",
+      "path": "usr/share/doc/libdrm2/copyright",
+      "sha256": "512c9a57fd8b449aa157351da9df07bf8e19f767e496a72205a4020268ddb2e0"
+    },
+    "libepoxy0": {
+      "package": "libepoxy0",
+      "path": "usr/share/doc/libepoxy0/copyright",
+      "sha256": "a8be83fe8a66a6ecc1a9fbcec9cf1b43aacca69d38220a94fb37632f090b611e"
+    },
+    "libexpat1": {
+      "package": "libexpat1",
+      "path": "usr/share/doc/libexpat1/copyright",
+      "sha256": "60919fe1a156395ff14511bb6ff79756c50ade2fff59ac60c9bae1d8a7fe6292"
+    },
+    "libffi7": {
+      "package": "libffi7",
+      "path": "usr/share/doc/libffi7/copyright",
+      "sha256": "7258c8acc378030d8dbe1fcdf394e915769fa31dcbaf3d2991d9a79891f3bcdc"
+    },
+    "libfontconfig1": {
+      "package": "libfontconfig1",
+      "path": "usr/share/doc/libfontconfig1/copyright",
+      "sha256": "b215a61cdd3e62b5b17cc28b1852c78acb3dd38be0fb30706f7efc050dba91db"
+    },
+    "libfreetype6": {
+      "package": "libfreetype6",
+      "path": "usr/share/doc/libfreetype6/copyright",
+      "sha256": "b69473ecae7165c2cebb49d3221e8264c41ce218346a352aeda3c81d2ee45c2d"
+    },
+    "libfribidi0": {
+      "package": "libfribidi0",
+      "path": "usr/share/doc/libfribidi0/copyright",
+      "sha256": "39000badbcd15a4a144cfa2d2f0d906d4d9183f42350e8193ac775baded86b7c"
+    },
+    "libgbm1": {
+      "package": "libgbm1",
+      "path": "usr/share/doc/libgbm1/copyright",
+      "sha256": "30c36421275bf40e318d5d3e8662db6e332f97f047fa963bdb44e28ef9112232"
+    },
+    "libgcrypt20": {
+      "package": "libgcrypt20",
+      "path": "usr/share/doc/libgcrypt20/copyright",
+      "sha256": "8f11910ef604ead72fbdc0c0caa641e3f955f66c4868175310ed7290e32b0f37"
+    },
+    "libgdk-pixbuf-2.0-0": {
+      "package": "libgdk-pixbuf-2.0-0",
+      "path": "usr/share/doc/libgdk-pixbuf-2.0-0/copyright",
+      "sha256": "55d4cb4580fb0d1c470c791c8a696cca33adb5af8b7b8b1e8c0e2a5a5bad8a7c"
+    },
+    "libglib2.0-0": {
+      "package": "libglib2.0-0",
+      "path": "usr/share/doc/libglib2.0-0/copyright",
+      "sha256": "f65e92234e97932114d94d72fc898fcddc854345f77caae80af26ad5cd94cce8"
+    },
+    "libgmp10": {
+      "package": "libgmp10",
+      "path": "usr/share/doc/libgmp10/copyright",
+      "sha256": "f73f781beb9f85b3f921f9bf540fc89d6eff9e20689ef9323ce510d077a30878"
+    },
+    "libgnutls30": {
+      "package": "libgnutls30",
+      "path": "usr/share/doc/libgnutls30/copyright",
+      "sha256": "1934ff9a4bb0ed9238392c228e8c9cca0858b22d8528c2ac6b9ea45129d55330"
+    },
+    "libgpg-error0": {
+      "package": "libgpg-error0",
+      "path": "usr/share/doc/libgpg-error0/copyright",
+      "sha256": "ef74578dd392759954c80d4ad3986273d05d8c2098b2e9ee18980f88e0ad3342"
+    },
+    "libgraphite2-3": {
+      "package": "libgraphite2-3",
+      "path": "usr/share/doc/libgraphite2-3/copyright",
+      "sha256": "a33017ba0308c41bdbde4751bff349ab7b26af45fadbb1e3e7ac67c372985572"
+    },
+    "libgssapi-krb5-2": {
+      "package": "libgssapi-krb5-2",
+      "path": "usr/share/doc/libgssapi-krb5-2/copyright",
+      "sha256": "4a2d321ab57260e8de4b67bde8cff76c07d28be69c2d8b22dfc2bfa42f5c41b9"
+    },
+    "libgtk-3-0": {
+      "package": "libgtk-3-0",
+      "path": "usr/share/doc/libgtk-3-0/copyright",
+      "sha256": "0704dfaa0825727d2c78f5afe83c39dcc64b5a29819677d7fb8152be8f8f5a9a"
+    },
+    "libharfbuzz0b": {
+      "package": "libharfbuzz0b",
+      "path": "usr/share/doc/libharfbuzz0b/copyright",
+      "sha256": "f04e7be76a1d2660b23bd0fbe9570fbf3e5beb2b657840410c08f08170b57172"
+    },
+    "libhogweed6": {
+      "package": "libhogweed6",
+      "path": "usr/share/doc/libhogweed6/copyright",
+      "sha256": "d8b51ce04d337e49df2f6258a5c8558f3080ff2cf629deb9f07c0361d1757e7b"
+    },
+    "libidn2-0": {
+      "package": "libidn2-0",
+      "path": "usr/share/doc/libidn2-0/copyright",
+      "sha256": "41702469f28e8ff406345e3d1dd0c741f11bdfca319264f67036efd6aaa79e4b"
+    },
+    "libk5crypto3": {
+      "package": "libk5crypto3",
+      "path": "usr/share/doc/libk5crypto3/copyright",
+      "sha256": "4a2d321ab57260e8de4b67bde8cff76c07d28be69c2d8b22dfc2bfa42f5c41b9"
+    },
+    "libkeyutils1": {
+      "package": "libkeyutils1",
+      "path": "usr/share/doc/libkeyutils1/copyright",
+      "sha256": "6ab5c541723d8211cab7ebc1643d53aa51c4863c1c838e4625d797ece9472ee8"
+    },
+    "libkrb5-3": {
+      "package": "libkrb5-3",
+      "path": "usr/share/doc/libkrb5-3/copyright",
+      "sha256": "4a2d321ab57260e8de4b67bde8cff76c07d28be69c2d8b22dfc2bfa42f5c41b9"
+    },
+    "libkrb5support0": {
+      "package": "libkrb5support0",
+      "path": "usr/share/doc/libkrb5support0/copyright",
+      "sha256": "4a2d321ab57260e8de4b67bde8cff76c07d28be69c2d8b22dfc2bfa42f5c41b9"
+    },
+    "liblz4-1": {
+      "package": "liblz4-1",
+      "path": "usr/share/doc/liblz4-1/copyright",
+      "sha256": "a82c5d50439c6d9f32b874dbc75ae5292ba5a3e50318bed80e82a8f5254689ca"
+    },
+    "liblzma5": {
+      "package": "liblzma5",
+      "path": "usr/share/doc/liblzma5/copyright",
+      "sha256": "a2dc8fac0f496e1c58aff67018cf0c6b88336316afa5642f9335b71642e28aa8"
+    },
+    "libmd0": {
+      "package": "libmd0",
+      "path": "usr/share/doc/libmd0/copyright",
+      "sha256": "4365ef6255ad553fce69dd4bc0e093472c5d0e41b8ea493a545cc926ce171aa6"
+    },
+    "libmount1": {
+      "package": "libmount1",
+      "path": "usr/share/doc/libmount1/copyright",
+      "sha256": "d6db95a03f79a59a6f632a165779974502da00b61247ff26a79dd8e823beafa6"
+    },
+    "libnettle8": {
+      "package": "libnettle8",
+      "path": "usr/share/doc/libnettle8/copyright",
+      "sha256": "d8b51ce04d337e49df2f6258a5c8558f3080ff2cf629deb9f07c0361d1757e7b"
+    },
+    "libnotify4": {
+      "package": "libnotify4",
+      "path": "usr/share/doc/libnotify4/copyright",
+      "sha256": "cc190b85aa0bcc028bbeb1022fb2ee5ba961c7d97f5196b62ef6ef594aeffd7f"
+    },
+    "libp11-kit0": {
+      "package": "libp11-kit0",
+      "path": "usr/share/doc/libp11-kit0/copyright",
+      "sha256": "a366c3574c517b1e738ae2ca268d5ae2bff638a430bb32a0f0c6a1980f0faca6"
+    },
+    "libpango-1.0-0": {
+      "package": "libpango-1.0-0",
+      "path": "usr/share/doc/libpango-1.0-0/copyright",
+      "sha256": "0721b55753843647e5ecf9db6360b75662a1cc5c6a80e8b1595339a393440f4c"
+    },
+    "libpangocairo-1.0-0": {
+      "package": "libpangocairo-1.0-0",
+      "path": "usr/share/doc/libpangocairo-1.0-0/copyright",
+      "sha256": "0721b55753843647e5ecf9db6360b75662a1cc5c6a80e8b1595339a393440f4c"
+    },
+    "libpangoft2-1.0-0": {
+      "package": "libpangoft2-1.0-0",
+      "path": "usr/share/doc/libpangoft2-1.0-0/copyright",
+      "sha256": "0721b55753843647e5ecf9db6360b75662a1cc5c6a80e8b1595339a393440f4c"
+    },
+    "libpcre2-8-0": {
+      "package": "libpcre2-8-0",
+      "path": "usr/share/doc/libpcre2-8-0/copyright",
+      "sha256": "f65dae37239e4d61a1bdeaf2ded76b8569d012a054aa042233b78615e7a83210"
+    },
+    "libpcre3": {
+      "package": "libpcre3",
+      "path": "usr/share/doc/libpcre3/copyright",
+      "sha256": "ac9276490d2fa167442ae1aae33926514ad10c8886baa40046c5e367fccc5938"
+    },
+    "libpixman-1-0": {
+      "package": "libpixman-1-0",
+      "path": "usr/share/doc/libpixman-1-0/copyright",
+      "sha256": "1b3fb5690861e15ca4fd6640fd4def4b2576617942eec04b6fcb7d8bc6c4c9da"
+    },
+    "libpng16-16": {
+      "package": "libpng16-16",
+      "path": "usr/share/doc/libpng16-16/copyright",
+      "sha256": "b2d88c45221e2016a5a0bb98406b45faf911f1aff87242eec12af05abae1de0a"
+    },
+    "libselinux1": {
+      "package": "libselinux1",
+      "path": "usr/share/doc/libselinux1/copyright",
+      "sha256": "641806738b0c6a3d03168c2649e6b94205198bb66cd557e6bae3a20b71c9bb0b"
+    },
+    "libsystemd0": {
+      "package": "libsystemd0",
+      "path": "usr/share/doc/libsystemd0/copyright",
+      "sha256": "a7d06854714a1ca99f6dbd1a1641dde5bcf28635be149f6554449618f8f427f3"
+    },
+    "libtasn1-6": {
+      "package": "libtasn1-6",
+      "path": "usr/share/doc/libtasn1-6/copyright",
+      "sha256": "ab2f3532a1bf45d90643e92c1dfb985982698ecbf63f12595acfd9598d36350d"
+    },
+    "libthai0": {
+      "package": "libthai0",
+      "path": "usr/share/doc/libthai0/copyright",
+      "sha256": "ed8691c2be4b5d20d522a919d61ef599470b67927a8938fda9bacdaa7cc31cb0"
+    },
+    "libudev1": {
+      "package": "libudev1",
+      "path": "usr/share/doc/libudev1/copyright",
+      "sha256": "a7d06854714a1ca99f6dbd1a1641dde5bcf28635be149f6554449618f8f427f3"
+    },
+    "libunistring2": {
+      "package": "libunistring2",
+      "path": "usr/share/doc/libunistring2/copyright",
+      "sha256": "5b188ea82b86a3136a7480600b2e244df542c702effe7aedf04951c9d9559eb3"
+    },
+    "libuuid1": {
+      "package": "libuuid1",
+      "path": "usr/share/doc/libuuid1/copyright",
+      "sha256": "d6db95a03f79a59a6f632a165779974502da00b61247ff26a79dd8e823beafa6"
+    },
+    "libwayland-client0": {
+      "package": "libwayland-client0",
+      "path": "usr/share/doc/libwayland-client0/copyright",
+      "sha256": "3a943debedeac62002ce65da7a9b647875612c3d45840f0b001ae27fb76522a6"
+    },
+    "libwayland-cursor0": {
+      "package": "libwayland-cursor0",
+      "path": "usr/share/doc/libwayland-cursor0/copyright",
+      "sha256": "3a943debedeac62002ce65da7a9b647875612c3d45840f0b001ae27fb76522a6"
+    },
+    "libwayland-egl1": {
+      "package": "libwayland-egl1",
+      "path": "usr/share/doc/libwayland-egl1/copyright",
+      "sha256": "3a943debedeac62002ce65da7a9b647875612c3d45840f0b001ae27fb76522a6"
+    },
+    "libwayland-server0": {
+      "package": "libwayland-server0",
+      "path": "usr/share/doc/libwayland-server0/copyright",
+      "sha256": "3a943debedeac62002ce65da7a9b647875612c3d45840f0b001ae27fb76522a6"
+    },
+    "libx11-6": {
+      "package": "libx11-6",
+      "path": "usr/share/doc/libx11-6/copyright",
+      "sha256": "0b380a7fd5b2228f26e9585e56f14812efd3350f3df307507d2bc055dfd8de3e"
+    },
+    "libxau6": {
+      "package": "libxau6",
+      "path": "usr/share/doc/libxau6/copyright",
+      "sha256": "118dd263a7b91c8f21c489f949bf13281dff9e766deea92b829dac4dce66601a"
+    },
+    "libxcb-render0": {
+      "package": "libxcb-render0",
+      "path": "usr/share/doc/libxcb-render0/copyright",
+      "sha256": "4f7cb9db6bf6542f5417e3d674c780d3a5fd12291a54d63054fb576ee0cfae80"
+    },
+    "libxcb-shm0": {
+      "package": "libxcb-shm0",
+      "path": "usr/share/doc/libxcb-shm0/copyright",
+      "sha256": "4f7cb9db6bf6542f5417e3d674c780d3a5fd12291a54d63054fb576ee0cfae80"
+    },
+    "libxcb1": {
+      "package": "libxcb1",
+      "path": "usr/share/doc/libxcb1/copyright",
+      "sha256": "4f7cb9db6bf6542f5417e3d674c780d3a5fd12291a54d63054fb576ee0cfae80"
+    },
+    "libxcomposite1": {
+      "package": "libxcomposite1",
+      "path": "usr/share/doc/libxcomposite1/copyright",
+      "sha256": "e37c7a7e4026343c3e5c13990a6d9a8879194ae3ab26bfe420b34f6f206bf35f"
+    },
+    "libxcursor1": {
+      "package": "libxcursor1",
+      "path": "usr/share/doc/libxcursor1/copyright",
+      "sha256": "817abc0ccc9e2591057be256b0f6d80edb134221ced29dd545a9eafaf40b423c"
+    },
+    "libxdamage1": {
+      "package": "libxdamage1",
+      "path": "usr/share/doc/libxdamage1/copyright",
+      "sha256": "09182bc7805ff77a41251e450cebd0d33c48a74ba8ec4b734855a22c86f50417"
+    },
+    "libxdmcp6": {
+      "package": "libxdmcp6",
+      "path": "usr/share/doc/libxdmcp6/copyright",
+      "sha256": "1bcbb50f8603fe8b86d330bfa460b772ea04fbd3c70e4499f0768b5340b9fd6e"
+    },
+    "libxext6": {
+      "package": "libxext6",
+      "path": "usr/share/doc/libxext6/copyright",
+      "sha256": "bc57e445ca1d9fe082c8d54189dd411ff26caa8552c9c63d44ea06a982f32124"
+    },
+    "libxfixes3": {
+      "package": "libxfixes3",
+      "path": "usr/share/doc/libxfixes3/copyright",
+      "sha256": "051ffe073ab38244c504bb379903b4ecda6081fb3d97d0d3dce44bc11712eef2"
+    },
+    "libxi6": {
+      "package": "libxi6",
+      "path": "usr/share/doc/libxi6/copyright",
+      "sha256": "c812f9c54513ae593aab9580b54a4b18219648df7068d49ca1daa47f522ba3fa"
+    },
+    "libxinerama1": {
+      "package": "libxinerama1",
+      "path": "usr/share/doc/libxinerama1/copyright",
+      "sha256": "e49d9732f261b3ffcb50c40914bd9d144de5557dad9b2ae20dbe8e3c5b3d17fb"
+    },
+    "libxkbcommon0": {
+      "package": "libxkbcommon0",
+      "path": "usr/share/doc/libxkbcommon0/copyright",
+      "sha256": "5eeaeb1b6e029a0274e1573765bb0bae2926ef96a3679203faa4fd00fdaeaa88"
+    },
+    "libxrandr2": {
+      "package": "libxrandr2",
+      "path": "usr/share/doc/libxrandr2/copyright",
+      "sha256": "6d8e6239cfe9dd25bbeef06dcf0610d802ebbdc8968db87cf5adf00ff98927d4"
+    },
+    "libxrender1": {
+      "package": "libxrender1",
+      "path": "usr/share/doc/libxrender1/copyright",
+      "sha256": "ed2a78123a5076b4f11da38cb1ffb85b5cb9fdc26b5746c517b1d7e7a9029704"
+    },
+    "libxshmfence1": {
+      "package": "libxshmfence1",
+      "path": "usr/share/doc/libxshmfence1/copyright",
+      "sha256": "6a76b32c9174c0cb9e3d94c323a14d33d6a42bd2a61579b189cbc5addeb94abe"
+    },
+    "libxtst6": {
+      "package": "libxtst6",
+      "path": "usr/share/doc/libxtst6/copyright",
+      "sha256": "304f78731e1e0e78132fbba4e1909c8642878a3b8c4837b36cb2d38891bf2204"
+    },
+    "libzstd1": {
+      "package": "libzstd1",
+      "path": "usr/share/doc/libzstd1/copyright",
+      "sha256": "8cf66791fbe72801cb1d701c832b7e395dad0000bb9699dc42df94b49d699e91"
+    },
+    "zlib1g": {
+      "package": "zlib1g",
+      "path": "usr/share/doc/zlib1g/copyright",
+      "sha256": "d77204eee882807240f6351c4f5ae2a4bcdb5b773ff77d10647b9b66b826b2fb"
+    }
+  },
+  "common_licenses": {
+    "Apache-2.0": {
+      "package": "base-files",
+      "path": "usr/share/common-licenses/Apache-2.0",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    "Artistic": {
+      "package": "base-files",
+      "path": "usr/share/common-licenses/Artistic",
+      "sha256": "b7fd9b73ea99602016a326e0b62e6646060d18febdd065ceca8bb482208c3d88"
+    },
+    "BSD": {
+      "package": "base-files",
+      "path": "usr/share/common-licenses/BSD",
+      "sha256": "5d588eb3b157d52112afea935c88a7ff9efddc1e2d95a42c25d3b96ad9055008"
+    },
+    "CC0-1.0": {
+      "package": "base-files",
+      "path": "usr/share/common-licenses/CC0-1.0",
+      "sha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499"
+    },
+    "GFDL": {
+      "package": "base-files",
+      "path": "usr/share/common-licenses/GFDL",
+      "sha256": "4748f03ed2dbcc14cde6ebc30799899c403e356a7465dc30fcf2b80c45fc0059"
+    },
+    "GFDL-1.2": {
+      "package": "base-files",
+      "path": "usr/share/common-licenses/GFDL-1.2",
+      "sha256": "56976e64523fa1e68db4e6f464f5b2cb89d7d08f54b1d012e317b8db286b3faf"
+    },
+    "GFDL-1.3": {
+      "package": "base-files",
+      "path": "usr/share/common-licenses/GFDL-1.3",
+      "sha256": "4748f03ed2dbcc14cde6ebc30799899c403e356a7465dc30fcf2b80c45fc0059"
+    },
+    "GPL": {
+      "package": "base-files",
+      "path": "usr/share/common-licenses/GPL",
+      "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903"
+    },
+    "GPL-1": {
+      "package": "base-files",
+      "path": "usr/share/common-licenses/GPL-1",
+      "sha256": "d77d235e41d54594865151f4751e835c5a82322b0e87ace266567c3391a4b912"
+    },
+    "GPL-2": {
+      "package": "base-files",
+      "path": "usr/share/common-licenses/GPL-2",
+      "sha256": "8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643"
+    },
+    "GPL-3": {
+      "package": "base-files",
+      "path": "usr/share/common-licenses/GPL-3",
+      "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903"
+    },
+    "LGPL": {
+      "package": "base-files",
+      "path": "usr/share/common-licenses/LGPL",
+      "sha256": "da7eabb7bafdf7d3ae5e9f223aa5bdc1eece45ac569dc21b3b037520b4464768"
+    },
+    "LGPL-2": {
+      "package": "base-files",
+      "path": "usr/share/common-licenses/LGPL-2",
+      "sha256": "b7993225104d90ddd8024fd838faf300bea5e83d91203eab98e29512acebd69c"
+    },
+    "LGPL-2.1": {
+      "package": "base-files",
+      "path": "usr/share/common-licenses/LGPL-2.1",
+      "sha256": "dc626520dcd53a22f727af3ee42c770e56c97a64fe3adb063799d8ab032fe551"
+    },
+    "LGPL-3": {
+      "package": "base-files",
+      "path": "usr/share/common-licenses/LGPL-3",
+      "sha256": "da7eabb7bafdf7d3ae5e9f223aa5bdc1eece45ac569dc21b3b037520b4464768"
+    },
+    "MPL-1.1": {
+      "package": "base-files",
+      "path": "usr/share/common-licenses/MPL-1.1",
+      "sha256": "f849fc26a7a99981611a3a370e83078deb617d12a45776d6c4cada4d338be469"
+    },
+    "MPL-2.0": {
+      "package": "base-files",
+      "path": "usr/share/common-licenses/MPL-2.0",
+      "sha256": "fab3dd6bdab226f1c08630b1dd917e11fcb4ec5e1e020e2c16f83a0a13863e85"
     }
   }
 }

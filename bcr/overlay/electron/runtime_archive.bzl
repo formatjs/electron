@@ -1,0 +1,60 @@
+"""Build a Linux x64 runtime ZIP from declared upstream distribution files."""
+
+def _impl(ctx):
+    python = ctx.toolchains["@rules_python//python:toolchain_type"].py3_runtime
+    if not python.interpreter:
+        fail("Runtime assembly requires a declared Python interpreter")
+    entries, inputs, seen = [], [], {}
+    for group, prefix in [(ctx.attr.files, ""), (ctx.attr.libraries, "lib/")]:
+        for target, path in group.items():
+            if not path or path.startswith("/") or "\\" in path or ":" in path or any([part in ["", ".", ".."] for part in path.split("/")]):
+                fail("Runtime paths must be canonical and relative")
+            destination = prefix + path
+            if destination in seen:
+                fail("Duplicate runtime destination: " + destination)
+            files = target[DefaultInfo].files.to_list()
+            if len(files) != 1 or files[0].is_directory:
+                fail("Runtime inputs must identify exactly one regular file")
+            seen[destination] = True
+            inputs.append(files[0])
+            entries.append({"source": files[0].path, "path": destination, "library": bool(prefix)})
+    if any([path not in seen for path in ctx.attr.executables]):
+        fail("Runtime executable is not a declared input")
+    if any([path not in seen for path in ctx.attr.expected_sha256]):
+        fail("Runtime hash guard lacks a declared input")
+    manifest = ctx.actions.declare_file(ctx.label.name + ".inputs.json")
+    ctx.actions.write(manifest, json.encode({
+        "entries": entries,
+        "executables": ctx.attr.executables,
+        "host_abi": ctx.attr.host_abi,
+        "expected_sha256": ctx.attr.expected_sha256,
+        "patchelf": ctx.executable._patchelf.path,
+        "archive": ctx.outputs.archive.path,
+        "report": ctx.outputs.report.path,
+    }))
+    ctx.actions.run(
+        executable = python.interpreter,
+        arguments = ["-I", "-B", ctx.file._script.path, manifest.path],
+        inputs = depset(inputs + [manifest, ctx.file._script], transitive = [python.files] if python.files else []),
+        tools = [ctx.attr._patchelf[DefaultInfo].files_to_run],
+        outputs = [ctx.outputs.archive, ctx.outputs.report],
+        env = {"PATH": "", "LANG": "C", "LC_ALL": "C", "TZ": "UTC"},
+        mnemonic = "ElectronRuntimeArchive",
+    )
+    return [DefaultInfo(files = depset([ctx.outputs.archive, ctx.outputs.report]))]
+
+electron_runtime_archive = rule(
+    implementation = _impl,
+    toolchains = ["@rules_python//python:toolchain_type"],
+    attrs = {
+        "files": attr.label_keyed_string_dict(allow_files = True, mandatory = True),
+        "libraries": attr.label_keyed_string_dict(allow_files = True),
+        "executables": attr.string_list(default = ["electron", "chrome-sandbox", "chrome_crashpad_handler"]),
+        "host_abi": attr.string_list(doc = "Explicit host OS ABI SONAMEs; every other dependency must be bundled."),
+        "expected_sha256": attr.string_dict(doc = "Optional distribution-path hashes for pinned notice inputs."),
+        "archive": attr.output(mandatory = True),
+        "report": attr.output(mandatory = True),
+        "_script": attr.label(default = Label("//electron/private:runtime_archive.py"), allow_single_file = True, cfg = "exec"),
+        "_patchelf": attr.label(default = Label("@patchelf//:patchelf"), executable = True, cfg = "exec"),
+    },
+)

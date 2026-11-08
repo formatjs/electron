@@ -5,6 +5,8 @@ load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
 package(default_visibility = ["//visibility:public"])
 
+exports_files(["COPYING"])
+
 copy_file(
     name = "linux_config",
     src = select({

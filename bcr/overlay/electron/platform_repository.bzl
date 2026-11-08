@@ -66,11 +66,17 @@ def _runtime_impl(ctx):
         ctx.extract(payloads[0], output = archive + "/root")
     for soname, library in manifest["libraries"].items():
         ctx.symlink("packages/" + library["package"] + "/root/" + library["interface"], soname)
-    ctx.file("profile.bzl", "LIBRARIES = " + repr(sorted(manifest["libraries"])) + "\n")
+    copyrights = manifest.get("copyrights", {})
+    for name, notice in copyrights.items():
+        ctx.symlink("packages/" + notice["package"] + "/root/" + notice["path"], "licenses/" + name)
+    common = manifest.get("common_licenses", {})
+    for name, notice in common.items():
+        ctx.symlink("packages/" + notice["package"] + "/root/" + notice["path"], "licenses/common/" + name)
+    ctx.file("profile.bzl", "LIBRARIES = " + repr(sorted(manifest["libraries"])) + "\nCOPYRIGHTS = " + repr(copyrights) + "\nCOMMON_LICENSES = " + repr(common) + "\n")
     build = [
         'load("@rules_cc//cc:cc_library.bzl", "cc_library")',
         'package(default_visibility = ["//visibility:public"])',
-        "exports_files(" + repr(sorted(manifest["libraries"]) + ["profile.bzl"]) + ")",
+        "exports_files(" + repr(sorted(manifest["libraries"]) + ["licenses/" + name for name in copyrights] + ["licenses/common/" + name for name in common] + ["profile.bzl"]) + ")",
         "filegroup(name = \"libraries\", srcs = " + repr(sorted(manifest["libraries"])) + ")",
     ]
     for name, interface in manifest.get("header_interfaces", {}).items():

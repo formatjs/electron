@@ -3,6 +3,7 @@ exports_files([
     "platform_inputs.json",
     "runtime_inputs.json",
     "runtime_metadata.bzl",
+    "runtime_files.bzl",
     "platform_runtime.json",
     "ui_inputs.json",
     "content_webui_inputs.json",

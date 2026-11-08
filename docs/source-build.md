@@ -2597,13 +2597,16 @@ The producer catalog is metadata only. The new
 [`source/credits`](../bcr/overlay/source/credits/README.md) action closes the
 original scanner's inputs and replaces the WebUI development sample with real
 credits. Its 1,391 hashed inputs preserve 766 directories and 706 valid metadata
-records, including 466 shipped entries. Metadata analysis passed; hosted HTML
-generation and its complete shipped-license test remain pending.
+records, including 466 shipped entries. The
+[BB consumer preflight](https://formatjs.buildbuddy.io/invocation/5f518c70-a6df-4842-8a20-b9013d660105)
+passed hosted HTML generation, reproducibility and the complete shipped-license
+test.
 
 `source/distribution:metadata` stages the original Electron LICENSE and generated
 Chromium notices, plus `version` from Electron's original template action and
 generated version arguments. Its BB test checks release identity and unchanged
-notice bytes. Action analysis passed; hosted execution remains pending.
+notice bytes. The same BB preflight passed original version generation and
+notice staging; the original default-app ASAR test passed too.
 
 Runtime assembly still requires portable shared-library layout and native
 launch. The main executable, sandbox and Crashpad staging actions now declare
