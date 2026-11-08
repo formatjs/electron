@@ -34,6 +34,8 @@ def capture(electron):
         return identity
 
     tools = {"@electron/docs-parser", "@electron/typescript-definitions", "@electron/asar", "@primer/octicons", "typescript", "webpack"}
+    # get-version.js loads utils.js, including its module-level imports.
+    tools.update({"chalk", "dugite"})
     tools.update(name for name in dependencies if name.startswith("@types/"))
     roots = {name: visit(name, dependencies[name]) for name in sorted(tools)}
     return dict(yarn_lock_sha256=hashlib.sha256(lock.read_bytes()).hexdigest(), roots=roots, packages=dict(sorted(packages.items())))

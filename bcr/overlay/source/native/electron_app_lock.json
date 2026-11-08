@@ -10,6 +10,8 @@
     "@types/semver": "d78950513b33d78558b3",
     "@types/stream-json": "5b968f66487947bf965e",
     "@types/temp": "9e50d906484b092edb88",
+    "chalk": "a236199d0d83e8676fe2",
+    "dugite": "b08885aa1638a47ca35f",
     "typescript": "f3c8abf5cecd172a2bec",
     "webpack": "a8129d150ba0a08fbe9c"
   },
@@ -209,6 +211,20 @@
         "@xtuc/long": "1a66f4193af6b3f0d55b"
       }
     },
+    "1fa4b41c30d138dacb8f": {
+      "name": "tar",
+      "version": "6.2.1",
+      "url": "https://registry.yarnpkg.com/tar/-/tar-6.2.1.tgz",
+      "integrity": "sha512-DZ4yORTwrbTj/7MZYq2w+/ZFdI6OZ/f9SFHR+71gIVUZhOQPHzVCLpvRnPgyaMpfWxxk/4ONva3GQSyNIKRv6A==",
+      "dependencies": {
+        "chownr": "d6d5fa05460c9ccb9670",
+        "fs-minipass": "501d63d095e5f8d280a1",
+        "minipass": "29ec2e42be3aa7f87a66",
+        "minizlib": "764d3d9bb1800ebc4e86",
+        "mkdirp": "777f3ed782158d3e035e",
+        "yallist": "a6bf16a53d36f4ab2c63"
+      }
+    },
     "1fd590a8dd48406b7be9": {
       "name": "inflight",
       "version": "1.0.6",
@@ -276,6 +292,13 @@
         "glob": "7d5715c19c9a9df13cce",
         "minimatch": "07ce63336088a938628b"
       }
+    },
+    "29ec2e42be3aa7f87a66": {
+      "name": "minipass",
+      "version": "5.0.0",
+      "url": "https://registry.yarnpkg.com/minipass/-/minipass-5.0.0.tgz",
+      "integrity": "sha512-3FnjYuehv9k6ovOEbyOswadCDPX1piCfhV8ncmYtHOjuPwylVWsghTLo7rabjC3Rx5xD4HDx8Wm1xnMF7S5qFQ==",
+      "dependencies": {}
     },
     "2a48c9b56e708c66d54f": {
       "name": "lodash.camelcase",
@@ -430,6 +453,15 @@
       "integrity": "sha1-IQmtx5ZYh8/AXLvUQsrIv7s2CGM=",
       "dependencies": {}
     },
+    "4ee17c6f0fd20210c38c": {
+      "name": "supports-color",
+      "version": "7.1.0",
+      "url": "https://registry.yarnpkg.com/supports-color/-/supports-color-7.1.0.tgz",
+      "integrity": "sha512-oRSIpR8pxT1Wr2FquTNnGet79b3BWljqOuoW/h4oBhxJ/HUbX5nX6JSruTkvXDCFMwDPvsaTTbvMLKZWSy0R5g==",
+      "dependencies": {
+        "has-flag": "57e7eb3e90c2e05c585e"
+      }
+    },
     "4f83bdc1b6de6047870d": {
       "name": "pretty-ms",
       "version": "9.1.0",
@@ -445,6 +477,15 @@
       "url": "https://registry.yarnpkg.com/entities/-/entities-4.5.0.tgz",
       "integrity": "sha512-V0hjH4dGPh9Ao5p0MoRY6BVqtwCjhz6vI5LT8AJ55H+4g9/4vbHx1I54fS0XuclLhDHArPQCiMjDxjaL8fPxhw==",
       "dependencies": {}
+    },
+    "501d63d095e5f8d280a1": {
+      "name": "fs-minipass",
+      "version": "2.1.0",
+      "url": "https://registry.yarnpkg.com/fs-minipass/-/fs-minipass-2.1.0.tgz",
+      "integrity": "sha512-V/JgOLFCS+R6Vcq0slCuaeWEdNC3ouDlJMNIsacH2VtALiu9mV4LPrHc5cDl8k5aw6J8jwgWWpiTo5RYhmIzvg==",
+      "dependencies": {
+        "minipass": "87b0498e7acaabda4d57"
+      }
     },
     "526a034e48ad02685767": {
       "name": "ora",
@@ -509,6 +550,15 @@
       "url": "https://registry.yarnpkg.com/tapable/-/tapable-2.2.1.tgz",
       "integrity": "sha512-GNzQvQTOIP6RyTfE2Qxb8ZVlNmw0n88vp1szwWRimP02mnTsx3Wtn5qRdqY9w2XduFNUgvOwhNnQsjwCp+kqaQ==",
       "dependencies": {}
+    },
+    "601ac0afead9049bbc73": {
+      "name": "color-convert",
+      "version": "2.0.1",
+      "url": "https://registry.yarnpkg.com/color-convert/-/color-convert-2.0.1.tgz",
+      "integrity": "sha512-RRECPsj7iu/xb5oKYcsFHSppFNnsj/52OVTRKb4zP5onXwVF3zVmmToNcOfGC+CRDpfK/U584fMg38ZHCaElKQ==",
+      "dependencies": {
+        "color-name": "cc7e47f05b3a7498e13d"
+      }
     },
     "61663b1a14ef500db80d": {
       "name": "signal-exit",
@@ -592,6 +642,23 @@
       "dependencies": {
         "mime-db": "d4c55005e753a36fb2cd"
       }
+    },
+    "764d3d9bb1800ebc4e86": {
+      "name": "minizlib",
+      "version": "2.1.2",
+      "url": "https://registry.yarnpkg.com/minizlib/-/minizlib-2.1.2.tgz",
+      "integrity": "sha512-bAxsR8BVfj60DWXHE3u30oHzfl4G7khkSuPW+qvpd7jFRHm7dLxOjUk1EHACJ/hxLY8phGJ0YhYHZo7jil7Qdg==",
+      "dependencies": {
+        "minipass": "87b0498e7acaabda4d57",
+        "yallist": "a6bf16a53d36f4ab2c63"
+      }
+    },
+    "777f3ed782158d3e035e": {
+      "name": "mkdirp",
+      "version": "1.0.4",
+      "url": "https://registry.yarnpkg.com/mkdirp/-/mkdirp-1.0.4.tgz",
+      "integrity": "sha512-vVqVZQyf3WLx2Shd0qJ9xuvqgAyKPLAiqITEtqW0oIUjzo3PePDd6fW9iFz30ef7Ysp/oiWqbhszeGWW2T6Gzw==",
+      "dependencies": {}
     },
     "7789bf039027061958ca": {
       "name": "commander",
@@ -688,6 +755,15 @@
       "url": "https://registry.yarnpkg.com/path-is-absolute/-/path-is-absolute-1.0.1.tgz",
       "integrity": "sha1-F0uSaHNVNP+8es5r9TpanhtcX18=",
       "dependencies": {}
+    },
+    "87b0498e7acaabda4d57": {
+      "name": "minipass",
+      "version": "3.3.6",
+      "url": "https://registry.yarnpkg.com/minipass/-/minipass-3.3.6.tgz",
+      "integrity": "sha512-DxiNidxSEK+tHG6zOIklvNOwm3hvCrbUrdtzY74U6HKTJxvIDfOUL5W5P2Ghd3DTkhhKPYGqeNUIh5qcM4YBfw==",
+      "dependencies": {
+        "yallist": "a6bf16a53d36f4ab2c63"
+      }
     },
     "8e63fd8c52c286f12dad": {
       "name": "esrecurse",
@@ -799,6 +875,23 @@
         "@xtuc/ieee754": "af70504e1529eedbb95d"
       }
     },
+    "a195d8ac48579f47873c": {
+      "name": "@types/color-name",
+      "version": "1.1.1",
+      "url": "https://registry.yarnpkg.com/@types/color-name/-/color-name-1.1.1.tgz",
+      "integrity": "sha512-rr+OQyAjxze7GgWrSaJwydHStIhHq2lvY3BOC2Mj7KnzI7XK0Uw1TOOdI9lDoajEbSWLiYgoo4f1R51erQfhPQ==",
+      "dependencies": {}
+    },
+    "a236199d0d83e8676fe2": {
+      "name": "chalk",
+      "version": "4.1.2",
+      "url": "https://registry.yarnpkg.com/chalk/-/chalk-4.1.2.tgz",
+      "integrity": "sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==",
+      "dependencies": {
+        "ansi-styles": "b679a0d2cb4f75aa19b4",
+        "supports-color": "4ee17c6f0fd20210c38c"
+      }
+    },
     "a4b804614bef6bed2ab8": {
       "name": "cli-spinners",
       "version": "2.9.2",
@@ -818,6 +911,13 @@
       "version": "3.2.3",
       "url": "https://registry.yarnpkg.com/webpack-sources/-/webpack-sources-3.2.3.tgz",
       "integrity": "sha512-/DyMEOrDgLKKIG0fmvtz+4dUX/3Ghozwgm6iPp8KRhvn+eQf9+Q7GWxVNMk3+uCPWfdXYC4ExGBckIXdFEfH1w==",
+      "dependencies": {}
+    },
+    "a6bf16a53d36f4ab2c63": {
+      "name": "yallist",
+      "version": "4.0.0",
+      "url": "https://registry.yarnpkg.com/yallist/-/yallist-4.0.0.tgz",
+      "integrity": "sha512-3wdGidZyq5PB084XLES5TpOSRA3wjXAlIWMhum2kRcv/41Sn2emQ0dycQW4uZXLejwKvg6EsvbdlVL+FYEct7A==",
       "dependencies": {}
     },
     "a764a6ad4a5d0c7bc620": {
@@ -912,6 +1012,16 @@
         "graceful-fs": "04c4942c23ac64655aee"
       }
     },
+    "b08885aa1638a47ca35f": {
+      "name": "dugite",
+      "version": "2.7.1",
+      "url": "https://registry.yarnpkg.com/dugite/-/dugite-2.7.1.tgz",
+      "integrity": "sha512-X7v7JngMG6RGHKCKKF0fdqYC9Xcw0CDes43an6dQW2N2dYNd/OOLq3BFszCOyOObgKnrmNVvyggk3O4WGJMpcA==",
+      "dependencies": {
+        "progress": "ef7b740d3725c5b196e8",
+        "tar": "1fa4b41c30d138dacb8f"
+      }
+    },
     "b1aac17949243f89fe88": {
       "name": "markdown-it",
       "version": "14.1.0",
@@ -939,6 +1049,16 @@
       "url": "https://registry.yarnpkg.com/@jridgewell/set-array/-/set-array-1.2.1.tgz",
       "integrity": "sha512-R8gLRTZeyp03ymzP/6Lil/28tGeGEzhx1q2k703KGWRAI1VdvPIXdG70VJc2pAMw3NA6JKL5hhFu1sJX0Mnn/A==",
       "dependencies": {}
+    },
+    "b679a0d2cb4f75aa19b4": {
+      "name": "ansi-styles",
+      "version": "4.2.1",
+      "url": "https://registry.yarnpkg.com/ansi-styles/-/ansi-styles-4.2.1.tgz",
+      "integrity": "sha512-9VGjrMsG1vePxcSweQsN20KY/c4zN0h9fLjqAbwbPfahM3t+NL+M9HC8xeXG2I8pX5NoamTGNuomEUFI7fcUjA==",
+      "dependencies": {
+        "@types/color-name": "a195d8ac48579f47873c",
+        "color-convert": "601ac0afead9049bbc73"
+      }
     },
     "b6f96e7aa98b9619fbd5": {
       "name": "neo-async",
@@ -1034,6 +1154,13 @@
         "@jridgewell/sourcemap-codec": "0b74137f4fd8bc03b110"
       }
     },
+    "cc7e47f05b3a7498e13d": {
+      "name": "color-name",
+      "version": "1.1.4",
+      "url": "https://registry.yarnpkg.com/color-name/-/color-name-1.1.4.tgz",
+      "integrity": "sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==",
+      "dependencies": {}
+    },
     "ce0f0fbfa2cf30c1edcb": {
       "name": "@types/minimatch",
       "version": "3.0.3",
@@ -1083,6 +1210,13 @@
       "version": "1.0.5",
       "url": "https://registry.yarnpkg.com/@types/estree/-/estree-1.0.5.tgz",
       "integrity": "sha512-/kYRxGDLWzHOB7q+wtSUQlFrtcdUccpfy+X+9iMBpHK8QLLhx2wIPYuS5DYtR9Wa/YlZAbIovy7qVdB1Aq6Lyw==",
+      "dependencies": {}
+    },
+    "d6d5fa05460c9ccb9670": {
+      "name": "chownr",
+      "version": "2.0.0",
+      "url": "https://registry.yarnpkg.com/chownr/-/chownr-2.0.0.tgz",
+      "integrity": "sha512-bIomtDF5KGpdogkLd9VspvFzk9KfpyyGlS8YFVZl7TGPBHL5snIOnxeshwVgPteQ9b4Eydl+pVbIyE1DcvCWgQ==",
       "dependencies": {}
     },
     "d7534a0721eb0a0708d1": {
@@ -1227,6 +1361,13 @@
         "commander": "7789bf039027061958ca",
         "source-map-support": "d7534a0721eb0a0708d1"
       }
+    },
+    "ef7b740d3725c5b196e8": {
+      "name": "progress",
+      "version": "2.0.3",
+      "url": "https://registry.yarnpkg.com/progress/-/progress-2.0.3.tgz",
+      "integrity": "sha512-7PiHtLll5LdnKIMw100I+8xJXR5gW2QwWYkT6iJva0bXitZKa/XMrSbdmg3r2Xnaidz9Qumd0VPaMrZlF9V9sA==",
+      "dependencies": {}
     },
     "efeaaba8ea35c6e82013": {
       "name": "chrome-trace-event",
