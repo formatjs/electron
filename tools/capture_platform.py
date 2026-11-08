@@ -20,7 +20,7 @@ MEDIA_SOURCE_PREFIXES = ["third_party/flac", "media/cdm/api", "third_party/libao
 COMPOSITOR_SOURCE_PREFIXES = ["third_party/webrtc", "third_party/federated_compute/src", "third_party/libsrtp"]
 SOURCE_PREFIXES += MEDIA_SOURCE_PREFIXES + COMPOSITOR_SOURCE_PREFIXES
 TOOLCHAIN = {"//buildtools/third_party/libc++:" + name for name in ("all_modules", "custom_headers", "libcxx_headers", "libc++")}
-SDK_LIBS = {"Xcomposite", "Xdamage", "Xfixes", "Xrandr", "Xrender", "Xtst", "drm", "asound", "ffi_pic", "X11", "Xi", "Xext", "pci", "gbm", "dbus-1", "udev", "cairo", "harfbuzz", "pango-1.0", "pangocairo-1.0", "atk-1.0", "atk-bridge-2.0"}
+SDK_LIBS = {"atspi", "Xcomposite", "Xdamage", "Xfixes", "Xrandr", "Xrender", "Xtst", "drm", "asound", "ffi_pic", "X11", "Xi", "Xext", "pci", "gbm", "dbus-1", "udev", "cairo", "harfbuzz", "pango-1.0", "pangocairo-1.0", "atk-1.0", "atk-bridge-2.0"}
 SCRIPTS = MOJO_SCRIPTS | {"//" + name for name in (
     "build/write_buildflag_header.py", "build/gn_run_binary.py",
     "tools/grit/grit.py", "tools/variations/fieldtrial_to_struct.py",
@@ -97,6 +97,17 @@ def capture(graph, digest, chromium, source_roots, profiles):
     external, shared = load_profiles(profiles, previous)
     external["//media/filters:symphonia_glue"] = "@electron//source/media:symphonia"
     external["//media/filters:symphonia_glue_cxx_generated"] = "@electron//source/media:symphonia_bridge"
+    temporal = json.loads((profiles / "temporal_inputs.json").read_text())
+    for name, bridge in temporal["blink_bridges"].items():
+        owner = "@electron//source/blink_rust:" + name
+        external[bridge["root"]] = owner
+        external[bridge["root"] + "_cxx_generated"] = owner + "_bridge"
+        for output in bridge["outputs"]:
+            shared[BUILD + output] = "@electron//source/blink_rust:" + output
+        if bridge.get("helper"):
+            external[bridge["helper"]["gn_target"]] = owner + "_cpp"
+    external["//third_party/crabbyavif:crabbyavif"] = "@electron//source/crabbyavif:crabbyavif"
+    external["//third_party/crabbyavif:header_files"] = "@electron_rust_sources//:crabbyavif_headers"
     targets, seen, pending = graph["targets"], set(), list(ROOTS)
     while pending:
         label = pending.pop()
@@ -182,7 +193,8 @@ def capture(graph, digest, chromium, source_roots, profiles):
     assembly_inputs = {}
     for directory in directories:
         root = physical(directory)
-        inventory = sorted(directory + "/" + path.relative_to(root).as_posix() for path in source_files(root) if path.is_file() and path.suffix in (".h", ".hh", ".hpp", ".hpp11", ".inc", ".inl", ".def", ".gen"))
+        roots = [(directory, root)] + [(prefix, checkout) for prefix, checkout in source_roots.items() if prefix.startswith(directory + "/")]
+        inventory = sorted({prefix + "/" + path.relative_to(checkout).as_posix() for prefix, checkout in roots for path in source_files(checkout) if path.is_file() and path.suffix in (".h", ".hh", ".hpp", ".hpp11", ".inc", ".inl", ".def", ".gen")})
         if not inventory and directory not in media_header_roots and directory not in implicit_header_roots:
             raise ValueError("Missing original platform header inventory: " + directory)
         headers[directory] = inventory

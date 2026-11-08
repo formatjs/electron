@@ -728792,6 +728792,7 @@
     "asound",
     "atk-1.0",
     "atk-bridge-2.0",
+    "atspi",
     "cairo",
     "dbus-1",
     "drm",

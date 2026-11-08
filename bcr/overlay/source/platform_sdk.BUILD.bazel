@@ -85,6 +85,7 @@ electron_source_headers(
 )
 
 _SONAMES = {
+    "atspi": "libatspi.so.0",
     "Xcomposite": "libXcomposite.so.1",
     "Xdamage": "libXdamage.so.1",
     "Xfixes": "libXfixes.so.3",
