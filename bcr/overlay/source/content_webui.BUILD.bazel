@@ -1,0 +1,15 @@
+load("@electron//source:ui_rules.bzl", "electron_ui")
+load(":profile.bzl", "PROFILE")
+
+package(default_visibility = ["//visibility:public"])
+
+electron_ui(
+    aliases = {},
+    node_modules = "@electron_ui_sources//:node_modules",
+    profile = PROFILE,
+)
+
+filegroup(
+    name = "resources",
+    srcs = [":" + PROFILE["actions"][label]["name"] + "_run" for label in PROFILE["roots"]],
+)

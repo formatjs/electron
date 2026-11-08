@@ -124,3 +124,21 @@ py_test(
         "@platforms//cpu:x86_64",
     ],
 )
+
+_CONTENT_WEBUI_INPUTS = [
+    "@electron_content_webui_sources//:gen/content/browser/tracing/grit/tracing_resources.h",
+    "@electron_content_webui_sources//:gen/content/browser/tracing/tracing_resources.pak",
+    "@electron_platform_sources//:gen/content/browser/tracing/about_tracing.html",
+    "@electron_platform_sources//:gen/content/browser/tracing/about_tracing.js",
+]
+
+py_test(
+    name = "content_webui_test",
+    srcs = ["content_webui_test.py"],
+    args = ["$(rootpath " + label + ")" for label in _CONTENT_WEBUI_INPUTS],
+    data = _CONTENT_WEBUI_INPUTS,
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)

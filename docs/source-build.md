@@ -2048,3 +2048,23 @@ The resource contract check verifies the Chromium `tracing.js` route, flattened
 HTML imports, retained viewer entrypoint and JavaScript syntax with pinned Node.
 It does not establish browser UI execution. Generation, reproducibility and
 contract assertions remain pending on BB; full Electron integration is unfinished.
+
+
+### Content WebUI resources
+
+A separate source projection captures the original content WebUI closure: 238
+Python producers, nine copies and 13 literal metadata targets. It retains all
+155 resource entry points, TypeScript compilation, ESLint, original bundles and
+GRIT resource generation. Existing UI/platform providers own their outputs;
+the capture rejects new native source compilation. Node and npm inputs reuse
+the existing pinned Chromium tools.
+
+The existing UI translator accepts an explicit profile and aliases; its default
+profile remains unchanged. Content resource generators stage provider outputs
+without reopening their implementation inputs. Metadata analysis passed with
+zero executed actions. The PAK contract test resolves generated tracing IDs and
+compares recovered HTML/JavaScript against the original Catapult products.
+The 87,412-action audit preserves every previous C++/Rust/Python action key,
+adds 248 Python actions and finds zero CMake or foreign-cc actions.
+Generation, reproducibility and contract execution still need hosted BB evidence.
+These resource checks do not establish browser UI execution or a linked Electron.

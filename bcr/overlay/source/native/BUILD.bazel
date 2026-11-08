@@ -2,6 +2,7 @@ exports_files([
     "platform_inputs.json",
     "platform_runtime.json",
     "ui_inputs.json",
+    "content_webui_inputs.json",
     "events_inputs.json",
     "display_inputs.json",
     "gfx_inputs.json",

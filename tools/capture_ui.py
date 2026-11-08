@@ -23,10 +23,13 @@ PINS = {
 SCRIPTS = MOJO_SCRIPTS | {"//" + name for name in ["build/write_buildflag_header.py", "ui/webui/resources/tools/generate_grd.py", "tools/grit/preprocess_if_expr.py", "tools/typescript/ts_library.py", "ui/webui/resources/tools/minify_js.py", "ui/webui/resources/tools/bundle_js.py", "ui/webui/resources/tools/eslint_ts.py", "tools/polymer/css_to_wrapper.py", "tools/typescript/path_mappings.py", "third_party/node/check_version.py", "tools/grit/grit.py", "tools/l10n/generate_locales_list.py", "tools/polymer/html_to_wrapper.py", "third_party/lottie/minify_lottie.py", "mojo/public/tools/bindings/minify_with_terser.py", "mojo/public/tools/bindings/concatenate-files.py"]}
 
 
+PROVIDERS = [("base", "base"), ("embedder", "embedder"), ("ipcz", "ipcz"), ("libnode", "libnode"), ("perfetto", "perfetto_native"), ("protobuf", "protobuf"), ("v8_engine", "v8_engine"), ("v8_support", "v8_support"), ("network", "network"), ("mojo", "mojo"), ("fonts", "fonts"), ("codecs", "codecs"), ("skia", "skia"), ("gfx", "gfx"), ("display", "display"), ("events", "events")]
 
-def capture(graph, digest, chromium, node_modules, profiles):
-    external, shared = load_profiles(profiles, [("base", "base"), ("embedder", "embedder"), ("ipcz", "ipcz"), ("libnode", "libnode"), ("perfetto", "perfetto_native"), ("protobuf", "protobuf"), ("v8_engine", "v8_engine"), ("v8_support", "v8_support"), ("network", "network"), ("mojo", "mojo"), ("fonts", "fonts"), ("codecs", "codecs"), ("skia", "skia"), ("gfx", "gfx"), ("display", "display"), ("events", "events")])
-    targets, seen, pending = graph["targets"], set(), list(ROOTS)
+
+def capture(graph, digest, chromium, node_modules, profiles, *, roots=None, additional_profiles=(), reuse_providers=False):
+    roots = ROOTS if roots is None else roots
+    external, shared = load_profiles(profiles, PROVIDERS + list(additional_profiles))
+    targets, seen, pending = graph["targets"], set(), list(roots)
     while pending:
         label = pending.pop()
         if label in seen or label in external or label in TOOLCHAIN:
@@ -40,10 +43,10 @@ def capture(graph, digest, chromium, node_modules, profiles):
         record = next(ast.literal_eval(value)["objects"][0] for key, value in zip(entries.keys, entries.values) if isinstance(key, ast.Constant) and key.value == path)
         if any(record.get(key) != value for key, value in PINS[name].items()):
             raise ValueError("WebUI DEPS source pin changed")
-    roots = {"third_party/node/node_modules": node_modules}
+    source_roots = {"third_party/node/node_modules": node_modules}
 
     def physical(path):
-        for prefix, root in roots.items():
+        for prefix, root in source_roots.items():
             if path.startswith(prefix + "/"):
                 return root / path[len(prefix) + 1:]
         return chromium / path
@@ -120,6 +123,9 @@ def capture(graph, digest, chromium, node_modules, profiles):
                 continue
             visited.add(dependency)
             target = targets[dependency]
+            if reuse_providers and dependency in external and target["type"] != "group":
+                outputs.update(target.get("outputs", []))
+                continue
             if target["type"] in ("action", "action_foreach", "copy", "generated_file"):
                 outputs.update(target.get("outputs", []))
                 outputs.update(target.get("inputs", []))
@@ -214,7 +220,7 @@ def capture(graph, digest, chromium, node_modules, profiles):
         if not physical(path).is_file():
             raise ValueError("Missing original UI input: " + path)
     used = {dep for label in seen for dep in targets[label].get("deps", []) if dep in external}
-    return dict(roots=ROOTS, graph_sha256=digest, names=names, libraries=libraries, actions=actions, metadata=metadata, copies=copies, execution_tools=sorted(set(tools.values())), source_archives=PINS, node_modules_files=[path[2:] for path in package_files], producers=producers, headers=headers, textual_headers=sorted(textual_headers), files=sorted(files), external_files={path: shared[path] for path in sorted(used_shared)}, external={label: external[label] for label in sorted(used)}, generated_files=generated, toolchain_deps=sorted(TOOLCHAIN))
+    return dict(roots=roots, graph_sha256=digest, names=names, libraries=libraries, actions=actions, metadata=metadata, copies=copies, execution_tools=sorted(set(tools.values())), source_archives=PINS, node_modules_files=[path[2:] for path in package_files], producers=producers, headers=headers, textual_headers=sorted(textual_headers), files=sorted(files), external_files={path: shared[path] for path in sorted(used_shared)}, external={label: external[label] for label in sorted(used)}, generated_files=generated, toolchain_deps=sorted(TOOLCHAIN))
 
 
 def main():
