@@ -103,6 +103,24 @@ def grit_resource_inputs(inputs, physical):
     return resources
 
 
+def flatbuffer_schema_inputs(inputs, physical):
+    pending = [path[2:] for path in inputs if path.startswith("//") and not path.startswith(BUILD) and path.endswith(".fbs")]
+    seen, resources = set(), set()
+    while pending:
+        source = pending.pop()
+        if source in seen:
+            continue
+        seen.add(source)
+        for name in re.findall(r'^\s*include\s+"([^"\n]+)"\s*;', physical(source).read_text(), re.M):
+            candidates = [posixpath.normpath(posixpath.join(posixpath.dirname(source), name)), posixpath.normpath(name)]
+            path = next((path for path in candidates if not path.startswith(("/", "../")) and physical(path).is_file()), None)
+            if path is None:
+                raise ValueError("Missing original FlatBuffers include: " + name)
+            resources.add("//" + path)
+            pending.append(path)
+    return resources
+
+
 def source_revisions(chromium):
     def read_deps(path):
         tree = ast.parse(path.read_text())
@@ -354,6 +372,10 @@ def capture(graph, digest, chromium, source_roots, profiles):
                 if args[0] == "character_data_generator":
                     # This generator reads data beside argv[0].
                     inputs.add(BUILD + "icudtl.dat")
+                if args[0] == "flatc":
+                    if args[args.index("-I") + 1] != "../../":
+                        raise ValueError("Untranslated original FlatBuffers include root")
+                    inputs.update(flatbuffer_schema_inputs(inputs, physical))
             if target["script"] == "//build/gn_run_binary.py" and args and args[0] == "nasm":
                 if "--reproducible" not in args:
                     raise ValueError("Original NASM action lacks reproducible output mode")
