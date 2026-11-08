@@ -1692,3 +1692,11 @@ passed cross probes but stopped before compilation on a `bazel_skylib` release
 HTTP 504. CI now routes its exact 1.9.0 URL to the official Bazel mirror.
 The downloaded 44,790-byte archive matches BCR integrity
 `sha256-O1tJAGGB9fj/Ym743c6qlem7itKU97XXsR6p992vjFk=`.
+
+The [e03ebb8 rerun](https://formatjs.buildbuddy.io/invocation/6cbe9326-1a21-4aa8-b3c0-40670df0d11a)
+passed cross probes but hit HTTP 504 on the rewritten GitHub archive URL too.
+CI now prefetches the two byte-identical source archives directly from codeload
+into a temporary Bazel `--distdir`, using the original release filenames.
+The shell bootstrap checks their pinned SHA-256 values before Bazel independently
+checks BCR integrity. Downloads stay outside build actions. No dependency version,
+patch, compiler input or source-generation action changes.
