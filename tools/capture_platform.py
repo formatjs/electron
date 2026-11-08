@@ -79,7 +79,7 @@ def grit_resource_inputs(inputs, physical):
         if base is None:
             base = posixpath.normpath(posixpath.join(posixpath.dirname(source), tree.getroot().attrib.get("base_dir", ".")))
         for node in tree.iter():
-            name = node.attrib.get("file")
+            name = node.attrib.get("file") or (node.attrib.get("path") if node.tag == "file" else None)
             if not name or any(marker in name for marker in ("$", "<(", "%(")):
                 continue
             if node.attrib.get("type") == "chrome_scaled_image":
