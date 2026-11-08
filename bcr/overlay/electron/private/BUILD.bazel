@@ -1,5 +1,6 @@
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_python//python:defs.bzl", "py_binary", "py_test")
+load("//electron:source_action.bzl", "electron_source_action")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -88,3 +89,47 @@ exports_files([
     "copy_files.py",
     "source_tool.py",
 ])
+
+cc_binary(
+    name = "python_plugin_launcher",
+    srcs = ["python_plugin_launcher.cc"],
+    copts = ["-std=c++17"],
+    linkstatic = True,
+    target_compatible_with = ["@platforms//os:linux"],
+)
+
+py_test(
+    name = "source_action_test",
+    srcs = [
+        "source_action.py",
+        "source_action_test.py",
+    ],
+    args = [
+        "$(rootpath :python_plugin_launcher)",
+        "$(rootpath :python_plugin_fixture_output.json)",
+    ],
+    data = [
+        "source_action_plugin_fixture.py",
+        "source_action_plugin_helper.py",
+        ":python_plugin_fixture_output.json",
+        ":python_plugin_launcher",
+    ],
+    target_compatible_with = ["@platforms//os:linux"],
+)
+
+electron_source_action(
+    name = "python_plugin_fixture",
+    srcs = {
+        "source_action_plugin_fixture.py": "scripts/fixture.py",
+        "source_action_plugin_helper.py": "scripts/helper.py",
+    },
+    args = [
+        "generate",
+        "result.json",
+    ],
+    logical_outputs = ["result.json"],
+    out_files = ["python_plugin_fixture_output.json"],
+    python_tools = {"scripts/plugin": "scripts/fixture.py"},
+    script = "scripts/fixture.py",
+    target_compatible_with = ["@platforms//os:linux"],
+)

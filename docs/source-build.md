@@ -1882,3 +1882,44 @@ and source-test audit preserves all 37,380 CppCompile, 254 Rustc and 26
 CargoBuildScriptRun baseline keys exactly. Two actions are added; no CMake or
 foreign action mnemonics appear. These are action-graph checks, not a measured
 runtime speedup or successful hosted generator execution.
+
+
+### Executable Python generator plugins
+
+`electron_source_action` accepts `python_tools`: launcher logical paths mapped
+to declared Python script inputs. A declared Linux execution tool launches each
+plugin with the same pinned interpreter and isolated imports as the generator.
+The original script keeps its logical location for sibling imports. Launcher
+arguments live only in action scratch space; no shell, shebang interpreter lookup
+or host Python is needed. Plugin paths cannot replace declared inputs or outputs.
+
+The bootstrap probe builds a real plugin action and checks its output through
+stdin, empty/spaced/Unicode arguments, sibling imports and an empty PATH. The
+runner also repeats generation across source paths/mtimes. Malformed launcher
+metadata and undeclared/conflicting scripts are rejected. Compilation and tests
+run on BB; local validation is metadata-only. Tracing's actual TypeScript plugin
+and the remaining content resource closure are not yet wired to this interface.
+
+
+### Skia checkout hook
+
+The `10c0802` aggregate failed at `components/viz/host/gpu_host_impl.cc:33`:
+`skia/ext/skia_commit_hash.h` comes from DEPS's `lastchange_skia` hook, not a
+checked-in header. The consumer completed 46 probes, including DevTools workspace
+metadata; full Blink/core/modules tests remained blocked by compilation.
+
+The capture now validates the original hook command and runs original
+`build/util/lastchange.py` with the pinned Skia commit and its
+[committer timestamp](https://github.com/google/skia/commit/f4ed99d2443962782cf5f8b4dd27179f131e7cbe).
+No Git checkout, host clock or fabricated header is needed. Only the Viz host
+library exports this generated header; shared header layers remain unchanged.
+The content metadata test compares the generated macro with the original Skia
+source profile. Hosted generation and compilation remain pending.
+
+
+Combined source/bootstrap metadata analysis passed with zero build actions.
+The explicit plugin-fixture dependency audit contains the native launcher and
+real generator action, with zero CMake/foreign actions. Its two additional C++
+compile variants are target/execution configurations of that launcher; 737 other
+C++ keys already exist in the source-component graph. Runtime validation remains
+pending on BB.

@@ -35,6 +35,24 @@ def generate(manifest, repeat):
             else:
                 shutil.copyfile(source, destination)
                 os.utime(destination, (918273645 if repeat else 123456789, ) * 2)
+        bootstrap = "import os, runpy, sys; script = sys.argv[1]; sys.argv = sys.argv[1:]; sys.path.insert(0, os.path.dirname(os.path.abspath(script))); runpy.run_path(script, run_name='__main__')"
+        declared_inputs = set(seen)
+        for launcher, script in manifest.get("python_tools", {}).items():
+            if script not in declared_inputs:
+                raise ValueError("Python plugin script is not a declared input")
+            destination = logical_path(root, launcher)
+            if destination.relative_to(root).as_posix() != launcher:
+                raise ValueError("Python plugin launcher path must be normalized")
+            if destination.is_relative_to(root / "out/bazel-import"):
+                raise ValueError("Python plugin launcher cannot replace generator outputs")
+            if launcher in seen or launcher + ".argv" in seen:
+                raise ValueError("Python plugin launcher conflicts with a declared input")
+            arguments_file = logical_path(root, launcher + ".argv")
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            destination.symlink_to(execution_root / manifest["python_launcher"])
+            prefix = [sys.executable, "-s", "-P", "-B", "-c", bootstrap, str(logical_path(root, script))]
+            arguments_file.write_bytes(b"\0".join(os.fsencode(arg) for arg in prefix) + b"\0")
+            seen.update((launcher, launcher + ".argv"))
         build = root / "out/bazel-import"
         build.mkdir(parents=True, exist_ok=True)
         for _, logical in manifest["outputs"]:
@@ -51,7 +69,6 @@ def generate(manifest, repeat):
         if set(declared_environment) & (environment.keys() | {"PYTHONPATH", "PYTHONHOME", "LD_LIBRARY_PATH", "NODE_PATH", "NODE_OPTIONS"}):
             raise ValueError("Generator metadata environment cannot replace execution paths or isolation settings")
         environment.update(declared_environment)
-        bootstrap = "import os, runpy, sys; script = sys.argv[1]; sys.argv = sys.argv[1:]; sys.path.insert(0, os.path.dirname(os.path.abspath(script))); runpy.run_path(script, run_name='__main__')"
         # Keep isolated import paths while honoring the declared hash seed.
         result = subprocess.run([sys.executable, "-s", "-P", "-B", "-c", bootstrap, str(logical_path(root, manifest["script"])), *arguments], cwd=build, env=environment)
         if result.returncode:

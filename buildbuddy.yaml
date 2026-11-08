@@ -103,7 +103,7 @@ actions:
           cd tests/bcr
           bazel --host_jvm_args=-Xmx24g test --config=buildbuddy --downloader_config="$source_downloader" --distdir="$source_distdir" --strategy=TestRunner=remote \
             --registry="file://$registry" --registry=https://bcr.bazel.build \
-            @electron//tests:hermetic_execution_test
+            @electron//tests:hermetic_execution_test @electron//electron/private:source_action_test
           bazel --host_jvm_args=-Xmx24g test --config=buildbuddy --downloader_config="$source_downloader" --distdir="$source_distdir" --strategy=TestRunner=local \
             --registry="file://$registry" --registry=https://bcr.bazel.build \
             --profile="$BUILDBUDDY_ARTIFACTS_DIRECTORY/source-consumer-profile.json.gz" \

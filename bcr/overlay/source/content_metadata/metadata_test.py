@@ -8,7 +8,7 @@ import sys
 import unittest
 
 
-VERSION_HEADER, REVISION_HEADER, VERSION, BRANDING, LASTCHANGE = sys.argv[1:]
+VERSION_HEADER, REVISION_HEADER, VERSION, BRANDING, LASTCHANGE, SKIA_HEADER, SKIA_PROFILE = sys.argv[1:]
 del sys.argv[1:]
 
 
@@ -30,6 +30,12 @@ class MetadataTest(unittest.TestCase):
             "PRODUCT_VERSION": json.dumps(".".join(version[key] for key in ("MAJOR", "MINOR", "BUILD", "PATCH"))),
             "LAST_CHANGE": json.dumps(revision["LASTCHANGE"]),
             "IS_OFFICIAL_BUILD": "0",
+        })
+
+    def test_skia_commit_matches_pinned_source(self):
+        profile = json.loads(Path(SKIA_PROFILE).read_text())
+        self.assertEqual(macros(SKIA_HEADER), {
+            "SKIA_COMMIT_HASH": json.dumps(profile["source_revisions"]["skia"]),
         })
 
     def test_git_revision_uses_original_gn_truncation(self):

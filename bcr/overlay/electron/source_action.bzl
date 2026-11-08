@@ -32,7 +32,7 @@ def _impl(ctx):
             mappings[logical] = files[0]
             tools.append(files[0])
     manifest = ctx.actions.declare_file(ctx.label.name + ".json")
-    ctx.actions.write(manifest, json.encode({
+    contents = {
         "inputs": [[file.path, logical] for logical, file in mappings.items()],
         "outputs": [[file.path, logical] for file, logical in zip(ctx.outputs.out_files, ctx.attr.logical_outputs)],
         "tools": ctx.attr.tools.values(),
@@ -41,7 +41,16 @@ def _impl(ctx):
         "response": ctx.attr.response,
         "environment": ctx.attr.environment,
         "verify_reproducible": ctx.attr.verify_reproducible,
-    }))
+    }
+    if ctx.attr.python_tools:
+        for script in ctx.attr.python_tools.values():
+            if script not in mappings:
+                fail("Python plugin scripts must be declared generator inputs")
+        launcher = ctx.attr.python_launcher[DefaultInfo].files_to_run
+        tools.append(launcher)
+        contents["python_launcher"] = launcher.executable.path
+        contents["python_tools"] = ctx.attr.python_tools
+    ctx.actions.write(manifest, json.encode(contents))
     ctx.actions.run(
         executable = ctx.attr._runner[DefaultInfo].files_to_run,
         arguments = [manifest.path],
@@ -53,7 +62,7 @@ def _impl(ctx):
     )
     return [DefaultInfo(files = depset(ctx.outputs.out_files))]
 
-electron_source_action = rule(
+_electron_source_action = rule(
     implementation = _impl,
     attrs = {
         "srcs": attr.label_keyed_string_dict(allow_files = True),
@@ -67,7 +76,18 @@ electron_source_action = rule(
         "args": attr.string_list(),
         "response": attr.string_list(),
         "environment": attr.string_dict(),
+        "python_tools": attr.string_dict(),
+        "python_launcher": attr.label(executable = True, cfg = "exec"),
         "verify_reproducible": attr.bool(default = True),
         "_runner": attr.label(default = Label("//electron/private:source_action"), executable = True, cfg = "exec"),
     },
 )
+
+def electron_source_action(name, python_tools = {}, **kwargs):
+    """Run original generators with optional declared executable Python plugins."""
+    _electron_source_action(
+        name = name,
+        python_tools = python_tools,
+        python_launcher = Label("//electron/private:python_plugin_launcher") if python_tools else None,
+        **kwargs
+    )

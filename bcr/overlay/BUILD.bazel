@@ -74,6 +74,7 @@ test_suite(
     name = "source_tests",
     tests = [
         "//electron/private:nss_integrity_test",
+        "//electron/private:source_action_test",
         "//source:base_test",
         "//source:codecs_test",
         "//source:crypto_compat_test",

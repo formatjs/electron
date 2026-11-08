@@ -8,6 +8,8 @@ _INPUTS = [
     "@electron_base_sources//:chrome/VERSION",
     "@electron_network_sources//:chrome/app/theme/chromium/BRANDING",
     "@electron_base_sources//:build/util/LASTCHANGE.dummy",
+    "@electron_platform_sources//:src/skia/ext/skia_commit_hash.h",
+    "//source/native:skia_inputs.json",
 ]
 
 py_test(

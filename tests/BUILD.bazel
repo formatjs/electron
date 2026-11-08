@@ -5,7 +5,10 @@ archive_urls_test(name = "archive_urls_test")
 
 test_suite(
     name = "hermetic_execution_test",
-    tests = ["@electron//tests:hermetic_execution_test"],
+    tests = [
+        "@electron//electron/private:source_action_test",
+        "@electron//tests:hermetic_execution_test",
+    ],
 )
 
 py_test(

@@ -124,6 +124,7 @@ def electron_platform():
                 name = name,
                 srcs = {":devtools_workspace_script" if workspace and original == workspace["target"] and path == "//" + workspace["script"] else _file(path): path[2:] for path in action["inputs"]},
                 tools = {_label(label): path[2:] for path, label in action["tools"].items()},
+                python_tools = action.get("python_tools", {}),
                 source_groups = [":devtools_node_modules"] if action.get("devtools_node_modules") else [],
                 tool_inputs = [":" + PROFILE["libraries"][label]["name"] + "_runtime" for label in action["tools"].values() if PROFILE["libraries"].get(label, {}).get("native_tool_data")],
                 deps = [":" + PROFILE["names"][label] + "_runs" for label in action["ordering_deps"]],

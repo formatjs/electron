@@ -31,6 +31,7 @@ SOURCE_PREFIXES += MEDIA_SOURCE_PREFIXES + COMPOSITOR_SOURCE_PREFIXES + BLINK_SO
 SOURCE_PREFIXES += ["third_party/cros_system_api"]
 TOOLCHAIN = {"//buildtools/third_party/libc++:" + name for name in ("all_modules", "custom_headers", "libcxx_headers", "libc++")}
 EXTRA_NATIVE_HEADERS = {
+    "//components/viz/host:host": ["//skia/ext/skia_commit_hash.h"],
     "//services/viz/privileged/mojom/compositing:compositing": ["//services/viz/privileged/cpp/renderer_settings_mojom_traits.h", "//services/viz/privileged/cpp/overlay_strategy_mojom_traits.h"],
     "//third_party/blink/renderer/platform:platform": ["//third_party/blink/renderer/core/frame/web_feature.h"],
     "//media/gpu/chromeos:chromeos": ["//chromeos/components/cdm_factory_daemon/cdm_context_for_oopvd_impl.h"],
@@ -250,6 +251,18 @@ def capture(graph, digest, chromium, source_roots, profiles):
     if original_command != expected_command:
         raise ValueError("Original Dawn checkout hook changed")
     names[hook_label] = hook_name
+    skia = json.loads((profiles / "skia_inputs.json").read_text())["source_revisions"]["skia"]
+    if skia != "f4ed99d2443962782cf5f8b4dd27179f131e7cbe":
+        raise ValueError("Update pinned Skia checkout-hook commit metadata")
+    skia_hook = next(node for node in hook_list.elts if isinstance(node, ast.Dict) and any(isinstance(key, ast.Constant) and key.value == "name" and isinstance(value, ast.Constant) and value.value == "lastchange_skia" for key, value in zip(node.keys, node.values)))
+    skia_command = ast.literal_eval(next(value for key, value in zip(skia_hook.keys, skia_hook.values) if isinstance(key, ast.Constant) and key.value == "action"))
+    if skia_command != ["python3", "src/build/util/lastchange.py", "-m", "SKIA_COMMIT_HASH", "-s", "src/third_party/skia", "--header", "src/skia/ext/skia_commit_hash.h"]:
+        raise ValueError("Original Skia checkout hook changed")
+    skia_hook_label = "//skia:checkout_lastchange_skia"
+    skia_hook_name = "checkout_lastchange_skia"
+    skia_outputs = [BUILD + "src/skia/ext/skia_commit_hash.h"]
+    names[skia_hook_label] = skia_hook_name
+    source_aliases["//skia/ext/skia_commit_hash.h"] = skia_outputs[0]
     files, generated, headers, used_shared = set(), {}, {}, set()
     literal_metadata = {}
     producers = {}
@@ -261,6 +274,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
                     raise ValueError("Unexpected/duplicate platform output")
                 producers[output] = label
     producers.update({path: hook_label for path in hook_outputs})
+    producers.update({path: skia_hook_label for path in skia_outputs})
     tools = {output: label for label, target in targets.items() if target["type"] == "executable" and (label in seen or label in external) for output in target.get("outputs", [])[:1]}
     tools[BUILD + "gperf"] = "@gperf//:gperf"
     node = "//third_party/node/linux/node-linux-x64/bin/node"
@@ -614,6 +628,14 @@ def capture(graph, digest, chromium, source_roots, profiles):
         checkout_hook={"source": "DEPS", "name": "lastchange_dawn", "command": original_command,
                        "commit_metadata": "https://github.com/google/dawn/commit/" + dawn},
     )
+    actions[skia_hook_label] = dict(
+        name=skia_hook_name, kind="action", gn_deps=[], scoped_checkout_hook=True,
+        script="build/util/lastchange.py", inputs=["//build/util/lastchange.py"], tools={},
+        outputs=skia_outputs, runs=[dict(outputs=skia_outputs, args=["-m", "SKIA_COMMIT_HASH", "-s", "../../third_party/skia", "--header", "src/skia/ext/skia_commit_hash.h"])],
+        response=[], environment={"BASE_COMMIT_HASH": skia, "BASE_COMMIT_SUBMISSION_MS": "1759426246000"},
+        checkout_hook={"source": "DEPS", "name": "lastchange_skia", "command": skia_command,
+                       "commit_metadata": "https://github.com/google/skia/commit/" + skia},
+    )
     for label, action in actions.items():
         ordering, visited, pending = set(), set(), list(action["gn_deps"])
         while pending:
@@ -678,7 +700,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
             if label in actions:
                 selected.add(label)
             pending.extend(targets[label].get("deps", []))
-        selected.update(label for label in actions if label not in targets)
+        selected.update(label for label in actions if label not in targets and not actions[label].get("scoped_checkout_hook"))
         return sorted(selected)
 
     native_header_actions = native_actions(libraries)
