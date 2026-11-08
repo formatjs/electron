@@ -1,0 +1,24 @@
+load("@rules_python//python:defs.bzl", "py_test")
+
+package(default_visibility = ["//visibility:public"])
+
+_CORE = "@electron_platform_sources//:gen/third_party/blink/renderer/core/event_interface_names.json5"
+
+_MODULES = "@electron_platform_sources//:gen/third_party/blink/renderer/modules/event_interface_modules_names.json5"
+
+py_test(
+    name = "bindings_test",
+    srcs = ["bindings_test.py"],
+    args = ["$(rootpath " + path + ")" for path in [
+        _CORE,
+        _MODULES,
+    ]],
+    data = [
+        _CORE,
+        _MODULES,
+    ],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)

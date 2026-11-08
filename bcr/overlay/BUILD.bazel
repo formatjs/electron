@@ -63,6 +63,7 @@ filegroup(
         "//source/blink_rust:libraries",
         "//source/crabbyavif",
         "//source/media:symphonia_libraries",
+        "@electron_platform_sources//:blink_bindings",
     ],
 )
 
@@ -101,6 +102,7 @@ test_suite(
         "//source:v8_regexp_test",
         "//source:v8_support_test",
         "//source:v8_tasks_test",
+        "//source/blink_bindings:bindings_test",
         "//source/blink_rust:crash_test",
         "//source/blink_rust:font_format_test",
         "//source/compositor:compositor_test",
