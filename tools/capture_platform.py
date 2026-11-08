@@ -63,7 +63,8 @@ ELECTRON_GENERATORS = {
 }
 NPM_PREFLIGHT = "//electron:npm_pre_flight_electron_version_args"
 ELECTRON_PLATFORM_ROOTS = ["//electron:electron_gtk_stubs", "//electron:libnotify_loader"]
-ROOTS = CONTENT_ROOTS + ELECTRON_PLATFORM_ROOTS + list(ELECTRON_GENERATORS.values())
+ELECTRON_RESOURCE_ROOT = "//electron:packed_resources"
+ROOTS = CONTENT_ROOTS + ELECTRON_PLATFORM_ROOTS + list(ELECTRON_GENERATORS.values()) + [ELECTRON_RESOURCE_ROOT]
 SOURCE_PREFIXES = ["third_party/dom_distiller_js/dist", "third_party/readability/src", "third_party/libyuv", "third_party/angle", "third_party/dawn", "third_party/swiftshader", "third_party/spirv-tools/src", "third_party/spirv-headers/src", "third_party/vulkan-loader/src", "third_party/vulkan-tools/src", "third_party/vulkan-utility-libraries/src", "third_party/vulkan-headers/src", "third_party/vulkan_memory_allocator", "third_party/wayland/src", "third_party/wayland-protocols/src", "third_party/wayland-protocols/kde"]
 MEDIA_SOURCE_PREFIXES = ["third_party/flac", "media/cdm/api", "third_party/libaom/source/libaom", "third_party/crc32c/src", "third_party/ffmpeg", "third_party/libvpx/source/libvpx", "third_party/openh264/src", "third_party/dav1d/libdav1d", "third_party/libgav1/src", "third_party/leveldatabase/src", "third_party/libwebm/source"]
 COMPOSITOR_SOURCE_PREFIXES = ["third_party/webrtc", "third_party/federated_compute/src", "third_party/libsrtp"]
@@ -124,7 +125,7 @@ SCRIPTS = MOJO_SCRIPTS | {"//" + name for name in (
     "third_party/inspector_protocol/check_protocol_compatibility.py",
     "third_party/inspector_protocol/code_generator.py",
     "third_party/inspector_protocol/concatenate_protocols.py",
-    "tools/grit/grit.py", "tools/variations/fieldtrial_to_struct.py",
+    "tools/grit/grit.py", "tools/grit/pak_util.py", "tools/variations/fieldtrial_to_struct.py",
     "tools/metrics/private_metrics/gen_builders.py", "tools/metrics/ukm/gen_builders.py",
     "third_party/blink/renderer/build/scripts/run_with_pythonpath.py",
     "third_party/webrtc/experiments/field_trials.py",
@@ -607,6 +608,8 @@ def capture(graph, digest, chromium, source_roots, profiles):
                 inputs.update(["//electron/package.json", "//electron/yarn.lock", "//third_party/node/node.py", node])
                 record["mapped_source_groups"] = {"@electron_npm//:pkg_" + identity: "electron/node_modules/" + name for name, identity in node_lock["roots"].items()}
                 args = ["../../electron/script/generate-version-json.js"] + args[3:]
+            if target["script"] == "//tools/grit/pak_util.py" and (not args or args[0] != "repack"):
+                raise ValueError("Only original resource repack actions are captured")
             if "--protoc-gen-ts" in args:
                 if target["script"] != "//tools/protoc_wrapper/protoc_wrapper.py":
                     raise ValueError("Unexpected TypeScript protobuf plugin producer")
@@ -935,7 +938,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
     if physical(policy_script).read_text().count(original) != 1:
         raise ValueError("Original policy depfile writer changed")
     source_adapters = {"//" + policy_script: {original: "f.write(' '.join(os.path.relpath(path) for path in source_files))"}}
-    return dict(electron_generators=ELECTRON_GENERATORS, content_generators=CONTENT_GENERATORS, source_adapters=source_adapters, content_web_assets=CONTENT_WEB_ASSETS, content_resources=CONTENT_RESOURCES, content_protobuf_runtime=CONTENT_PROTO_RUNTIME_COPIES, content_metadata=CONTENT_METADATA, devtools_workspace=devtools_workspace, devtools_frontend_actions=devtools_actions, header_layers=header_layers, devtools_esbuild=devtools_esbuild, copies=copies, devtools_node_modules_files=devtools_packages, native_header_actions=sorted(native_header_actions), source_aliases=source_aliases, roots=ROOTS, graph_sha256=digest, source_revisions=revisions, names=names, libraries=libraries, actions=actions, metadata=metadata, literal_metadata=literal_metadata, execution_tools=sorted(set(tools.values())), execution_closure=sorted(execution_closure), producers=producers, headers=headers, files=sorted(files), external_files={path: shared[path] for path in sorted(used_shared)}, external={label: external[label] for label in sorted(used)}, generated_files=generated, toolchain_deps=sorted(TOOLCHAIN), sdk_libraries=sorted(SDK_LIBS))
+    return dict(electron_repack_actions=sorted(label for label in actions if actions[label]["script"] == "tools/grit/pak_util.py"), electron_generators=ELECTRON_GENERATORS, content_generators=CONTENT_GENERATORS, source_adapters=source_adapters, content_web_assets=CONTENT_WEB_ASSETS, content_resources=CONTENT_RESOURCES, content_protobuf_runtime=CONTENT_PROTO_RUNTIME_COPIES, content_metadata=CONTENT_METADATA, devtools_workspace=devtools_workspace, devtools_frontend_actions=devtools_actions, header_layers=header_layers, devtools_esbuild=devtools_esbuild, copies=copies, devtools_node_modules_files=devtools_packages, native_header_actions=sorted(native_header_actions), source_aliases=source_aliases, roots=ROOTS, graph_sha256=digest, source_revisions=revisions, names=names, libraries=libraries, actions=actions, metadata=metadata, literal_metadata=literal_metadata, execution_tools=sorted(set(tools.values())), execution_closure=sorted(execution_closure), producers=producers, headers=headers, files=sorted(files), external_files={path: shared[path] for path in sorted(used_shared)}, external={label: external[label] for label in sorted(used)}, generated_files=generated, toolchain_deps=sorted(TOOLCHAIN), sdk_libraries=sorted(SDK_LIBS))
 
 
 def main():

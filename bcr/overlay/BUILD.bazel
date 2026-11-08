@@ -71,6 +71,7 @@ filegroup(
         "@electron_platform_sources//:content_web_assets",
         "@electron_platform_sources//:devtools_frontend",
         "@electron_platform_sources//:electron_generated",
+        "@electron_platform_sources//:electron_packed_resources",
         "@electron_rust_sources//:content_crates",
     ],
 )

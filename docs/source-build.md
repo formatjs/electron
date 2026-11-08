@@ -2369,3 +2369,33 @@ CMake/foreign-cc mnemonics. Only the notification loader C++ key changes; the
 other 41,455 C++ keys and every Rust/Cargo/Python key remain present. Existing
 native library records and header layers remain unchanged. GRIT's declared
 inputs change, so matching Python action keys do not imply cache reuse.
+
+
+### Full Electron app resources and locale repacks
+
+WebUI capture now starts at `//electron:electron_app`, with an optional root
+argument for narrower source audits. It covers 324 roots and 544 actions,
+including PDF, print preview, extension resources and Electron's own pack.
+The 306 added producers preserve every existing producer record. This profile
+continues to reuse native providers; it adds no native implementation sources.
+Electron's resource manifest resolves through the pinned Electron source root.
+
+The native profile also imports the original `//electron:packed_resources`
+closure: 225 `pak_util.py repack` actions, including 220 locale variants.
+Only the repack command is accepted. It uses declared upstream grit Python
+files, an empty PATH and existing two-run reproducibility checks. No host
+Brotli fallback or replacement pack writer runs. Source components request
+these real outputs through `electron_packed_resources`.
+
+That closure includes 18 original generated C++ resource maps and 36 library/
+group records. Existing library/action records and the first four header layers
+remain unchanged. The Electron layer gains the resource wrappers' headers.
+The runtime contract checks the final resources.pak preserves Electron's
+discovery-page route and all three inlined DomDistiller/Readability payloads.
+
+The complete dependency audit has 95,196 actions and zero CMake/foreign-cc
+mnemonics. It retains 41,454 existing C++ keys, changes the two GTK/notification
+keys for the expanded Electron header layer and adds 18 resource-map compiles.
+All 254 Rust, 26 Cargo and 7,001 previous Python keys remain present; 534
+Python actions are added. Metadata analysis ran zero build/test processes.
+Hosted execution remains required; full Electron executable linkage is open.

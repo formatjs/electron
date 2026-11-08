@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""Check Chromium resource IDs preserve the original tracing payloads."""
+"""Check original Chromium/Electron payloads and final resource routing."""
 
 import gzip
 from pathlib import Path
@@ -9,7 +9,9 @@ import subprocess
 import sys
 import unittest
 
-HEADER, PACK, HTML, JAVASCRIPT, NODE, COMPONENT_HEADER, COMPONENT_PACK, DISTILLER, READABILITY, READERABLE = [Path(value) for value in sys.argv[1:]]
+(HEADER, PACK, HTML, JAVASCRIPT, NODE, COMPONENT_HEADER, COMPONENT_PACK,
+ DISTILLER, READABILITY, READERABLE, FINAL_PACK, ELECTRON_HEADER,
+ DISCOVERY_HTML) = [Path(value) for value in sys.argv[1:]]
 sys.argv[1:] = []
 
 
@@ -63,6 +65,19 @@ class ContentWebUI(unittest.TestCase):
                 self.assertNotRegex(text, r'<include\b[^>]*\bsrc=')
                 subprocess.run([str(NODE.resolve()), "--check"], input=payload, check=True,
                                env={"PATH": "", "LANG": "C", "LC_ALL": "C", "TZ": "UTC"})
+
+    def test_electron_repack_preserves_discovery_page_and_component_payloads(self):
+        electron_ids = dict((name, int(value)) for name, value in re.findall(
+            r"^#define (IDR_\w+) (\d+)$", ELECTRON_HEADER.read_text(), re.MULTILINE))
+        component_ids = dict((name, int(value)) for name, value in re.findall(
+            r"^#define (IDR_\w+) (\d+)$", COMPONENT_HEADER.read_text(), re.MULTILINE))
+        final = resources(FINAL_PACK)
+        components = resources(COMPONENT_PACK)
+        self.assertEqual(final[electron_ids["IDR_CONTENT_SHELL_DEVTOOLS_DISCOVERY_PAGE"]], DISCOVERY_HTML.read_bytes())
+        for name in ("IDR_DISTILLER_JS", "IDR_READABILITY_DISTILLER_JS", "IDR_READABILITY_TRIGGERING_JS"):
+            with self.subTest(resource=name):
+                identifier = component_ids[name]
+                self.assertEqual(final[identifier], components[identifier])
 
 
 if __name__ == "__main__":

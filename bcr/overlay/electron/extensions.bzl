@@ -175,6 +175,7 @@ def _impl(ctx):
     platform_repos = electron_platform_repositories(ctx)
     electron_ui_repository(name = "electron_ui_sources", chromium = "@electron_chromium_sources//:DEPS", node_modules = "@electron_chromium_webui_upstream//:BUILD.bazel")
     electron_ui_repository(name = "electron_content_webui_sources", chromium = "@electron_chromium_sources//:DEPS", node_modules = "@electron_chromium_webui_upstream//:BUILD.bazel", profile = "//source/native:content_webui_inputs.json", build_file = "//source:content_webui.BUILD.bazel", source_roots = {
+        "@electron//:DEPS": "electron",
         "@electron_platform_dom_distiller_js_dist//:BUILD.bazel": "third_party/dom_distiller_js/dist",
         "@electron_platform_readability_src//:BUILD.bazel": "third_party/readability/src",
     })
