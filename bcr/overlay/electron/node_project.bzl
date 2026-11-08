@@ -6,6 +6,9 @@ def _relative(path):
     return path
 
 def _node_project_impl(ctx):
+    python = ctx.toolchains["@rules_python//python:toolchain_type"].py3_runtime
+    if not python.interpreter:
+        fail("Electron Node generators require a declared Python interpreter")
     node = ctx.toolchains["@rules_nodejs//nodejs:toolchain_type"].nodeinfo.node
     if not node:
         fail("Electron Node generators require a hermetic Node execution toolchain")
@@ -52,9 +55,21 @@ def _node_project_impl(ctx):
     manifest = ctx.actions.declare_file(ctx.label.name + ".inputs.json")
     ctx.actions.write(manifest, json.encode(dict(sources = sources, packages = packages, outputs = outputs, project = project, commands = commands)))
     ctx.actions.run(
-        executable = ctx.attr._runner[DefaultInfo].files_to_run,
-        arguments = ["--node", node.path, "--manifest", manifest.path, "--lock", ctx.file.lock.path],
-        inputs = depset(inputs + [manifest]),
+        executable = python.interpreter,
+        arguments = [
+            "-I",
+            "-B",
+            "-c",
+            "import os,runpy,sys; script=sys.argv.pop(1); sys.path.insert(0,os.path.dirname(os.path.abspath(script))); runpy.run_path(script,run_name='__main__')",
+            ctx.file._runner.path,
+            "--node",
+            node.path,
+            "--manifest",
+            manifest.path,
+            "--lock",
+            ctx.file.lock.path,
+        ],
+        inputs = depset(inputs + [manifest, ctx.file._runner, ctx.file._workspace], transitive = [python.files] if python.files else []),
         outputs = ctx.outputs.out_files,
         mnemonic = "ElectronNodeProject",
         env = {"PATH": "", "LANG": "C.UTF-8", "LC_ALL": "C.UTF-8", "TZ": "UTC"},
@@ -72,9 +87,10 @@ electron_node_project = rule(
         "version": attr.string(),
         "logical_outputs": attr.string_list(mandatory = True),
         "out_files": attr.output_list(mandatory = True),
-        "_runner": attr.label(default = Label("//electron/private:node_project"), executable = True, cfg = "exec"),
+        "_runner": attr.label(default = Label("//electron/private:node_project.py"), allow_single_file = True, cfg = "exec"),
+        "_workspace": attr.label(default = Label("//electron/private:npm_workspace.py"), allow_single_file = True, cfg = "exec"),
     },
-    toolchains = ["@rules_nodejs//nodejs:toolchain_type"],
+    toolchains = ["@rules_nodejs//nodejs:toolchain_type", "@rules_python//python:toolchain_type"],
 )
 
 def _npm_file_impl(ctx):
