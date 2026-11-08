@@ -25,12 +25,20 @@ actions:
             //tests:hermetic_execution_test
           bazel test --config=buildbuddy --strategy=TestRunner=local \
             --registry="file://$registry" --registry=https://bcr.bazel.build \
+            --profile="$BUILDBUDDY_ARTIFACTS_DIRECTORY/source-graphics-profile.json.gz" \
             @electron//source:platform_graphics_test
           # Keep compile-only archives in CAS; tests download their declared data.
           bazel build --config=buildbuddy --remote_download_outputs=minimal --registry="file://$registry" \
+            --profile="$BUILDBUDDY_ARTIFACTS_DIRECTORY/source-components-profile.json.gz" \
+            --experimental_profile_additional_tasks=remote_cache_check \
+            --experimental_profile_additional_tasks=remote_download \
+            --experimental_profile_additional_tasks=remote_queue \
             --registry=https://bcr.bazel.build //:source_components
           bazel test --config=buildbuddy --strategy=TestRunner=local \
             --registry="file://$registry" --registry=https://bcr.bazel.build \
+            --profile="$BUILDBUDDY_ARTIFACTS_DIRECTORY/source-tests-profile.json.gz" \
+            --experimental_profile_additional_tasks=remote_cache_check \
+            --experimental_profile_additional_tasks=remote_download \
             //:source_tests //tests:prepare_source_test
 
   - name: Electron source cross-compile
@@ -86,4 +94,7 @@ actions:
             @electron//tests:hermetic_execution_test
           bazel test --config=buildbuddy --strategy=TestRunner=local \
             --registry="file://$registry" --registry=https://bcr.bazel.build \
+            --profile="$BUILDBUDDY_ARTIFACTS_DIRECTORY/source-consumer-profile.json.gz" \
+            --experimental_profile_additional_tasks=remote_cache_check \
+            --experimental_profile_additional_tasks=remote_download \
             //:loop_consumer_test @electron//:source_tests
