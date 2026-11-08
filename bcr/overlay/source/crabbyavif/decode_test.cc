@@ -80,11 +80,16 @@ int main(int argc, char** argv) {
   Require(input.is_open(), "declared AVIF fixture available");
   const std::vector<uint8_t> encoded{std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>()};
   auto* decoder = crabby_avifDecoderCreate();
-  auto* image = crabby_avifImageCreateEmpty();
-  Require(decoder && image, "C API allocates decoder objects");
+  Require(decoder != nullptr, "C API allocates decoder objects");
   decoder->maxThreads = 1;
-  Require(crabby_avifDecoderReadMemory(decoder, image, encoded.data(), encoded.size()) == AVIF_RESULT_OK,
+  Require(crabby_avifDecoderSetIOMemory(decoder, encoded.data(), encoded.size()) == AVIF_RESULT_OK,
+          "C API accepts declared AVIF memory");
+  Require(crabby_avifDecoderParse(decoder) == AVIF_RESULT_OK,
+          "original Rust decoder parses AVIF metadata");
+  Require(crabby_avifDecoderNthImage(decoder, 0) == AVIF_RESULT_OK,
           "original Rust decoder reads lossless AVIF through native dav1d");
+  const auto* image = decoder->image;
+  Require(image != nullptr, "decoded image remains decoder owned");
 
   Stage("decode");
   FILE* reference = std::fopen(argv[2], "rb");
@@ -127,8 +132,7 @@ int main(int argc, char** argv) {
   Stage("pixels");
   crabby_avifRGBImageFreePixels(&rgb);
   Stage("rgb_freed");
-  crabby_avifImageDestroy(image);
-  Stage("image_freed");
+  // Match Blink: decoder owns image planes and metadata.
   crabby_avifDecoderDestroy(decoder);
   Stage("conversion");
   CheckConversion();
