@@ -14,7 +14,7 @@ from functools import cache
 from pathlib import Path
 
 from capture_mojo import SCRIPTS as MOJO_SCRIPTS
-from native_graph import BUILD, capture_library, load_profiles
+from native_graph import BUILD, capture_library, load_profiles, pack_profile
 
 BLINK_BINDINGS_ROOTS = ["//third_party/blink/renderer/bindings:web_idl_database", "//third_party/blink/renderer/core:core_event_interfaces", "//third_party/blink/renderer/modules:modules_event_interfaces"]
 BLINK_PLATFORM_GENERATORS = ['//third_party/blink/common:make_generated_document_policy_features', '//third_party/blink/common:make_generated_features', '//third_party/blink/common:make_generated_origin_trials', '//third_party/blink/common:make_runtime_feature_state_contexts_impl', '//third_party/blink/public/common:make_generated_permissions_policy_helper', '//third_party/blink/public/common:make_runtime_feature_state_contexts_headers', '//third_party/blink/public/mojom/origin_trials:generate_origin_trial_feature', '//third_party/blink/public/mojom/runtime_feature_state:generate_runtime_feature', '//third_party/blink/public:runtime_features_for_public', '//third_party/blink/renderer/core:make_core_generated_settings', '//third_party/blink/renderer/platform/loader:make_platform_loader_generated_delivery_type_names', '//third_party/blink/renderer/platform/loader:make_platform_loader_generated_fetch_initiator_type_names', '//third_party/blink/renderer/platform/network:http_names', '//third_party/blink/renderer/platform:color_data', '//third_party/blink/renderer/platform:font_family_names', '//third_party/blink/renderer/platform:runtime_enabled_features', '//third_party/blink/renderer/platform:runtime_feature_state_override_context']
@@ -67,24 +67,34 @@ def source_files(root):
 
 
 def grit_resource_inputs(inputs, physical):
-    pending = [path[2:] for path in inputs if path.startswith("//") and not path.startswith(BUILD) and path.endswith((".grd", ".grdp"))]
+    pending = [(path[2:], None) for path in inputs if path.startswith("//") and not path.startswith(BUILD) and path.endswith((".grd", ".grdp"))]
     seen, resources = set(), set()
     asset_types = {".html", ".css", ".js", ".svg", ".png", ".jpg", ".jpeg", ".webp", ".gif", ".ico", ".cur", ".woff", ".woff2", ".ttf", ".json", ".bin"}
     while pending:
-        source = pending.pop()
-        if source in seen or not physical(source).is_file():
+        source, base = pending.pop()
+        if (source, base) in seen or not physical(source).is_file():
             continue
-        seen.add(source)
-        for node in ElementTree.parse(physical(source)).iter():
+        seen.add((source, base))
+        tree = ElementTree.parse(physical(source))
+        if base is None:
+            base = posixpath.normpath(posixpath.join(posixpath.dirname(source), tree.getroot().attrib.get("base_dir", ".")))
+        for node in tree.iter():
             name = node.attrib.get("file")
             if not name or any(marker in name for marker in ("$", "<(", "%(")):
                 continue
-            path = posixpath.normpath(posixpath.join(posixpath.dirname(source), name))
+            if node.attrib.get("type") == "chrome_scaled_image":
+                for layout in physical(base).iterdir():
+                    if layout.is_dir() and re.search(r"_\d+_percent$", layout.name):
+                        variant = posixpath.normpath(posixpath.join(base, layout.name, name))
+                        if not variant.startswith(("/", "../")) and physical(variant).is_file():
+                            resources.add("//" + variant)
+                continue
+            path = posixpath.normpath(posixpath.join(base, name))
             if path.startswith(("/", "../")) or not physical(path).is_file():
                 continue
             resources.add("//" + path)
             if path.endswith((".grd", ".grdp")):
-                pending.append(path)
+                pending.append((path, base))
             elif Path(path).suffix in (".html", ".css", ".js"):
                 directory = posixpath.dirname(path)
                 root = physical(directory)
@@ -517,7 +527,7 @@ def main():
     roots = dict(item.split("=", 1) for item in args.source_root)
     content = args.graph.read_bytes()
     profile = capture(json.loads(gzip.decompress(content)), hashlib.sha256(content).hexdigest(), args.chromium_root, {name: Path(path) for name, path in roots.items()}, args.profiles)
-    args.output.write_text(json.dumps(profile, indent=2) + "\n")
+    args.output.write_text(json.dumps(pack_profile(profile), separators=(",", ":")) + "\n")
 
 
 if __name__ == "__main__":

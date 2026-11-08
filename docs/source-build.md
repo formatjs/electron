@@ -1616,8 +1616,8 @@ Full Blink platform integration is unfinished.
 The Linux AMD64 capture now includes original
 `//third_party/blink/renderer/platform:platform` and its dependency closure:
 12,256 source/object units, 2,989 native library/group targets, 1,633 generator
-targets and three copy targets. All previous native library, generator and literal
-metadata records remain unchanged. Forty-nine exact source pins include the
+targets and three copy targets. Previous native library and literal metadata records remain unchanged.
+Resource followups extend GRIT input declarations. Forty-nine exact source pins include the
 additional ML/font dependencies; DevTools retains Electron's original patches.
 
 DevTools uses declared Node and the SHA256-pinned esbuild package from its own
@@ -1632,3 +1632,14 @@ UTF-8 validation, grapheme boundaries, string interning, Unicode properties and
 generated CSS color lookup. It uses the existing isolated desktop-library
 wrapper. Compile, link and runtime validation remain pending. The renderer and
 full Electron executable are still unfinished.
+
+GRIT resource inputs include descriptor references, sibling web assets, and all
+checked-in layout/scale image variants. The resource fixes remain under hosted
+validation.
+
+The generated platform manifest pools repeated string lists. Bazel's exported
+`PROFILE` retains its original values; metadata tools use
+`tools.native_graph.unpack_profile` when reading the file. A full-data round trip
+and comparison of all 76,246 registered action keys verified that pooling alone
+preserves build behavior. The compact pooled file is about 26.6 MB instead of
+94.7 MB. This measures stored bytes, not build speed.

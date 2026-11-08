@@ -8,6 +8,54 @@ BUILD = "//out/bazel-import/"
 DIAGNOSTIC_INPUTS = {"//build/config/unsafe_buffers_paths.txt", "//build/config/warning_suppression.txt"}
 
 
+def pack_profile(profile):
+    strings, indices = [], {}
+
+    def pack(value):
+        if isinstance(value, dict):
+            if "_strings" in value or "_string_pool" in value:
+                raise ValueError("Reserved native profile key")
+            return {key: pack(item) for key, item in value.items()}
+        if isinstance(value, list):
+            if value and all(isinstance(item, str) for item in value):
+                ids = []
+                for item in value:
+                    if item not in indices:
+                        indices[item] = len(strings)
+                        strings.append(item)
+                    ids.append(indices[item])
+                return {"_strings": ids}
+            return [pack(item) for item in value]
+        return value
+
+    result = pack(profile)
+    result["_string_pool"] = strings
+    return result
+
+
+def unpack_profile(profile):
+    if "_string_pool" not in profile:
+        return profile
+    pool = profile.pop("_string_pool")
+    if not isinstance(pool, list) or not all(isinstance(item, str) for item in pool):
+        raise ValueError("Invalid native profile string pool")
+
+    def unpack(value):
+        if isinstance(value, dict):
+            if "_strings" in value:
+                if set(value) != {"_strings"} or not isinstance(value["_strings"], list):
+                    raise ValueError("Invalid native profile string reference")
+                if not all(type(index) is int and 0 <= index < len(pool) for index in value["_strings"]):
+                    raise ValueError("Invalid native profile string index")
+                return [pool[index] for index in value["_strings"]]
+            return {key: unpack(item) for key, item in value.items()}
+        if isinstance(value, list):
+            return [unpack(item) for item in value]
+        return value
+
+    return unpack(profile)
+
+
 def value(graph, target, key):
     item = target.get(key, [])
     return graph["pool"][item["pool"]] if isinstance(item, dict) else item
@@ -60,7 +108,7 @@ def load_profiles(directory, profiles):
     """Share owned target/file identities across captured native closures."""
     external, shared = {}, {}
     for name, repository in profiles:
-        profile = json.loads((directory / (name + "_inputs.json")).read_text())
+        profile = unpack_profile(json.loads((directory / (name + "_inputs.json")).read_text()))
         owner = "@electron_" + repository + "_sources//:"
         external.update({label: owner + target for label, target in profile.get("names", {}).items()})
         external.update({label: owner + target[1:] if target.startswith(":") else target for label, target in profile.get("external", {}).items()})

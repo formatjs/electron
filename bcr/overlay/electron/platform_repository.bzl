@@ -2,6 +2,7 @@
 
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "new_git_repository")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load(":profile_codec.bzl", "unpack_profile")
 
 def _sources_impl(ctx):
     ctx.read(ctx.attr.chromium)
@@ -11,7 +12,7 @@ def _sources_impl(ctx):
         ctx.read(anchor)
         roots[prefix] = ctx.path(anchor).dirname
     contents = ctx.read(ctx.attr.profile)
-    profile = json.decode(contents)
+    profile = unpack_profile(json.decode(contents))
     for path in profile["files"]:
         if path.startswith("/") or "\\" in path or any([part in ["", ".", ".."] for part in path.split("/")]):
             fail("Invalid platform source path")
@@ -34,7 +35,7 @@ def _sources_impl(ctx):
         if not path.startswith("//out/bazel-import/") or ".." in path.split("/"):
             fail("Invalid platform metadata path")
         ctx.file(path[2:], content, executable = False)
-    ctx.file("profile.bzl", "PROFILE = json.decode(" + json.encode(contents) + ")\n")
+    ctx.file("profile.bzl", 'load("@electron//electron:profile_codec.bzl", "unpack_profile")\nPROFILE = unpack_profile(json.decode(' + json.encode(contents) + "))\n")
     ctx.file("BUILD.bazel", ctx.read(ctx.attr.build_file))
 
 _platform_sources = repository_rule(
@@ -71,7 +72,7 @@ _platform_runtime = repository_rule(
 )
 
 def electron_platform_repositories(ctx):
-    profile = json.decode(ctx.read(Label("//source/native:platform_inputs.json")))
+    profile = unpack_profile(json.decode(ctx.read(Label("//source/native:platform_inputs.json"))))
     anchors, names = {"@electron//:DEPS": "electron"}, []
     for prefix, pin in profile["source_revisions"].items():
         group = pin.get("patch_group")
