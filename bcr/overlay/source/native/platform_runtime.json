@@ -12,7 +12,14 @@
     "libpangocairo-1.0.so.0",
     "libatk-1.0.so.0",
     "libatk-bridge-2.0.so.0",
-    "libasound.so.2"
+    "libasound.so.2",
+    "libXcomposite.so.1",
+    "libXdamage.so.1",
+    "libXfixes.so.3",
+    "libXrandr.so.2",
+    "libXtst.so.6",
+    "libXrender.so.1",
+    "libdrm.so.2"
   ],
   "system_libraries": [
     "ld-linux-x86-64.so.2",
@@ -634,6 +641,60 @@
       "package": "libasound2",
       "url": "https://snapshot.debian.org/archive/debian/20250129T203412Z/pool/main/a/alsa-lib/libasound2_1.2.4-1.1_amd64.deb",
       "md5": "278210979a3d67b6a4ec4a38d830f247"
+    },
+    "libXcomposite.so.1": {
+      "interface": "usr/lib/x86_64-linux-gnu/libXcomposite.so.1.0.0",
+      "needed": [
+        "libX11.so.6",
+        "libc.so.6"
+      ],
+      "package": "libxcomposite1",
+      "url": "https://snapshot.debian.org/archive/debian/20250129T203412Z/pool/main/libx/libxcomposite/libxcomposite1_0.4.5-1_amd64.deb",
+      "md5": "8d8d740c8e7bb78ab0eae6ee0f55061b"
+    },
+    "libXdamage.so.1": {
+      "interface": "usr/lib/x86_64-linux-gnu/libXdamage.so.1.1.0",
+      "needed": [
+        "libX11.so.6",
+        "libc.so.6"
+      ],
+      "package": "libxdamage1",
+      "url": "https://snapshot.debian.org/archive/debian/20250129T203412Z/pool/main/libx/libxdamage/libxdamage1_1.1.5-2_amd64.deb",
+      "md5": "ba68e26b358c9dba60d488d2e6e6e9ad"
+    },
+    "libXfixes.so.3": {
+      "interface": "usr/lib/x86_64-linux-gnu/libXfixes.so.3.1.0",
+      "needed": [
+        "libX11.so.6",
+        "libc.so.6"
+      ],
+      "package": "libxfixes3",
+      "url": "https://snapshot.debian.org/archive/debian/20250129T203412Z/pool/main/libx/libxfixes/libxfixes3_5.0.3-2_amd64.deb",
+      "md5": "dcff05e86d19ae6e558343c148d8fb57"
+    },
+    "libXrandr.so.2": {
+      "interface": "usr/lib/x86_64-linux-gnu/libXrandr.so.2.2.0",
+      "needed": [
+        "libX11.so.6",
+        "libXext.so.6",
+        "libXrender.so.1",
+        "libc.so.6"
+      ],
+      "package": "libxrandr2",
+      "url": "https://snapshot.debian.org/archive/debian/20250129T203412Z/pool/main/libx/libxrandr/libxrandr2_1.5.1-1_amd64.deb",
+      "md5": "33b2acb38b456f09add57f6f136f7cbb"
+    },
+    "libXtst.so.6": {
+      "interface": "usr/lib/x86_64-linux-gnu/libXtst.so.6.1.0",
+      "needed": [
+        "libX11.so.6",
+        "libXext.so.6",
+        "libXi.so.6",
+        "libc.so.6"
+      ],
+      "package": "libxtst6",
+      "url": "https://snapshot.debian.org/archive/debian/20250129T203412Z/pool/main/libx/libxtst/libxtst6_1.2.3-1_amd64.deb",
+      "md5": "25a1b3b9615889dfd241edd86f92ba23"
     }
   },
   "packages": [
@@ -1086,6 +1147,51 @@
         "https://snapshot.debian.org/archive/debian/20250129T203412Z/pool/main/a/alsa-lib/libasound2_1.2.4-1.1_amd64.deb"
       ],
       "sha256": "d8c9b5182768db2a7c5c73f1eed0b1be1431ae4f41084d502b325d06d5b0f648"
+    },
+    {
+      "url": "https://snapshot.debian.org/archive/debian/20250129T203412Z/pool/main/libx/libxcomposite/libxcomposite1_0.4.5-1_amd64.deb",
+      "urls": [
+        "https://archive.debian.org/debian/pool/main/libx/libxcomposite/libxcomposite1_0.4.5-1_amd64.deb",
+        "https://deb.debian.org/debian/pool/main/libx/libxcomposite/libxcomposite1_0.4.5-1_amd64.deb",
+        "https://snapshot.debian.org/archive/debian/20250129T203412Z/pool/main/libx/libxcomposite/libxcomposite1_0.4.5-1_amd64.deb"
+      ],
+      "sha256": "4c26ebf519d2ebc22fc1416dee45e12c4c4ef68aa9b2ed890356830df42b652a"
+    },
+    {
+      "url": "https://snapshot.debian.org/archive/debian/20250129T203412Z/pool/main/libx/libxdamage/libxdamage1_1.1.5-2_amd64.deb",
+      "urls": [
+        "https://archive.debian.org/debian/pool/main/libx/libxdamage/libxdamage1_1.1.5-2_amd64.deb",
+        "https://deb.debian.org/debian/pool/main/libx/libxdamage/libxdamage1_1.1.5-2_amd64.deb",
+        "https://snapshot.debian.org/archive/debian/20250129T203412Z/pool/main/libx/libxdamage/libxdamage1_1.1.5-2_amd64.deb"
+      ],
+      "sha256": "1acf6d6117929a7df346d355caeb579798d75feb7e3b3aae58a2d1af735b444f"
+    },
+    {
+      "url": "https://snapshot.debian.org/archive/debian/20250129T203412Z/pool/main/libx/libxfixes/libxfixes3_5.0.3-2_amd64.deb",
+      "urls": [
+        "https://archive.debian.org/debian/pool/main/libx/libxfixes/libxfixes3_5.0.3-2_amd64.deb",
+        "https://deb.debian.org/debian/pool/main/libx/libxfixes/libxfixes3_5.0.3-2_amd64.deb",
+        "https://snapshot.debian.org/archive/debian/20250129T203412Z/pool/main/libx/libxfixes/libxfixes3_5.0.3-2_amd64.deb"
+      ],
+      "sha256": "58622d0d65c3535bd724c4da62ae7acb71e0e8f527bcbd65daf8c97e6f0ef843"
+    },
+    {
+      "url": "https://snapshot.debian.org/archive/debian/20250129T203412Z/pool/main/libx/libxrandr/libxrandr2_1.5.1-1_amd64.deb",
+      "urls": [
+        "https://archive.debian.org/debian/pool/main/libx/libxrandr/libxrandr2_1.5.1-1_amd64.deb",
+        "https://deb.debian.org/debian/pool/main/libx/libxrandr/libxrandr2_1.5.1-1_amd64.deb",
+        "https://snapshot.debian.org/archive/debian/20250129T203412Z/pool/main/libx/libxrandr/libxrandr2_1.5.1-1_amd64.deb"
+      ],
+      "sha256": "8fdd8ba4a8ad819731d6bbd903b52851a2ec2f9ef4139d880e9be421ea61338c"
+    },
+    {
+      "url": "https://snapshot.debian.org/archive/debian/20250129T203412Z/pool/main/libx/libxtst/libxtst6_1.2.3-1_amd64.deb",
+      "urls": [
+        "https://archive.debian.org/debian/pool/main/libx/libxtst/libxtst6_1.2.3-1_amd64.deb",
+        "https://deb.debian.org/debian/pool/main/libx/libxtst/libxtst6_1.2.3-1_amd64.deb",
+        "https://snapshot.debian.org/archive/debian/20250129T203412Z/pool/main/libx/libxtst/libxtst6_1.2.3-1_amd64.deb"
+      ],
+      "sha256": "7072f9be17abdb9c5af7d052b19c84d1a6c1c13c30c120a98d284ba73d2da73f"
     }
   ]
 }

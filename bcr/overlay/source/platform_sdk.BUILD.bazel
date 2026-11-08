@@ -25,6 +25,7 @@ cc_library(
     name = "headers",
     hdrs = glob([
         "usr/include/alsa/**/*.h",
+        "usr/include/libdrm/**/*.h",
         "usr/include/pulse/**/*.h",
         "usr/include/sound/**/*.h",
         "usr/include/X11/**/*.h",
@@ -43,6 +44,8 @@ cc_library(
     ]) + [
         "usr/include/gbm.h",
         "usr/include/libudev.h",
+        "usr/include/xf86drm.h",
+        "usr/include/xf86drmMode.h",
     ],
     includes = [
         "usr/include",
@@ -53,6 +56,7 @@ cc_library(
         "usr/include/dbus-1.0",
         "usr/include/gdk-pixbuf-2.0",
         "usr/include/gtk-3.0",
+        "usr/include/libdrm",
         "usr/include/pango-1.0",
         "usr/lib/x86_64-linux-gnu/dbus-1.0/include",
     ],
@@ -77,6 +81,13 @@ electron_source_headers(
 )
 
 _SONAMES = {
+    "Xcomposite": "libXcomposite.so.1",
+    "Xdamage": "libXdamage.so.1",
+    "Xfixes": "libXfixes.so.3",
+    "Xrandr": "libXrandr.so.2",
+    "Xrender": "libXrender.so.1",
+    "Xtst": "libXtst.so.6",
+    "drm": "libdrm.so.2",
     "asound": "libasound.so.2",
     "X11": "libX11.so.6",
     "Xi": "libXi.so.6",

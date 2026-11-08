@@ -1471,3 +1471,25 @@ are observed incremental CI figures, not a cold-build benchmark.
 Analysis of the expanded library graph found no CMake or foreign-cc actions.
 This profile remains Linux AMD64. Audio server/device integration, compositor
 and full Electron remain unfinished.
+
+## Compositor source closure (validation pending)
+
+The platform profile now includes the original `//cc:cc` closure: 2,017 additional
+C/C++ units, including Electron-patched WebRTC and pinned federated-compute/SRTP
+sources. Combined coverage is 6,341 source/object units, 1,490 library/group/runtime
+targets, 525 generator targets (675 runs) and 30 exact source pins. New generators
+retain original field-trial, metrics, permissions-policy and GRIT behavior.
+GRIT reuses the existing patched network-owned inputs; WebRTC header generation
+does not invoke its clock-dependent expiration-report command.
+
+Five checksum-pinned X11 packages extend the desktop runtime to 59 libraries from
+55 packages. Their dynamic symbols, available symbol-version sections and build
+identities match the SDK interfaces; the real runtime also supplies executable
+sections. Source capture is stable across Python hash seeds. Bazel analysis of
+the full library closure and runtime probe passes with zero build actions.
+
+The runtime probe exercises layer ownership, replacement, reparenting, geometry
+and opacity, then replays an actual paint record through Skia. It checks every
+pixel after clipping, translation and alpha blending, plus restored canvas state.
+Hosted compilation and runtime results remain pending. This profile remains
+Linux AMD64; full Electron remains unfinished.

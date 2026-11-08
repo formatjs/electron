@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""Capture native Linux graphics, GPU/media targets and original generators."""
+"""Capture native Linux graphics, GPU/media/compositor targets and original generators."""
 
 import argparse
 import ast
@@ -14,14 +14,19 @@ from pathlib import Path
 from capture_mojo import SCRIPTS as MOJO_SCRIPTS
 from native_graph import BUILD, capture_library, load_profiles
 
-ROOTS = ["//ui/ozone:ozone", "//ui/gl:gl", "//gpu/command_buffer/client:gles2_implementation", "//gpu/command_buffer/service:gles2", "//components/viz/common:common", "//gpu/ipc/service:service", "//gpu/ipc/client:client", "//gpu/ipc/host:host", "//media:media"]
+ROOTS = ["//ui/ozone:ozone", "//ui/gl:gl", "//gpu/command_buffer/client:gles2_implementation", "//gpu/command_buffer/service:gles2", "//components/viz/common:common", "//gpu/ipc/service:service", "//gpu/ipc/client:client", "//gpu/ipc/host:host", "//media:media", "//cc:cc"]
 SOURCE_PREFIXES = ["third_party/libyuv", "third_party/angle", "third_party/dawn", "third_party/swiftshader", "third_party/spirv-tools/src", "third_party/spirv-headers/src", "third_party/vulkan-loader/src", "third_party/vulkan-tools/src", "third_party/vulkan-utility-libraries/src", "third_party/vulkan-headers/src", "third_party/vulkan_memory_allocator", "third_party/wayland/src", "third_party/wayland-protocols/src", "third_party/wayland-protocols/kde"]
 MEDIA_SOURCE_PREFIXES = ["third_party/flac", "media/cdm/api", "third_party/libaom/source/libaom", "third_party/crc32c/src", "third_party/ffmpeg", "third_party/libvpx/source/libvpx", "third_party/openh264/src", "third_party/dav1d/libdav1d", "third_party/libgav1/src", "third_party/leveldatabase/src", "third_party/libwebm/source"]
-SOURCE_PREFIXES += MEDIA_SOURCE_PREFIXES
+COMPOSITOR_SOURCE_PREFIXES = ["third_party/webrtc", "third_party/federated_compute/src", "third_party/libsrtp"]
+SOURCE_PREFIXES += MEDIA_SOURCE_PREFIXES + COMPOSITOR_SOURCE_PREFIXES
 TOOLCHAIN = {"//buildtools/third_party/libc++:" + name for name in ("all_modules", "custom_headers", "libcxx_headers", "libc++")}
-SDK_LIBS = {"asound", "ffi_pic", "X11", "Xi", "Xext", "pci", "gbm", "dbus-1", "udev", "cairo", "harfbuzz", "pango-1.0", "pangocairo-1.0", "atk-1.0", "atk-bridge-2.0"}
+SDK_LIBS = {"Xcomposite", "Xdamage", "Xfixes", "Xrandr", "Xrender", "Xtst", "drm", "asound", "ffi_pic", "X11", "Xi", "Xext", "pci", "gbm", "dbus-1", "udev", "cairo", "harfbuzz", "pango-1.0", "pangocairo-1.0", "atk-1.0", "atk-bridge-2.0"}
 SCRIPTS = MOJO_SCRIPTS | {"//" + name for name in (
     "build/write_buildflag_header.py", "build/gn_run_binary.py",
+    "tools/grit/grit.py", "tools/variations/fieldtrial_to_struct.py",
+    "tools/metrics/private_metrics/gen_builders.py", "tools/metrics/ukm/gen_builders.py",
+    "third_party/blink/renderer/build/scripts/run_with_pythonpath.py",
+    "third_party/webrtc/experiments/field_trials.py",
     "gpu/config/process_json.py", "tools/protoc_wrapper/protoc_wrapper.py", "tools/generate_stubs/generate_stubs.py",
     "third_party/wayland/wayland_scanner_wrapper.py",
     "third_party/spirv-tools/src/utils/generate_language_headers.py",
@@ -81,7 +86,8 @@ def source_revisions(chromium):
     variables, entries = read_deps(chromium / "third_party/dawn/DEPS")
     for prefix in ["third_party/khronos/EGL-Registry", "third_party/khronos/OpenGL-Registry"]:
         record("third_party/dawn/" + prefix, entries[prefix])
-    records["third_party/ffmpeg"]["patch_group"] = "ffmpeg"
+    for group in ("ffmpeg", "webrtc"):
+        records["third_party/" + group]["patch_group"] = group
     return records
 
 
@@ -222,6 +228,17 @@ def capture(graph, digest, chromium, source_roots, profiles):
             script_parent = physical(target["script"][2:]).parent
             for path in script_parent.glob("*.py"):
                 inputs.add(target["script"].rsplit("/", 1)[0] + "/" + path.name)
+            helper_directories = []
+            if target["script"].startswith("//tools/grit/"):
+                helper_directories.append("tools/grit")
+            if target["script"].startswith("//tools/metrics/"):
+                helper_directories += ["tools/metrics/common", "tools/metrics/ukm", "tools/metrics/private_metrics"]
+            if target["script"] == "//tools/variations/fieldtrial_to_struct.py":
+                helper_directories += ["tools/json_comment_eater", "tools/json_to_struct"]
+                inputs.add("//components/variations/service/generate_ui_string_overrider.py")
+            for directory in helper_directories:
+                root = physical(directory)
+                inputs.update("//" + directory + "/" + path.relative_to(root).as_posix() for path in source_files(root) if path.suffix == ".py")
             args = [arg.replace("$SOURCE_ROOT/out/bazel-import/", "") for arg in target.get("args", [])]
             if target["script"] == "//build/gn_run_binary.py":
                 executable = BUILD + args[0] if args else ""

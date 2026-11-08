@@ -99,6 +99,7 @@ test_suite(
         "//source:v8_regexp_test",
         "//source:v8_support_test",
         "//source:v8_tasks_test",
+        "//source/compositor:compositor_test",
         "//source/media:asound_abi_test",
         "//source/media:media_runtime_test",
         "//source/media:symphonia_test",

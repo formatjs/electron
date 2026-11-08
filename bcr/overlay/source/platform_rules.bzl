@@ -1,4 +1,4 @@
-"""Original Ozone, GPU, media and graphics native targets."""
+"""Original Ozone, GPU, media, compositor and graphics native targets."""
 
 load("@electron_platform_sources//:profile.bzl", "PROFILE")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
@@ -156,5 +156,5 @@ def electron_platform():
     native.alias(name = "ozone", actual = _label("//ui/ozone:ozone"))
     native.alias(name = "gl", actual = _label("//ui/gl:gl"))
 
-    for name, original in {"media": "//media:media", "ffmpeg": "//third_party/ffmpeg:ffmpeg", "gpu_client": "//gpu/command_buffer/client:gles2_implementation", "gpu_service": "//gpu/command_buffer/service:gles2", "viz_common": "//components/viz/common:common"}.items():
+    for name, original in {"compositor": "//cc:cc", "media": "//media:media", "ffmpeg": "//third_party/ffmpeg:ffmpeg", "gpu_client": "//gpu/command_buffer/client:gles2_implementation", "gpu_service": "//gpu/command_buffer/service:gles2", "viz_common": "//components/viz/common:common"}.items():
         native.alias(name = name, actual = _label(original))
