@@ -4,6 +4,8 @@ package(default_visibility = ["//visibility:public"])
 
 _LOCALE = "@electron_platform_sources//:gen/third_party/devtools-frontend/src/front_end/core/i18n/locales/generated/en-US.json"
 
+_WORKSPACE = "@electron_platform_sources//:gen/third_party/devtools-frontend/src/front_end/.well-known/appspecific/com.chrome.devtools.json"
+
 _HTML = "@electron_platform_sources//:gen/third_party/devtools-frontend/src/front_end/devtools_app.html"
 
 py_test(
@@ -12,10 +14,12 @@ py_test(
     args = [
         "$(rootpath " + _LOCALE + ")",
         "$(rootpath " + _HTML + ")",
+        "$(rootpath " + _WORKSPACE + ")",
     ],
     data = [
         _LOCALE,
         _HTML,
+        _WORKSPACE,
     ],
     target_compatible_with = [
         "@platforms//os:linux",

@@ -1825,3 +1825,38 @@ exports that original header on the same library. Consumers receive it through
 their existing native dependencies. Global platform/core/modules header lists
 remain unchanged; a fresh capture verified that only the owner's header list
 changed. Hosted compilation remains pending.
+
+
+### Scoped headers and reproducible DevTools workspace metadata
+
+The keep-going source builds exposed missing Chromium headers for ChromeOS
+CDM context, credential-manager traits, Viz context-loss/renderer-settings traits
+and Blink runtime-feature context. Renderer settings also needs its original
+overlay-strategy trait header.
+They now belong to their original captured libraries. Shared header layers,
+source pins and compiler options remain unchanged.
+
+DevTools generated its workspace UUID from the temporary action source path.
+The native Bazel template action adds an optional source-root argument to the
+original generator. Only this producer receives the adapted script and declared
+`/src/third_party/devtools-frontend/src/front_end` root. Original UUID namespace,
+UUIDv5 algorithm and JSON schema remain intact. Other Node generators retain
+their original scripts; the two-run reproducibility guard stays enabled.
+
+The resource test checks the generated root and UUID together. Metadata analysis
+passed with zero build actions. Hosted generation, compilation and runtime tests
+still need to validate this batch; full source-built Electron remains incomplete.
+
+
+The preceding `55724c0` consumer run completed 46 source probes, including the
+LLGuidance C ABI and DevTools locale/HTML checks. Its full test command still
+failed on undeclared headers. The matching aggregate also failed its workspace
+reproducibility check. These positive probes do not establish a linked Electron
+executable or validate this follow-up batch.
+
+
+The follow-up source-components/source-tests action audit contains 86,748
+configured actions, including 37,380 CppCompile and 254 Rustc actions, with zero
+CMake/foreign action mnemonics. Analysis executed zero actions. The captured
+profile comparison limits changes to five libraries' header lists, five added
+raw files and the workspace producer; all other previous sections match.

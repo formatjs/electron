@@ -1,5 +1,6 @@
 """Original Ozone, GPU, media, compositor and graphics native targets."""
 
+load("@bazel_skylib//rules:expand_template.bzl", "expand_template")
 load("@electron_platform_sources//:profile.bzl", "PROFILE")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_import.bzl", "cc_import")
@@ -105,6 +106,14 @@ def electron_platform():
             target_compatible_with = _COMPATIBLE,
         )
     native.filegroup(name = "devtools_node_modules", srcs = PROFILE.get("devtools_node_modules_files", []))
+    workspace = PROFILE.get("devtools_workspace")
+    if workspace:
+        expand_template(
+            name = "devtools_workspace_script",
+            template = _file("//" + workspace["script"]),
+            substitutions = workspace["substitutions"],
+            out = "devtools_workspace/generate_devtools_json.js",
+        )
     for original, action in PROFILE["actions"].items():
         runs = []
         for index, run in enumerate(action["runs"]):
@@ -113,7 +122,7 @@ def electron_platform():
             outputs = [path[len(_BUILD):] for path in run["outputs"]]
             electron_source_action(
                 name = name,
-                srcs = {_file(path): path[2:] for path in action["inputs"]},
+                srcs = {":devtools_workspace_script" if workspace and original == workspace["target"] and path == "//" + workspace["script"] else _file(path): path[2:] for path in action["inputs"]},
                 tools = {_label(label): path[2:] for path, label in action["tools"].items()},
                 source_groups = [":devtools_node_modules"] if action.get("devtools_node_modules") else [],
                 tool_inputs = [":" + PROFILE["libraries"][label]["name"] + "_runtime" for label in action["tools"].values() if PROFILE["libraries"].get(label, {}).get("native_tool_data")],

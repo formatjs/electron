@@ -30,6 +30,11 @@ SOURCE_PREFIXES += MEDIA_SOURCE_PREFIXES + COMPOSITOR_SOURCE_PREFIXES + BLINK_SO
 SOURCE_PREFIXES += ["third_party/cros_system_api"]
 TOOLCHAIN = {"//buildtools/third_party/libc++:" + name for name in ("all_modules", "custom_headers", "libcxx_headers", "libc++")}
 EXTRA_NATIVE_HEADERS = {
+    "//services/viz/privileged/mojom/compositing:compositing": ["//services/viz/privileged/cpp/renderer_settings_mojom_traits.h", "//services/viz/privileged/cpp/overlay_strategy_mojom_traits.h"],
+    "//third_party/blink/renderer/platform:platform": ["//third_party/blink/renderer/core/frame/web_feature.h"],
+    "//media/gpu/chromeos:chromeos": ["//chromeos/components/cdm_factory_daemon/cdm_context_for_oopvd_impl.h"],
+    "//services/viz/privileged/mojom/gl:gl": ["//services/viz/privileged/cpp/context_lost_reason_traits.h"],
+    "//third_party/blink/public/mojom:android_mojo_bindings": ["//components/password_manager/content/common/credential_manager_mojom_traits.h"],
     "//services/network/public/mojom:mojom_shared_storage_blink": ["//third_party/blink/renderer/modules/shared_storage/shared_storage_blink_mojom_traits.h"],
     "//media/gpu/vaapi:common": ["//third_party/libva_protected_content/va_protected_content.h"],
     "//components/signin/public/identity_manager:identity_manager": ["//components/account_manager_core/account.h"],
@@ -358,6 +363,15 @@ def capture(graph, digest, chromium, source_roots, profiles):
     if not devtools_packages:
         raise ValueError("Missing original DevTools npm inventory")
     files.update(devtools_packages)
+    workspace_script = "third_party/devtools-frontend/src/scripts/build/generate_devtools_json.js"
+    workspace_source = physical(workspace_script).read_text()
+    workspace_substitutions = {
+        "const [, , outputLocation] = process.argv;": "const [, , outputLocation, workspaceRoot] = process.argv;",
+        "const root = path.join(path.dirname(path.dirname(__dirname)), 'front_end');": "const root = workspaceRoot ?? path.join(path.dirname(path.dirname(__dirname)), 'front_end');",
+    }
+    if any(workspace_source.count(before) != 1 for before in workspace_substitutions):
+        raise ValueError("Original DevTools workspace generator changed")
+    devtools_workspace = dict(target="//third_party/devtools-frontend/src/front_end:devtools_json", script=workspace_script, source_sha256=hashlib.sha256(workspace_source.encode()).hexdigest(), root="/src/third_party/devtools-frontend/src/front_end", substitutions=workspace_substitutions)
     devtools_scripts = "third_party/devtools-frontend/src/scripts"
     devtools_javascript = sorted("//" + devtools_scripts + "/" + path.relative_to(physical(devtools_scripts)).as_posix() for path in source_files(physical(devtools_scripts)) if path.suffix in (".js", ".mjs", ".cjs", ".json"))
     actions, libraries, metadata, copies = {}, {}, {}, {}
@@ -404,6 +418,9 @@ def capture(graph, digest, chromium, source_roots, profiles):
                     inputs.add(esbuild)
                 record["devtools_node_modules"] = True
             args = [arg.replace("$SOURCE_ROOT/out/bazel-import/", "") for arg in target.get("args", [])]
+            if label == devtools_workspace["target"]:
+                record["gn_args"] = list(args)
+                args.append(devtools_workspace["root"])
             if target["script"] == "//third_party/node/node.py":
                 if not args or not args[0].startswith("../../third_party/devtools-frontend/src/"):
                     raise ValueError("Untranslated Node generator entry point")
@@ -684,7 +701,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
     )
     used = {dep for label in seen for dep in targets[label].get("deps", []) if dep in external}
     devtools_actions = sorted(label for label in closure([DEVTOOLS_ROOT]) if label in actions)
-    return dict(devtools_frontend_actions=devtools_actions, header_layers=header_layers, devtools_esbuild=devtools_esbuild, copies=copies, devtools_node_modules_files=devtools_packages, native_header_actions=sorted(native_header_actions), source_aliases=source_aliases, roots=ROOTS, graph_sha256=digest, source_revisions=revisions, names=names, libraries=libraries, actions=actions, metadata=metadata, literal_metadata=literal_metadata, execution_tools=sorted(set(tools.values())), execution_closure=sorted(execution_closure), producers=producers, headers=headers, files=sorted(files), external_files={path: shared[path] for path in sorted(used_shared)}, external={label: external[label] for label in sorted(used)}, generated_files=generated, toolchain_deps=sorted(TOOLCHAIN), sdk_libraries=sorted(SDK_LIBS))
+    return dict(devtools_workspace=devtools_workspace, devtools_frontend_actions=devtools_actions, header_layers=header_layers, devtools_esbuild=devtools_esbuild, copies=copies, devtools_node_modules_files=devtools_packages, native_header_actions=sorted(native_header_actions), source_aliases=source_aliases, roots=ROOTS, graph_sha256=digest, source_revisions=revisions, names=names, libraries=libraries, actions=actions, metadata=metadata, literal_metadata=literal_metadata, execution_tools=sorted(set(tools.values())), execution_closure=sorted(execution_closure), producers=producers, headers=headers, files=sorted(files), external_files={path: shared[path] for path in sorted(used_shared)}, external={label: external[label] for label in sorted(used)}, generated_files=generated, toolchain_deps=sorted(TOOLCHAIN), sdk_libraries=sorted(SDK_LIBS))
 
 
 def main():
