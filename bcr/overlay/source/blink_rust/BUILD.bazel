@@ -1,0 +1,59 @@
+load("@electron_rust_sources//:profile.bzl", "PROFILE")
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+load("@rules_python//python:defs.bzl", "py_test")
+load(":rules.bzl", "blink_rust_bridges")
+
+package(default_visibility = ["//visibility:public"])
+
+blink_rust_bridges()
+
+filegroup(
+    name = "libraries",
+    srcs = [
+        ":font_format_check",
+        ":rust_crash_cpp",
+    ],
+)
+
+cc_test(
+    name = "font_format_test",
+    srcs = ["font_format_test.cc"],
+    args = [item for fixture in PROFILE["blink_font_fixtures"] for item in [
+        "$(rootpath @electron_rust_sources//:" + fixture["file"] + ")",
+        str(fixture["mask"]),
+    ]],
+    copts = PROFILE["blink_bridges"]["font_format_check"]["copts"],
+    data = ["@electron_rust_sources//:" + fixture["file"] for fixture in PROFILE["blink_font_fixtures"]],
+    linkstatic = True,
+    local_defines = PROFILE["blink_bridges"]["font_format_check"]["defines"],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    deps = [":font_format_check"],
+)
+
+cc_binary(
+    name = "crash_probe",
+    srcs = ["crash_probe.cc"],
+    copts = PROFILE["blink_bridges"]["rust_crash"]["copts"],
+    linkstatic = True,
+    local_defines = PROFILE["blink_bridges"]["rust_crash"]["defines"],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    deps = [":rust_crash_cpp"],
+)
+
+py_test(
+    name = "crash_test",
+    srcs = ["crash_test.py"],
+    args = ["$(rootpath :crash_probe)"],
+    data = [":crash_probe"],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)

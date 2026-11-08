@@ -9,6 +9,7 @@ import re
 from pathlib import Path
 import shlex
 import tomllib
+from capture_cxx import capture_bridges, capture_font_fixtures
 
 ROOT = "//third_party/rust/temporal_capi/v0_1:lib"
 VENDOR = "third_party/rust/chromium_crates_io/vendor/"
@@ -30,6 +31,11 @@ SKIA_ROOTS = ["//skia:bridge_rust_side", "//skia:rust_png_ffi"]
 SKIA_CPP = {label: "@electron_skia_sources//:target_" + hashlib.sha256(label.encode()).hexdigest()[:16] for label in ["//skia:bridge_rust_side_cxx_generated", "//skia:path_bridge", "//skia:rust_png_ffi_cpp", "//skia:rust_png_ffi_cxx_generated"]}
 MEDIA_ROOT = "//media/filters:symphonia_glue"
 NATIVE_CPP[MEDIA_ROOT + "_cxx_generated"] = "@electron//source/media:symphonia_headers"
+BLINK_ROOTS = {
+    "rust_crash": "//third_party/blink/common/rust_crash:rs",
+    "font_format_check": "//third_party/blink/renderer/platform:font_format_check",
+}
+NATIVE_CPP.update({root + "_cxx_generated": "@electron//source/blink_rust:" + key + "_headers" for key, root in BLINK_ROOTS.items()})
 FONT_ROOT = "//third_party/fontconfig:fontconfig_fontations_ffi"
 FONT_BINDINGS = {"//third_party/fontconfig:" + name for name in ("fcint_h_bindgen", "fontconfig_h_bindgen")}
 
@@ -94,7 +100,7 @@ def capture(graph, source, fontconfig=None, skia=None):
         for dep in target.get("deps", []):
             visit(dep)
 
-    for root in [ROOT, MEDIA_ROOT] + BASE_ROOTS + ([FONT_ROOT] if fontconfig else []) + (SKIA_ROOTS if skia else []):
+    for root in [ROOT, MEDIA_ROOT] + list(BLINK_ROOTS.values()) + BASE_ROOTS + ([FONT_ROOT] if fontconfig else []) + (SKIA_ROOTS if skia else []):
         visit(root)
     root_files = {"LICENSE", "build/build_config.h", "build/buildflag.h", "build/rust/bindings.rs"}
     packages, crates, cpp, bindings = {}, {}, {}, {}
@@ -339,6 +345,10 @@ def capture(graph, source, fontconfig=None, skia=None):
             retained.append(flag)
     media_bridge = {"python_inputs": python_inputs, "cppdeps": native_cpp["//build/rust:cxx_cppdeps"], "fixture": media_fixture, "root": MEDIA_ROOT, "crate": name(MEDIA_ROOT), "generator": MEDIA_ROOT + "_cxx_generated_gen", "script": bridge["script"][2:], "args": arguments, "gn_args": bridge["args"], "gn_inputs": bridge["inputs"], "gn_deps": bridge["deps"], "outputs": [path.removeprefix("//out/bazel-import/") for path in outputs], "source": bridge_source[2:], "copts": retained, "defines": [d.replace('"', '\\"') for d in value(bridge_cpp, "defines")], "omitted_toolchain_options": omitted}
 
+    blink_bridges = capture_bridges(graph, source, BLINK_ROOTS, name, native_cpp["//build/rust:cxx_cppdeps"], checked_file, root_files, selected)
+
+    blink_font_fixtures = capture_font_fixtures(source, skia, checked_file, root_files)
+
     flags = targets[ALLOCATOR + "buildflags"]
     if flags["type"] != "action" or flags["deps"] != ["//build:buildflag_header_h"] or flags["script"] != "//build/write_buildflag_header.py" or flags["response_file_contents"] != ["--flags", "RUST_ALLOCATOR_USES_PARTITION_ALLOC=true", "RUST_ALLOCATOR_USES_ALIGNED_MALLOC=false"]:
         raise ValueError("Expected captured PartitionAlloc Rust bridge")
@@ -348,7 +358,7 @@ def capture(graph, source, fontconfig=None, skia=None):
     cpp_headers = [p for p in packages[temporal_package] if "/bindings/cpp/" in p and p.endswith((".h", ".hpp"))]
     if not cpp_headers:
         raise ValueError("Missing original Temporal C++ bindings")
-    return {"media_bridge": media_bridge, "root": name(ROOT), "base_roots": {label: name(label) for label in BASE_ROOTS}, "rust": crates, "cpp": cpp, "ffi": bindings, "packages": packages, "root_files": sorted(root_files), "cpp_headers": cpp_headers, "provided_by_toolchain": sorted(provided), "allocator_buildflags": {"output": "build/rust/allocator/buildflags.h", "rule": ALLOCATOR + "buildflags", "response": flags["response_file_contents"]}}
+    return {"blink_font_fixtures": blink_font_fixtures, "blink_bridges": blink_bridges, "media_bridge": media_bridge, "root": name(ROOT), "base_roots": {label: name(label) for label in BASE_ROOTS}, "rust": crates, "cpp": cpp, "ffi": bindings, "packages": packages, "root_files": sorted(root_files), "cpp_headers": cpp_headers, "provided_by_toolchain": sorted(provided), "allocator_buildflags": {"output": "build/rust/allocator/buildflags.h", "rule": ALLOCATOR + "buildflags", "response": flags["response_file_contents"]}}
 
 
 def main():

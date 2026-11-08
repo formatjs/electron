@@ -60,6 +60,7 @@ filegroup(
         "//source:v8_regexp",
         "//source:v8_support_libraries",
         "//source:v8_torque",
+        "//source/blink_rust:libraries",
         "//source/media:symphonia_libraries",
     ],
 )
@@ -99,6 +100,8 @@ test_suite(
         "//source:v8_regexp_test",
         "//source:v8_support_test",
         "//source:v8_tasks_test",
+        "//source/blink_rust:crash_test",
+        "//source/blink_rust:font_format_test",
         "//source/compositor:compositor_test",
         "//source/media:asound_abi_test",
         "//source/media:media_runtime_test",

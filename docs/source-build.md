@@ -1512,3 +1512,26 @@ This profile remains Linux AMD64; full Electron remains unfinished. The next
 Blink platform closure adds 5,989 C/C++ units plus Rust crash/font-format and
 CrabbyAVIF prerequisites. Its graph also requires original IDL, USB identifiers,
 DevTools overlay and additional Blink generators.
+
+## Blink Rust bridges (validation pending)
+
+The Rust profile now captures Blink's original font-format and mixed-language
+crash modules: two additional Rust targets, with all 117 existing records and
+89 vendor package inventories unchanged. Original CXX actions use source-built
+cxxbridge, declared rustc configuration and Python helpers. Generated headers
+forward compilation context separately from native link owners. The crash
+callback compiles its original C++ source with original flags and source-set
+link semantics.
+
+Seven pinned SFNT fixtures cover plain fonts, COLRv0/COLRv1, variable fonts,
+sbix and CBDT/CBLC. Tests call every exported format predicate through CXX and
+reject empty/truncated inputs; CFF2 and avar2 currently have negative cases only.
+The crash probe calls the original Rust/C++/Rust chain in a child with core dumps
+disabled, requiring the original panic message and SIGABRT. Crash reporting is
+not covered by that check.
+
+Capture is stable across hash seeds. Analysis of the new libraries/tests passes
+with zero build actions. The complete platform/bridge dependency audit found
+zero CMake/foreign-cc actions, with 20,791 CppCompile actions as a positive control.
+Hosted compilation/runtime validation remains pending. Full source profiles
+remain Linux AMD64; CrabbyAVIF, Blink and full Electron remain unfinished.

@@ -68,6 +68,12 @@ def electron_temporal():
     repository_root = Label("@electron_rust_sources//:BUILD.bazel").workspace_root
     native.exports_files(PROFILE["root_files"] + ["BUILD.bazel", "profile.bzl"])
     _allocator_flags(name = "allocator_buildflags")
+    cc_library(
+        name = "blink_headers",
+        hdrs = sorted({path: True for bridge in PROFILE.get("blink_bridges", {}).values() for path in bridge["header_inputs"]}),
+        includes = ["."],
+        target_compatible_with = _LINUX_AMD64,
+    )
     allocator_headers = {"build/build_config.h": True, "build/buildflag.h": True}
     for library in PROFILE["cpp"].values():
         allocator_headers.update({path: True for path in library["hdrs"]})
