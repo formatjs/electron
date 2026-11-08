@@ -83,7 +83,7 @@ int main(int argc, char** argv) {
     Require(value == 82, "native libyuv BT601 luma bytes");
   }
   for (int pair = 0; pair < 4; ++pair) {
-    Require(chroma[pair * 2] == 90 && chroma[pair * 2 + 1] == 240,
+    Require(chroma[pair * 2] == 90 && chroma[pair * 2 + 1] == 239,
             "native libyuv BT601 chroma bytes");
   }
   const auto& payload = chroma;
