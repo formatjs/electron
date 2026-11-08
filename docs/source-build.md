@@ -2022,3 +2022,14 @@ Metadata analysis passed with zero build actions. The 86,882-action audit keeps
 all 37,384 CppCompile, 254 Rustc, 26 CargoBuildScriptRun and 6,338 ElectronPython
 baseline keys. Five Python producer actions are added; no CMake/foreign actions
 appear. Hosted generation and semantic assertions still need validation.
+
+
+The `ead6a0f` component build passed in 99.729 seconds. Full Blink platform,
+core and modules runtime probes now pass, confirming the ICU path fix. The
+binary policy probe also passes with its declared pure Python runtime.
+
+Tracing generation succeeded, but its offline bundle fixture could not resolve
+Chromium's rewritten `/@bufbuild/protobuf/wire/index.js` browser import. The
+fixture now maps that one import to the pinned npm runtime in a scratch copy.
+The original generated product retains its browser URL. The real wire runtime
+test remains required; this fixture correction still needs hosted validation.
