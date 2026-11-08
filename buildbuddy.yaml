@@ -31,7 +31,7 @@ actions:
             --profile="$BUILDBUDDY_ARTIFACTS_DIRECTORY/source-graphics-profile.json.gz" \
             @electron//source:platform_graphics_test
           # Keep compile-only archives in CAS; tests download their declared data.
-          bazel --host_jvm_args=-Xmx24g build --config=buildbuddy --downloader_config="$source_downloader" --distdir="$source_distdir" --remote_download_outputs=minimal --registry="file://$registry" \
+          bazel --host_jvm_args=-Xmx24g build --keep_going --config=buildbuddy --downloader_config="$source_downloader" --distdir="$source_distdir" --remote_download_outputs=minimal --registry="file://$registry" \
             --profile="$BUILDBUDDY_ARTIFACTS_DIRECTORY/source-components-profile.json.gz" \
             --memory_profile="$BUILDBUDDY_ARTIFACTS_DIRECTORY/source-components.memory" \
             --experimental_profile_additional_tasks=remote_cache_check \
@@ -41,6 +41,7 @@ actions:
           bazel --host_jvm_args=-Xmx24g test --config=buildbuddy --downloader_config="$source_downloader" --distdir="$source_distdir" --strategy=TestRunner=local \
             --registry="file://$registry" --registry=https://bcr.bazel.build \
             --profile="$BUILDBUDDY_ARTIFACTS_DIRECTORY/source-tests-profile.json.gz" \
+            --keep_going \
             --memory_profile="$BUILDBUDDY_ARTIFACTS_DIRECTORY/source-tests.memory" \
             --experimental_profile_additional_tasks=remote_cache_check \
             --experimental_profile_additional_tasks=remote_download \
@@ -106,6 +107,7 @@ actions:
           bazel --host_jvm_args=-Xmx24g test --config=buildbuddy --downloader_config="$source_downloader" --distdir="$source_distdir" --strategy=TestRunner=local \
             --registry="file://$registry" --registry=https://bcr.bazel.build \
             --profile="$BUILDBUDDY_ARTIFACTS_DIRECTORY/source-consumer-profile.json.gz" \
+            --keep_going \
             --memory_profile="$BUILDBUDDY_ARTIFACTS_DIRECTORY/source-consumer.memory" \
             --experimental_profile_additional_tasks=remote_cache_check \
             --experimental_profile_additional_tasks=remote_download \

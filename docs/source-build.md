@@ -1775,3 +1775,18 @@ Metadata analysis completed with zero build actions. The expanded action audit
 contains 86,721 actions; all 37,382 baseline CppCompile keys remain present, with
 no additional native compilation keys and no CMake/foreign action mnemonics.
 This is an input-stability check, not a runtime or performance result.
+
+The [2b6389c aggregate](https://formatjs.buildbuddy.io/invocation/a5435c31-3830-4c82-8611-1f852d9a670c)
+passed bootstrap/URL-contract and graphics tests, then compilation stopped at
+`media/gpu/vaapi/vaapi_wrapper.cc:72`: its protected-content header was undeclared.
+The profile now declares Chromium's original
+`third_party/libva_protected_content/va_protected_content.h` only on
+`//media/gpu/vaapi:common`, the captured owner of that source file. No new source
+pin, SDK package or compiler option is introduced. A full capture comparison
+verified that only this library's header list and the one-file source inventory
+addition changed. Hosted compilation still needs to validate the fix.
+
+Aggregate builds and full source/consumer test phases now use `--keep_going`.
+Independent targets can finish and populate the remote cache after a compile
+failure, exposing more missing declarations in the same run. Any failed target
+still fails CI; bootstrap and graphics gates retain their earlier behavior.
