@@ -1434,7 +1434,7 @@ that can guide those ports. Its Chromium 142.0.7444.59 graph cannot replace
 Electron's patched 142.0.7444.52 configuration: recapture Electron flags, source
 pins and generated outputs, and verify codec/provider compatibility.
 
-## Full media source closure (validation pending)
+## Full media source closure
 
 The platform profile now includes `//media:media`: 1,529 additional C/C++ units
 and 156 original NASM object actions. Combined graphics/GPU/media coverage is
@@ -1457,6 +1457,17 @@ packages; these desktop ABI libraries are not source-built library claims.
 New BB tests compare native FFmpeg FLAC output against the independent WAV
 reference, check the original Chrome AAC/H264 decoder registry, exercise Chromium
 audio parameters and check ALSA allocation/version APIs without audio hardware.
-A separate ELF test verifies SDK/runtime ABI identity. Compiler, decoder/runtime
-and full-suite results are still pending. Audio server/device integration and
-full Electron remain unfinished.
+A separate ELF test verifies SDK/runtime ABI identity.
+
+[755d607 BCR consumer](https://formatjs.buildbuddy.io/invocation/65b0f31c-7d09-4a0b-93fa-36ad204cd4e2),
+[source components](https://formatjs.buildbuddy.io/invocation/459c32ae-27ea-4ac6-bf40-b3908f40ca8d)
+and [cross probes](https://formatjs.buildbuddy.io/invocation/bd1165c5-db04-43b3-963e-6359254e6449)
+passed. Structured results report media runtime, ALSA ABI, Symphonia, GPU transport
+and SwiftShader as PASSED. The BCR source test invocation took 267.192 seconds:
+1,778 tracked remote actions, 1,292.109 CPU seconds, 740,192,256 bytes maximum
+action peak memory, 1,662,435,292 input bytes and 26,726,385 output bytes. These
+are observed incremental CI figures, not a cold-build benchmark.
+
+Analysis of the expanded library graph found no CMake or foreign-cc actions.
+This profile remains Linux AMD64. Audio server/device integration, compositor
+and full Electron remain unfinished.
