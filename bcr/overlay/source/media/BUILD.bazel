@@ -1,6 +1,9 @@
+load("@electron_platform_sources//:profile.bzl", PLATFORM_PROFILE = "PROFILE")
 load("@electron_rust_sources//:profile.bzl", RUST_PROFILE = "PROFILE")
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
+load("@rules_python//python:defs.bzl", "py_test")
 load("//electron:source_action.bzl", "electron_source_action")
 load("//electron:source_headers.bzl", "electron_source_headers")
 
@@ -89,4 +92,78 @@ cc_test(
         "@platforms//cpu:x86_64",
     ],
     deps = [":symphonia"],
+)
+
+cc_binary(
+    name = "media_runtime_probe",
+    srcs = ["media_runtime_probe.cc"],
+    copts = PLATFORM_PROFILE["libraries"]["//media/base:base"]["copts"],
+    dynamic_deps = ["//source/glib:" + name for name in [
+        "zlib",
+        "glib",
+        "gobject",
+        "gmodule",
+        "gio",
+    ]],
+    linkstatic = True,
+    local_defines = PLATFORM_PROFILE["libraries"]["//media/base:base"]["defines"],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    deps = [
+        "@electron_platform_sdk//:asound",
+        "@electron_platform_sources//:ffmpeg",
+        "@electron_platform_sources//:media",
+    ],
+)
+
+py_test(
+    name = "media_runtime_test",
+    srcs = ["media_runtime_test.py"],
+    args = [
+        "$(rootpath :media_runtime_probe)",
+        "$(rootpath @electron_platform_sources//:libEGL.so)",
+        "$(rootpath @electron_platform_sources//:vk_swiftshader_icd.json)",
+        "$(rootpath @electron_platform_runtime//:libffi.so.7)",
+        "$(rootpath //source/glib:glib)",
+        "$(rootpath @electron_rust_sources//:media/test/data/sfx.flac)",
+        "$(rootpath @electron_rust_sources//:media/test/data/sfx_s24le.wav)",
+        str(BRIDGE["fixture"]["packet_offset"]),
+        str(BRIDGE["fixture"]["packet_size"]),
+        str(BRIDGE["fixture"]["frames"]),
+    ],
+    data = [
+        ":media_runtime_probe",
+        "//source/glib",
+        "//source/glib:runtime",
+        "@electron_platform_runtime//:libffi.so.7",
+        "@electron_platform_runtime//:libraries",
+        "@electron_platform_sources//:libEGL.so",
+        "@electron_platform_sources//:runtime",
+        "@electron_platform_sources//:vk_swiftshader_icd.json",
+        "@electron_rust_sources//:media/test/data/sfx.flac",
+        "@electron_rust_sources//:media/test/data/sfx_s24le.wav",
+    ],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)
+
+py_test(
+    name = "asound_abi_test",
+    srcs = ["asound_abi_test.py"],
+    args = [
+        "$(rootpath @electron_platform_sdk//:usr/lib/x86_64-linux-gnu/libasound.so.2.0.0)",
+        "$(rootpath @electron_platform_runtime//:libasound.so.2)",
+    ],
+    data = [
+        "@electron_platform_runtime//:libasound.so.2",
+        "@electron_platform_sdk//:usr/lib/x86_64-linux-gnu/libasound.so.2.0.0",
+    ],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
 )

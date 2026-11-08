@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""Capture native Linux graphics, GPU command buffers and original generators."""
+"""Capture native Linux graphics, GPU/media targets and original generators."""
 
 import argparse
 import ast
@@ -14,13 +14,15 @@ from pathlib import Path
 from capture_mojo import SCRIPTS as MOJO_SCRIPTS
 from native_graph import BUILD, capture_library, load_profiles
 
-ROOTS = ["//ui/ozone:ozone", "//ui/gl:gl", "//gpu/command_buffer/client:gles2_implementation", "//gpu/command_buffer/service:gles2", "//components/viz/common:common", "//gpu/ipc/service:service", "//gpu/ipc/client:client", "//gpu/ipc/host:host"]
+ROOTS = ["//ui/ozone:ozone", "//ui/gl:gl", "//gpu/command_buffer/client:gles2_implementation", "//gpu/command_buffer/service:gles2", "//components/viz/common:common", "//gpu/ipc/service:service", "//gpu/ipc/client:client", "//gpu/ipc/host:host", "//media:media"]
 SOURCE_PREFIXES = ["third_party/libyuv", "third_party/angle", "third_party/dawn", "third_party/swiftshader", "third_party/spirv-tools/src", "third_party/spirv-headers/src", "third_party/vulkan-loader/src", "third_party/vulkan-tools/src", "third_party/vulkan-utility-libraries/src", "third_party/vulkan-headers/src", "third_party/vulkan_memory_allocator", "third_party/wayland/src", "third_party/wayland-protocols/src", "third_party/wayland-protocols/kde"]
+MEDIA_SOURCE_PREFIXES = ["third_party/flac", "media/cdm/api", "third_party/libaom/source/libaom", "third_party/crc32c/src", "third_party/ffmpeg", "third_party/libvpx/source/libvpx", "third_party/openh264/src", "third_party/dav1d/libdav1d", "third_party/libgav1/src", "third_party/leveldatabase/src", "third_party/libwebm/source"]
+SOURCE_PREFIXES += MEDIA_SOURCE_PREFIXES
 TOOLCHAIN = {"//buildtools/third_party/libc++:" + name for name in ("all_modules", "custom_headers", "libcxx_headers", "libc++")}
-SDK_LIBS = {"ffi_pic", "X11", "Xi", "Xext", "pci", "gbm", "dbus-1", "udev", "cairo", "harfbuzz", "pango-1.0", "pangocairo-1.0", "atk-1.0", "atk-bridge-2.0"}
+SDK_LIBS = {"asound", "ffi_pic", "X11", "Xi", "Xext", "pci", "gbm", "dbus-1", "udev", "cairo", "harfbuzz", "pango-1.0", "pangocairo-1.0", "atk-1.0", "atk-bridge-2.0"}
 SCRIPTS = MOJO_SCRIPTS | {"//" + name for name in (
     "build/write_buildflag_header.py", "build/gn_run_binary.py",
-    "gpu/config/process_json.py", "tools/protoc_wrapper/protoc_wrapper.py",
+    "gpu/config/process_json.py", "tools/protoc_wrapper/protoc_wrapper.py", "tools/generate_stubs/generate_stubs.py",
     "third_party/wayland/wayland_scanner_wrapper.py",
     "third_party/spirv-tools/src/utils/generate_language_headers.py",
     "third_party/spirv-tools/src/utils/generate_registry_tables.py",
@@ -79,6 +81,7 @@ def source_revisions(chromium):
     variables, entries = read_deps(chromium / "third_party/dawn/DEPS")
     for prefix in ["third_party/khronos/EGL-Registry", "third_party/khronos/OpenGL-Registry"]:
         record("third_party/dawn/" + prefix, entries[prefix])
+    records["third_party/ffmpeg"]["patch_group"] = "ffmpeg"
     return records
 
 
@@ -86,6 +89,8 @@ def capture(graph, digest, chromium, source_roots, profiles):
     revisions = source_revisions(chromium)
     previous = [("base", "base"), ("embedder", "embedder"), ("ipcz", "ipcz"), ("libnode", "libnode"), ("perfetto", "perfetto_native"), ("protobuf", "protobuf"), ("v8_engine", "v8_engine"), ("v8_support", "v8_support"), ("network", "network"), ("mojo", "mojo"), ("fonts", "fonts"), ("codecs", "codecs"), ("skia", "skia"), ("gfx", "gfx"), ("display", "display"), ("events", "events"), ("ui", "ui")]
     external, shared = load_profiles(profiles, previous)
+    external["//media/filters:symphonia_glue"] = "@electron//source/media:symphonia"
+    external["//media/filters:symphonia_glue_cxx_generated"] = "@electron//source/media:symphonia_bridge"
     targets, seen, pending = graph["targets"], set(), list(ROOTS)
     while pending:
         label = pending.pop()
@@ -156,12 +161,20 @@ def capture(graph, digest, chromium, source_roots, profiles):
             raise ValueError("Invalid platform source path")
 
     directories = ["services/viz/public", "third_party/libyuv", "gpu", "components/viz/common", "third_party/khronos", "ui", "dbus", "components/dbus", "components/url_formatter", "components/headless", "services/service_manager/public", "third_party/angle", "third_party/dawn", "third_party/swiftshader", "third_party/spirv-tools/src", "third_party/spirv-headers/src", "third_party/vulkan-loader/src", "third_party/vulkan-tools/src", "third_party/vulkan-utility-libraries/src", "third_party/vulkan-headers/src", "third_party/wayland/src", "third_party/wayland/include"]
+    media_header_roots = ["media", "third_party/libaom", "third_party/crc32c", "third_party/ffmpeg", "third_party/flac", "third_party/opus", "third_party/libvpx", "third_party/openh264", "third_party/dav1d", "third_party/libgav1", "third_party/leveldatabase", "third_party/libwebm"]
+    directories += media_header_roots
+    directories += [path for path in MEDIA_SOURCE_PREFIXES if path not in directories]
+    assembly_inputs = {}
     for directory in directories:
         root = physical(directory)
         inventory = sorted(directory + "/" + path.relative_to(root).as_posix() for path in source_files(root) if path.is_file() and path.suffix in (".h", ".hh", ".hpp", ".hpp11", ".inc", ".inl", ".def", ".gen"))
-        if not inventory:
+        if not inventory and directory not in media_header_roots:
             raise ValueError("Missing original platform header inventory: " + directory)
         headers[directory] = inventory
+        if directory.startswith(tuple("third_party/" + name for name in ["libaom", "ffmpeg", "libvpx", "openh264", "dav1d"])):
+            project = "/".join(directory.split("/")[:2])
+            assembly_inputs.setdefault(project, set()).update("//" + path for path in inventory)
+            assembly_inputs[project].update("//" + directory + "/" + path.relative_to(root).as_posix() for path in source_files(root) if path.is_file() and path.suffix == ".asm")
         for path in inventory:
             input_file("//" + path)
 
@@ -201,6 +214,12 @@ def capture(graph, digest, chromium, source_roots, profiles):
             for path in script_parent.glob("*.py"):
                 inputs.add(target["script"].rsplit("/", 1)[0] + "/" + path.name)
             args = [arg.replace("$SOURCE_ROOT/out/bazel-import/", "") for arg in target.get("args", [])]
+            if target["script"] == "//build/gn_run_binary.py" and args and args[0] == "nasm":
+                if "--reproducible" not in args:
+                    raise ValueError("Original NASM action lacks reproducible output mode")
+                projects = {"/".join(path[2:].split("/")[:2]) for path in target["sources"]}
+                for project in projects:
+                    inputs.update(assembly_inputs[project])
             if "--jinja2-path" in args:
                 package = args[args.index("--jinja2-path") + 1]
                 if package != "../../third_party/jinja2":
@@ -262,7 +281,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
             record["outputs"] = target["outputs"]
             metadata[label] = record
         elif kind in ("group", "static_library", "source_set", "executable", "shared_library"):
-            libraries[label] = capture_library(graph, target, record, input_file, label, SDK_LIBS)
+            libraries[label] = capture_library(graph, target, record, input_file, label, SDK_LIBS | {"z"})
             record["outputs"] = target.get("outputs", [])
             replaced_rust_flags = [flag for flag in record["gn_ldflags"] if flag.startswith("prebuilt_rustc_sysroot/lib/rustlib/x86_64-unknown-linux-gnu/lib/lib") and flag.endswith(".rlib")]
             if replaced_rust_flags:

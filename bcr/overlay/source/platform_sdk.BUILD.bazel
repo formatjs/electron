@@ -5,7 +5,10 @@ load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
 package(default_visibility = ["//visibility:public"])
 
-exports_files(["usr/include/x86_64-linux-gnu/pci/config.h"])
+exports_files([
+    "usr/include/x86_64-linux-gnu/pci/config.h",
+    "usr/lib/x86_64-linux-gnu/libasound.so.2.0.0",
+])
 
 [cc_import(
     name = "shared_" + str(index),
@@ -21,6 +24,9 @@ cc_library(
 cc_library(
     name = "headers",
     hdrs = glob([
+        "usr/include/alsa/**/*.h",
+        "usr/include/pulse/**/*.h",
+        "usr/include/sound/**/*.h",
         "usr/include/X11/**/*.h",
         "usr/include/GL/**/*.h",
         "usr/include/EGL/**/*.h",
@@ -71,6 +77,7 @@ electron_source_headers(
 )
 
 _SONAMES = {
+    "asound": "libasound.so.2",
     "X11": "libX11.so.6",
     "Xi": "libXi.so.6",
     "Xext": "libXext.so.6",

@@ -11,7 +11,8 @@
     "libpango-1.0.so.0",
     "libpangocairo-1.0.so.0",
     "libatk-1.0.so.0",
-    "libatk-bridge-2.0.so.0"
+    "libatk-bridge-2.0.so.0",
+    "libasound.so.2"
   ],
   "system_libraries": [
     "ld-linux-x86-64.so.2",
@@ -620,6 +621,19 @@
       "package": "libzstd1",
       "url": "https://snapshot.debian.org/archive/debian/20250129T203412Z/pool/main/libz/libzstd/libzstd1_1.4.8+dfsg-2.1_amd64.deb",
       "md5": "fb91fe6a9259c533a2c17ee81e4da554"
+    },
+    "libasound.so.2": {
+      "interface": "usr/lib/x86_64-linux-gnu/libasound.so.2.0.0",
+      "needed": [
+        "ld-linux-x86-64.so.2",
+        "libc.so.6",
+        "libdl.so.2",
+        "libm.so.6",
+        "libpthread.so.0"
+      ],
+      "package": "libasound2",
+      "url": "https://snapshot.debian.org/archive/debian/20250129T203412Z/pool/main/a/alsa-lib/libasound2_1.2.4-1.1_amd64.deb",
+      "md5": "278210979a3d67b6a4ec4a38d830f247"
     }
   },
   "packages": [
@@ -1063,6 +1077,15 @@
         "https://snapshot.debian.org/archive/debian/20250129T203412Z/pool/main/z/zlib/zlib1g_1.2.11.dfsg-2+deb11u2_amd64.deb"
       ],
       "sha256": "03d2ab2174af76df6f517b854b77460fbdafc3dac0dca979317da67538159a3e"
+    },
+    {
+      "url": "https://snapshot.debian.org/archive/debian/20250129T203412Z/pool/main/a/alsa-lib/libasound2_1.2.4-1.1_amd64.deb",
+      "urls": [
+        "https://archive.debian.org/debian/pool/main/a/alsa-lib/libasound2_1.2.4-1.1_amd64.deb",
+        "https://deb.debian.org/debian/pool/main/a/alsa-lib/libasound2_1.2.4-1.1_amd64.deb",
+        "https://snapshot.debian.org/archive/debian/20250129T203412Z/pool/main/a/alsa-lib/libasound2_1.2.4-1.1_amd64.deb"
+      ],
+      "sha256": "d8c9b5182768db2a7c5c73f1eed0b1be1431ae4f41084d502b325d06d5b0f648"
     }
   ]
 }

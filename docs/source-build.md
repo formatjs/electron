@@ -1433,3 +1433,30 @@ generators. The pinned Chromium reference already has a native
 that can guide those ports. Its Chromium 142.0.7444.59 graph cannot replace
 Electron's patched 142.0.7444.52 configuration: recapture Electron flags, source
 pins and generated outputs, and verify codec/provider compatibility.
+
+## Full media source closure (validation pending)
+
+The platform profile now includes `//media:media`: 1,529 additional C/C++ units
+and 156 original NASM object actions. Combined graphics/GPU/media coverage is
+4,324 source/object units across 493 library/group/runtime targets, 203 generator
+targets (353 runs) and 27 exact source pins. FFmpeg reuses Electron's patched
+source repository. Codec configurations and generated outputs come from the
+Electron graph rather than the newer upstream Chromium graph.
+
+Original stub generation and source-built NASM remain declared native Bazel
+actions. Capture includes their source/header/assembly input closures and checks
+output bytes across source paths and mtimes. GN macro expressions preserve their
+spaces as a single compiler argument; libvpx's original allocation limit was
+verified in the analyzed compile actions.
+
+The pinned SDK now declares ALSA and Pulse headers. Its stripped ALSA link
+interface and checksum-pinned real runtime retain matching symbols, symbol
+versions and build identity. The runtime closure now has 54 libraries from 50
+packages; these desktop ABI libraries are not source-built library claims.
+
+New BB tests compare native FFmpeg FLAC output against the independent WAV
+reference, check the original Chrome AAC/H264 decoder registry, exercise Chromium
+audio parameters and check ALSA allocation/version APIs without audio hardware.
+A separate ELF test verifies SDK/runtime ABI identity. Compiler, decoder/runtime
+and full-suite results are still pending. Audio server/device integration and
+full Electron remain unfinished.

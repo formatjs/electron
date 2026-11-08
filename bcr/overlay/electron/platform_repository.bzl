@@ -72,7 +72,14 @@ def electron_platform_repositories(ctx):
     profile = json.decode(ctx.read(Label("//source/native:platform_inputs.json")))
     anchors, names = {}, []
     for prefix, pin in profile["source_revisions"].items():
-        name = "electron_platform_" + prefix[len("third_party/"):].replace("-", "_").replace("/", "_").lower()
+        if pin.get("patch_group") == "ffmpeg":
+            original = [entry for entry in json.decode(ctx.read(Label("//source:upstream_pins.json"))) if entry["group"] == "ffmpeg"][0]
+            if original["url"] != pin["remote"] + "@" + pin["commit"]:
+                fail("Platform FFmpeg revision differs from Electron's patched source")
+            anchors["@electron_ffmpeg_sources//:BUILD.bazel"] = prefix
+            continue
+        suffix = prefix[len("third_party/"):] if prefix.startswith("third_party/") else prefix
+        name = "electron_platform_" + suffix.replace("-", "_").replace("/", "_").lower()
         new_git_repository(name = name, remote = pin["remote"], commit = pin["commit"], build_file_content = "exports_files([\"BUILD.bazel\"], visibility = [\"//visibility:public\"])\n")
         anchors["@" + name + "//:BUILD.bazel"] = prefix
         names.append(name)
