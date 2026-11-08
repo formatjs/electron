@@ -1666,3 +1666,14 @@ Metadata analysis completed with zero build actions. The expanded dependency
 audit contains 80,436 actions and 34,342 CppCompile keys; all 30,478 baseline
 compile keys remain present. The baseline declared header lists also match
 exactly. No CMake/foreign action mnemonics matched this scope.
+
+The [99d6c1d aggregate](https://formatjs.buildbuddy.io/invocation/5cec9852-86d4-45f5-9c19-4a92f51ef3be)
+stopped with a Bazel JVM out-of-memory error during compilation. Source-component
+and BCR-consumer jobs now request 32 GB workers and set a 24 GB Bazel heap for
+every command. Numeric `.memory` profiles accompany the source timing profiles.
+Compiler inputs and incremental state settings stay unchanged.
+
+The [5371c2a rerun](https://formatjs.buildbuddy.io/invocation/9e176233-83a0-4b09-bae8-db29253db07e)
+failed before compilation when GitHub returned HTTP 504 for `rules_python`.
+The larger heap has not yet completed the full graph. Blink core runtime and
+the complete Electron executable remain unverified.
