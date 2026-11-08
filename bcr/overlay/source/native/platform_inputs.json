@@ -584694,6 +584694,7 @@
       "gn_deps": [],
       "script": "tools/variations/fieldtrial_to_struct.py",
       "inputs": [
+        "//components/variations/field_trial_config/field_trial_testing_config_schema.json",
         "//components/variations/service/generate_ui_string_overrider.py",
         "//testing/variations/fieldtrial_testing_config.json",
         "//tools/json_comment_eater/json_comment_eater.py",
@@ -699103,6 +699104,7 @@
     "components/url_formatter/url_fixer.h",
     "components/url_formatter/url_formatter.cc",
     "components/url_formatter/url_formatter.h",
+    "components/variations/field_trial_config/field_trial_testing_config_schema.json",
     "components/variations/field_trial_config/field_trial_util.cc",
     "components/variations/service/generate_ui_string_overrider.py",
     "components/viz/client/client_resource_provider.cc",

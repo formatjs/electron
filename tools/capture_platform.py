@@ -281,6 +281,8 @@ def capture(graph, digest, chromium, source_roots, profiles):
                 template = {"c++": "cpp_templates.zip", "typescript": "ts_templates.zip", "javascript": "js_templates.zip"}[args[args.index("-g") + 1]]
                 inputs.add(BUILD + args[args.index("--bytecode_path") + 1] + "/" + template)
             for arg in args:
+                if arg.startswith("--") and "=" in arg:
+                    arg = arg.split("=", 1)[1]
                 if arg.startswith("../../") and physical(arg[6:]).is_file():
                     inputs.add("//" + arg[6:])
                 elif BUILD + arg in graph["generated_files"]:
