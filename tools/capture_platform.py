@@ -9,6 +9,7 @@ import json
 import os
 import posixpath
 import re
+import xml.etree.ElementTree as ElementTree
 from functools import cache
 from pathlib import Path
 
@@ -62,6 +63,33 @@ def source_files(root):
         children[:] = sorted(name for name in children if name not in (".git", "__pycache__"))
         for name in sorted(filenames):
             yield Path(directory) / name
+
+
+
+def grit_resource_inputs(inputs, physical):
+    pending = [path[2:] for path in inputs if path.startswith("//") and not path.startswith(BUILD) and path.endswith((".grd", ".grdp"))]
+    seen, resources = set(), set()
+    asset_types = {".html", ".css", ".js", ".svg", ".png", ".jpg", ".jpeg", ".webp", ".gif", ".ico", ".cur", ".woff", ".woff2", ".ttf", ".json", ".bin"}
+    while pending:
+        source = pending.pop()
+        if source in seen or not physical(source).is_file():
+            continue
+        seen.add(source)
+        for node in ElementTree.parse(physical(source)).iter():
+            name = node.attrib.get("file")
+            if not name or any(marker in name for marker in ("$", "<(", "%(")):
+                continue
+            path = posixpath.normpath(posixpath.join(posixpath.dirname(source), name))
+            if path.startswith(("/", "../")) or not physical(path).is_file():
+                continue
+            resources.add("//" + path)
+            if path.endswith((".grd", ".grdp")):
+                pending.append(path)
+            elif Path(path).suffix in (".html", ".css", ".js"):
+                directory = posixpath.dirname(path)
+                root = physical(directory)
+                resources.update("//" + directory + "/" + asset.relative_to(root).as_posix() for asset in source_files(root) if asset.is_file() and asset.suffix in asset_types)
+    return resources
 
 
 def source_revisions(chromium):
@@ -272,6 +300,8 @@ def capture(graph, digest, chromium, source_roots, profiles):
             if target["script"] not in SCRIPTS:
                 raise ValueError("Untranslated platform generator: " + target["script"])
             inputs = set(target.get("inputs", []) + target.get("sources", []) + [target["script"]]) | dependency_inputs(label)
+            if target["script"] == "//tools/grit/grit.py":
+                inputs.update(grit_resource_inputs(inputs, physical))
             script_parent = physical(target["script"][2:]).parent
             for path in script_parent.glob("*.py"):
                 inputs.add(target["script"].rsplit("/", 1)[0] + "/" + path.name)
