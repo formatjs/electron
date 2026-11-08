@@ -12,7 +12,7 @@ Perfetto, native networking, typed Mojo IPC, matching Skia with Rust PNG/fontati
 native UI colors/locales and the original WebUI resource pipeline,
 native font/XML dependencies, libuv, BoringSSL, Node builtin generators, all eight Electron webpack bundles, fuses
 and eleven Node support libraries (136 C/C++ units; Postject is header-only).
-No target links a complete Electron executable.
+Full executable linkage and runtime launch remain unverified.
 See [source status and reproduction](docs/source-build.md).
 
 ## Layout

@@ -2583,3 +2583,17 @@ WebUI contracts decode GRIT's default gzip discovery HTML before comparing the
 original source bytes. Branding checks read the original unscaled resource pack,
 following the captured repack graph. Final runtime resource checks retain the
 component payload and plain WebID image comparisons.
+
+### Linux distribution inputs
+
+`tools/capture_runtime_inputs.py` maps the original Linux AMD64 distribution
+manifest to GN producers. Capture requires `generate_about_credits = true`;
+placeholder credits fail. The checked-in catalog contains 73 runtime paths,
+including original license/version producers, locales, snapshots, packs and
+default-app ASAR. It records the sandbox's required filename normalization and
+omits a shared FFmpeg file when the captured target links FFmpeg statically.
+
+This is metadata capture only. Runtime assembly still requires the license
+scanner's declared input closure, portable shared-library layout and native
+launch. The main executable, sandbox and Crashpad staging actions now declare
+Python directly, use an empty PATH and normalize executable modes/timestamps.
