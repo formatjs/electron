@@ -668,6 +668,7 @@ electron_js2c(
 )
 
 exports_files([
+    "cookie_subscription_projection.patch",
     "lastchange_environment.patch",
     "v8_header_compat.patch",
     "v8_engine.BUILD.bazel",

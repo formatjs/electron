@@ -1,0 +1,20 @@
+--- a/content/browser/cookie_store/cookie_store_manager.cc
++++ b/content/browser/cookie_store/cookie_store_manager.cc
+@@ -233,7 +233,7 @@
+ 
+     auto existing_subscription_it = std::ranges::find(
+         subscriptions, *new_subscription,
+-        &std::unique_ptr<CookieChangeSubscription>::operator*);
++        [](const auto& entry) -> const auto& { return *entry; });
+     if (existing_subscription_it == subscriptions.end())
+       subscriptions.push_back(std::move(new_subscription));
+   }
+@@ -331,7 +331,7 @@
+   for (auto& subscription : all_subscriptions) {
+     auto target_subscription_it = std::ranges::find(
+         target_subscriptions, *subscription,
+-        &std::unique_ptr<CookieChangeSubscription>::operator*);
++        [](const auto& entry) -> const auto& { return *entry; });
+     if (target_subscription_it == target_subscriptions.end()) {
+       // The subscription is not marked for deletion.
+       live_subscriptions.push_back(std::move(subscription));
