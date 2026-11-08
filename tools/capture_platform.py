@@ -320,8 +320,9 @@ def capture(graph, digest, chromium, source_roots, profiles):
                 helper_directories.append("tools/grit")
             if target["script"].startswith("//tools/metrics/"):
                 helper_directories += ["tools/metrics/common", "tools/metrics/ukm", "tools/metrics/private_metrics"]
-            if target["script"] == "//tools/variations/fieldtrial_to_struct.py":
+            if target["script"] in ("//tools/variations/fieldtrial_to_struct.py", "//tools/json_to_struct/json_to_struct.py"):
                 helper_directories += ["tools/json_comment_eater", "tools/json_to_struct"]
+            if target["script"] == "//tools/variations/fieldtrial_to_struct.py":
                 inputs.add("//components/variations/service/generate_ui_string_overrider.py")
             for directory in helper_directories:
                 root = physical(directory)
