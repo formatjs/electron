@@ -129,7 +129,7 @@ def electron_platform():
             linkopts = ["-l" + name for name in library["libs"] if name in ["m", "dl", "rt", "pthread", "resolv"]],
             linkstatic = True,
             target_compatible_with = _COMPATIBLE,
-            deps = [":tool_headers" if original in PROFILE["execution_closure"] else ":source_headers"] + _system_deps(library) + list({_label(dep): True for dep in library["gn_deps"] if dep not in PROFILE["toolchain_deps"] and dep not in PROFILE["execution_tools"]}),
+            deps = {dep: True for dep in [":tool_headers" if original in PROFILE["execution_closure"] else ":source_headers"] + _system_deps(library) + [_label(dep) for dep in library["gn_deps"] if dep not in PROFILE["toolchain_deps"] and dep not in PROFILE["execution_tools"]]}.keys(),
         )
         if library.get("resource_sources"):
             settings["data"] = [_file(path) for path in library["resource_sources"]]

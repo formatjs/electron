@@ -36,6 +36,13 @@ SCRIPTS = MOJO_SCRIPTS | {"//" + name for name in (
     "third_party/blink/renderer/bindings/scripts/build_web_idl_database.py",
     "third_party/blink/renderer/bindings/scripts/generate_bindings.py",
     "third_party/blink/renderer/bindings/scripts/generate_event_interface_names.py",
+    "third_party/blink/renderer/build/scripts/generate_permission_element_grd.py",
+    "third_party/blink/renderer/build/scripts/make_html_entity_table.py",
+    "third_party/blink/renderer/build/scripts/make_instrumenting_probes.py",
+    "third_party/blink/renderer/core/sanitizer/builtins_generate_config.py",
+    "third_party/inspector_protocol/check_protocol_compatibility.py",
+    "third_party/inspector_protocol/code_generator.py",
+    "third_party/inspector_protocol/concatenate_protocols.py",
     "tools/grit/grit.py", "tools/variations/fieldtrial_to_struct.py",
     "tools/metrics/private_metrics/gen_builders.py", "tools/metrics/ukm/gen_builders.py",
     "third_party/blink/renderer/build/scripts/run_with_pythonpath.py",
@@ -360,7 +367,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
                 record["reproducibility_options"] = {"year": "2025", "basis": "Chromium 142 source release"}
                 args.append("--year=2025")
             if "gperf" in args:
-                if target["script"] != "//third_party/blink/renderer/build/scripts/run_with_pythonpath.py" or "../../third_party/blink/renderer/build/scripts/gperf.py" not in args:
+                if target["script"] != "//third_party/blink/renderer/build/scripts/run_with_pythonpath.py" or not ("../../third_party/blink/renderer/build/scripts/gperf.py" in args or "--gperf" in args):
                     raise ValueError("Unexpected original gperf invocation")
                 inputs.add(BUILD + "gperf")
                 args = ["./gperf" if arg == "gperf" else arg for arg in args]
@@ -382,9 +389,10 @@ def capture(graph, digest, chromium, source_roots, profiles):
                 projects = {"/".join(path[2:].split("/")[:2]) for path in target["sources"]}
                 for project in projects:
                     inputs.update(assembly_inputs[project])
-            if "--jinja2-path" in args:
-                package = args[args.index("--jinja2-path") + 1]
-                if package != "../../third_party/jinja2":
+            jinja_option = "--jinja2-path" if "--jinja2-path" in args else "--jinja_dir" if "--jinja_dir" in args else None
+            if jinja_option:
+                package = args[args.index(jinja_option) + 1]
+                if package != ("../../third_party/jinja2" if jinja_option == "--jinja2-path" else "../../third_party"):
                     raise ValueError("Untranslated platform Jinja package path")
                 for directory in ("third_party/jinja2", "third_party/markupsafe"):
                     root = physical(directory)
