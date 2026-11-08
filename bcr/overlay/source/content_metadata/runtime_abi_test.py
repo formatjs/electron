@@ -6,7 +6,7 @@ import struct
 import sys
 import unittest
 
-CUPS_SDK, CUPS_RUNTIME, FENCE_SDK, FENCE_RUNTIME = map(Path, sys.argv[1:])
+CUPS_SDK, CUPS_RUNTIME, FENCE_SDK, FENCE_RUNTIME, PIXBUF_SDK, PIXBUF_RUNTIME = map(Path, sys.argv[1:])
 sys.argv[1:] = []
 
 
@@ -27,7 +27,8 @@ def sections(path):
 class RuntimeABI(unittest.TestCase):
     def test_sdk_interfaces_match_pinned_runtime_symbols_and_build_ids(self):
         for name, sdk_path, runtime_path in [("cups", CUPS_SDK, CUPS_RUNTIME),
-                                              ("xshmfence", FENCE_SDK, FENCE_RUNTIME)]:
+                                              ("xshmfence", FENCE_SDK, FENCE_RUNTIME),
+                                              ("gdk-pixbuf", PIXBUF_SDK, PIXBUF_RUNTIME)]:
             with self.subTest(library=name):
                 sdk, runtime = sections(sdk_path), sections(runtime_path)
                 self.assertNotIn(".text", sdk)

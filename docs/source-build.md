@@ -2233,3 +2233,29 @@ The corrected graph analyzes with 93,736 actions. All 41,454 C++ compile, 254 Ru
 26 Cargo build-script and 6,991 Python action keys from the expanded content
 baseline remain present. No CMake/foreign-cc actions matched. This audit verifies
 declarations/configuration; hosted execution still must prove the fixes.
+
+
+### Electron GTK and notification loader targets
+
+The profile now includes Electron's original GTK stubs and libnotify loader.
+Their closure contains two source sets, two Python generators and the GTK
+configuration group. A fifth header layer owns 386 Electron headers and these
+two producers. Existing native records and all four earlier header layers stay
+unchanged. The headers come from the original source checkout.
+
+GdkPixbuf uses the same pinned SDK for headers/link interface. Its exact Debian
+runtime package is pinned by SHA-256; extracted library bytes match the SDK's
+original package metadata. Existing runtime providers cover its ELF dependencies.
+The ABI contract now checks GdkPixbuf alongside CUPS and xshmfence. This does not
+claim desktop notification execution or Electron linkage; hosted compilation and
+ABI checks remain required.
+
+The full `//electron:electron_app` frontier still has 2,078 uncaptured targets
+above existing providers, including Electron's native library, crash handling,
+resources, snapshot tooling and additional generated APIs. These two native
+prerequisites are part of that closure; full executable integration remains open.
+
+
+The 93,753-action audit adds two C++ compile actions and two Python producers.
+All previous C++/Rust/Python action keys remain present; no CMake or foreign-cc
+mnemonics matched. Metadata analysis does not establish hosted execution.

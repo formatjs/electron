@@ -167,6 +167,8 @@ _RUNTIME_ABI_INPUTS = [
     "@electron_platform_runtime//:libcups.so.2",
     "@electron_platform_sdk//:usr/lib/x86_64-linux-gnu/libxshmfence.so.1.0.0",
     "@electron_platform_runtime//:libxshmfence.so.1",
+    "@electron_platform_sdk//:usr/lib/x86_64-linux-gnu/libgdk_pixbuf-2.0.so.0.4200.2",
+    "@electron_platform_runtime//:libgdk_pixbuf-2.0.so.0",
 ]
 
 py_test(
