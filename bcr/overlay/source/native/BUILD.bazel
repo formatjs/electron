@@ -1,4 +1,5 @@
 exports_files([
+    "credits_inputs.json",
     "platform_inputs.json",
     "runtime_inputs.json",
     "platform_runtime.json",

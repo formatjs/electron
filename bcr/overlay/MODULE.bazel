@@ -50,6 +50,7 @@ use_repo(
     "electron_codecs_sources",
     "electron_content_webui_sources",
     "electron_crabbyavif_upstream",
+    "electron_credits_sources",
     "electron_dawn_upstream",
     "electron_devtools_frontend_sources",
     "electron_display_sources",

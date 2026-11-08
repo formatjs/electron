@@ -34,7 +34,29 @@ def capture(graph, digest, chromium, node_modules, profiles, *, root="//electron
            for language in ("srcs", "c_srcs", "asm_srcs")):
         raise ValueError("Content WebUI must reuse native library providers")
     profile["capture_root"] = root
+    use_real_credits(profile)
     return profile
+
+
+def use_real_credits(profile):
+    label = "//components/resources:about_credits"
+    path = "//out/bazel-import/gen/components/resources/about_credits.html"
+    if label not in profile["copies"] and label not in profile["actions"]:
+        raise ValueError("Missing original credits producer")
+    profile["copies"].pop(label, None)
+    profile["actions"].pop(label, None)
+    profile["external"][label] = "@electron//source/credits:credits"
+    profile["external_files"][path] = "@electron//source/credits:about_credits.html"
+    for action in profile["actions"].values():
+        if label in action["ordering_deps"]:
+            if path not in action["inputs"]:
+                raise ValueError("Credits ordering edge lacks a declared HTML input")
+            action["ordering_deps"].remove(label)
+    profile["credits_adapter"] = {
+        "original": label,
+        "replacement": "@electron//source/credits:generate",
+        "reason": "Replace the development sample with original Chromium credits for distribution",
+    }
 
 
 def main():

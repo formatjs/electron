@@ -2,6 +2,7 @@
 
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "new_git_repository")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load(":credits_repository.bzl", "electron_credits_repository")
 load(":profile_codec.bzl", "unpack_profile")
 
 def _sources_impl(ctx):
@@ -113,6 +114,10 @@ def electron_platform_repositories(ctx):
     )
     names.append("electron_platform_esbuild")
     _platform_sources(name = "electron_platform_sources", chromium = "@electron_chromium_sources//:DEPS", sources = anchors)
+    inventory = json.decode(ctx.read(Label("//source/native:credits_inputs.json")))
+    if inventory["source_revisions"] != profile["source_revisions"]:
+        fail("Recapture credits after changing platform source revisions")
+    electron_credits_repository(name = "electron_credits_sources", chromium = "@electron_chromium_sources//:DEPS", sources = anchors)
     _platform_runtime(name = "electron_platform_runtime")
     http_archive(
         name = "electron_platform_sdk",
@@ -128,4 +133,4 @@ def electron_platform_repositories(ctx):
         strip_prefix = "pciutils-3.7.0",
         build_file = Label("//source:pciutils.BUILD.bazel"),
     )
-    return names + ["electron_platform_sources", "electron_platform_runtime", "electron_platform_sdk", "electron_platform_pciutils"]
+    return names + ["electron_platform_sources", "electron_platform_runtime", "electron_platform_sdk", "electron_platform_pciutils", "electron_credits_sources"]

@@ -2593,7 +2593,13 @@ including original license/version producers, locales, snapshots, packs and
 default-app ASAR. It records the sandbox's required filename normalization and
 omits a shared FFmpeg file when the captured target links FFmpeg statically.
 
-This is metadata capture only. Runtime assembly still requires the license
-scanner's declared input closure, portable shared-library layout and native
+The producer catalog is metadata only. The new
+[`source/credits`](../bcr/overlay/source/credits/README.md) action closes the
+original scanner's inputs and replaces the WebUI development sample with real
+credits. Its 1,391 hashed inputs preserve 766 directories and 706 valid metadata
+records, including 466 shipped entries. Metadata analysis passed; hosted HTML
+generation and its complete shipped-license test remain pending.
+
+Runtime assembly still requires portable shared-library layout and native
 launch. The main executable, sandbox and Crashpad staging actions now declare
 Python directly, use an empty PATH and normalize executable modes/timestamps.

@@ -1,0 +1,58 @@
+load("@electron_credits_sources//:inventory.bzl", "INVENTORY")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_python//python:defs.bzl", "py_test")
+load("//electron:source_action.bzl", "electron_source_action")
+
+package(default_visibility = ["//visibility:public"])
+
+_INPUTS = {"@electron_credits_sources//:" + path: path for path in INVENTORY["files"]}
+
+_INPUTS.update({
+    "//source/native:credits_inputs.json": "tools/licenses/credits_inputs.json",
+    "//source:upstream_pins.json": "tools/licenses/upstream_pins.json",
+    ":credits_inputs.py": "tools/licenses/credits_inputs.py",
+    ":generate_credits.py": "tools/licenses/generate_credits.py",
+})
+
+electron_source_action(
+    name = "generate",
+    srcs = _INPUTS,
+    args = INVENTORY["producer"]["args"],
+    exec_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    literal_files = {path + "/.bazel-license-input": "" for path in INVENTORY["directories"]},
+    logical_outputs = ["gen/components/resources/about_credits.html"],
+    out_files = ["about_credits.html"],
+    script = "tools/licenses/generate_credits.py",
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)
+
+cc_library(
+    name = "credits",
+    data = [":about_credits.html"],
+)
+
+py_test(
+    name = "credits_test",
+    srcs = ["credits_test.py"],
+    args = [
+        "$(rootpath :about_credits.html)",
+        "$(rootpath //source/native:credits_inputs.json)",
+    ] + [value for path in INVENTORY["files"] for value in [
+        path,
+        "$(rootpath @electron_credits_sources//:" + path + ")",
+    ]],
+    data = [
+        ":about_credits.html",
+        "//source/native:credits_inputs.json",
+    ] + ["@electron_credits_sources//:" + path for path in INVENTORY["files"]],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)
