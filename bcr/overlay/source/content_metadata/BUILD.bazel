@@ -87,3 +87,23 @@ py_test(
         "@platforms//cpu:x86_64",
     ],
 )
+
+_WEB_ASSET_INPUTS = [
+    "@electron_chromium_node_tool//:node-linux-x64/bin/node",
+    "@electron_platform_sources//:mojo_bindings_lite",
+    "@electron_platform_sources//:devtools_resource_manifest",
+    "@electron_platform_sources//:gen/third_party/devtools-frontend/src/front_end/devtools_app.html",
+    "@electron_platform_sources//:gen/third_party/devtools-frontend/src/front_end/devtools_app.html.compressed",
+    "@electron_platform_sources//:gen/third_party/devtools-frontend/src/front_end/devtools_app.html.hash",
+]
+
+py_test(
+    name = "web_assets_test",
+    srcs = ["web_assets_test.py"],
+    args = ["$(rootpath " + label + ")" for label in _WEB_ASSET_INPUTS],
+    data = _WEB_ASSET_INPUTS,
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)

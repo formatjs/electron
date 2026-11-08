@@ -2001,3 +2001,24 @@ preserves all 37,382 CppCompile, 254 Rustc, 26 CargoBuildScriptRun and 6,332
 ElectronPython baseline keys. Additions include two native protobuf compilations
 and six generator/copy actions. No CMake/foreign actions appear; hosted execution
 of these resource additions and the canonical ICU path fix remains pending.
+
+
+### Content Mojo and DevTools web assets
+
+The capture adds the original Mojo-lite concatenation/export replacement and
+DevTools compression/GRD producers. The latter retains the complete original
+frontend dependency graph, file list, Brotli framing and source hashes. The
+source aggregate requests these actual products through public file aliases.
+No native libraries or existing producer records change.
+
+Hosted tests evaluate the real concatenated Mojo bundle and exercise signed and
+unsigned 64-bit wire helpers. They also decompress the generated DevTools HTML,
+check its length header/hash, and verify GRD compressed-resource references.
+Local validation remains metadata-only; actual generation and runtime checks
+are pending on BB. Full content and the Electron executable remain unfinished.
+
+
+Metadata analysis passed with zero build actions. The 86,882-action audit keeps
+all 37,384 CppCompile, 254 Rustc, 26 CargoBuildScriptRun and 6,338 ElectronPython
+baseline keys. Five Python producer actions are added; no CMake/foreign actions
+appear. Hosted generation and semantic assertions still need validation.

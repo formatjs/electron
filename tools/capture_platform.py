@@ -31,7 +31,11 @@ CONTENT_PROTO_HEADER_ACTIONS = {
     "//components/security_interstitials/content:proto_gen",
 }
 CONTENT_PROTO_RUNTIME_COPIES = ["//third_party/protobuf:copy_google_protobuf", "//third_party/protobuf:copy_google_protobuf_internal"]
-ROOTS = CORE_ROOTS + ["//third_party/blink/renderer/modules:modules", DEVTOOLS_ROOT] + list(CONTENT_METADATA.values()) + list(CONTENT_RESOURCES.values())
+CONTENT_WEB_ASSETS = {
+    "mojo_bindings_lite": "//mojo/public/js:bindings_lite",
+    "devtools_resource_manifest": "//third_party/devtools-frontend/src:generate_devtools_grd",
+}
+ROOTS = CORE_ROOTS + ["//third_party/blink/renderer/modules:modules", DEVTOOLS_ROOT] + list(CONTENT_METADATA.values()) + list(CONTENT_RESOURCES.values()) + list(CONTENT_WEB_ASSETS.values())
 SOURCE_PREFIXES = ["third_party/libyuv", "third_party/angle", "third_party/dawn", "third_party/swiftshader", "third_party/spirv-tools/src", "third_party/spirv-headers/src", "third_party/vulkan-loader/src", "third_party/vulkan-tools/src", "third_party/vulkan-utility-libraries/src", "third_party/vulkan-headers/src", "third_party/vulkan_memory_allocator", "third_party/wayland/src", "third_party/wayland-protocols/src", "third_party/wayland-protocols/kde"]
 MEDIA_SOURCE_PREFIXES = ["third_party/flac", "media/cdm/api", "third_party/libaom/source/libaom", "third_party/crc32c/src", "third_party/ffmpeg", "third_party/libvpx/source/libvpx", "third_party/openh264/src", "third_party/dav1d/libdav1d", "third_party/libgav1/src", "third_party/leveldatabase/src", "third_party/libwebm/source"]
 COMPOSITOR_SOURCE_PREFIXES = ["third_party/webrtc", "third_party/federated_compute/src", "third_party/libsrtp"]
@@ -57,6 +61,9 @@ SCRIPTS = MOJO_SCRIPTS | {"//" + name for name in (
     "build/write_buildflag_header.py", "build/gn_run_binary.py", "build/util/version.py",
     "components/safe_browsing/content/resources/gen_file_type_proto.py",
     "components/resources/ssl/ssl_error_assistant/gen_ssl_error_assistant_proto.py",
+    "mojo/public/tools/bindings/concatenate-files.py",
+    "mojo/public/tools/bindings/concatenate_and_replace_closure_exports.py",
+    "third_party/devtools-frontend/src/scripts/build/generate_devtools_grd.py",
     "third_party/node/node.py",
     "third_party/devtools-frontend/src/scripts/build/assert_grd.py",
     "third_party/devtools-frontend/src/scripts/build/assert_third_party_readmes.py",
@@ -767,7 +774,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
     )
     used = {dep for label in seen for dep in targets[label].get("deps", []) if dep in external}
     devtools_actions = sorted(label for label in closure([DEVTOOLS_ROOT]) if label in actions)
-    return dict(content_resources=CONTENT_RESOURCES, content_protobuf_runtime=CONTENT_PROTO_RUNTIME_COPIES, content_metadata=CONTENT_METADATA, devtools_workspace=devtools_workspace, devtools_frontend_actions=devtools_actions, header_layers=header_layers, devtools_esbuild=devtools_esbuild, copies=copies, devtools_node_modules_files=devtools_packages, native_header_actions=sorted(native_header_actions), source_aliases=source_aliases, roots=ROOTS, graph_sha256=digest, source_revisions=revisions, names=names, libraries=libraries, actions=actions, metadata=metadata, literal_metadata=literal_metadata, execution_tools=sorted(set(tools.values())), execution_closure=sorted(execution_closure), producers=producers, headers=headers, files=sorted(files), external_files={path: shared[path] for path in sorted(used_shared)}, external={label: external[label] for label in sorted(used)}, generated_files=generated, toolchain_deps=sorted(TOOLCHAIN), sdk_libraries=sorted(SDK_LIBS))
+    return dict(content_web_assets=CONTENT_WEB_ASSETS, content_resources=CONTENT_RESOURCES, content_protobuf_runtime=CONTENT_PROTO_RUNTIME_COPIES, content_metadata=CONTENT_METADATA, devtools_workspace=devtools_workspace, devtools_frontend_actions=devtools_actions, header_layers=header_layers, devtools_esbuild=devtools_esbuild, copies=copies, devtools_node_modules_files=devtools_packages, native_header_actions=sorted(native_header_actions), source_aliases=source_aliases, roots=ROOTS, graph_sha256=digest, source_revisions=revisions, names=names, libraries=libraries, actions=actions, metadata=metadata, literal_metadata=literal_metadata, execution_tools=sorted(set(tools.values())), execution_closure=sorted(execution_closure), producers=producers, headers=headers, files=sorted(files), external_files={path: shared[path] for path in sorted(used_shared)}, external={label: external[label] for label in sorted(used)}, generated_files=generated, toolchain_deps=sorted(TOOLCHAIN), sdk_libraries=sorted(SDK_LIBS))
 
 
 def main():
