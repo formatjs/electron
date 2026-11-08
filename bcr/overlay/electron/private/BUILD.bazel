@@ -92,6 +92,7 @@ py_binary(
 exports_files([
     "artifact_file.py",
     "copy_files.py",
+    "source_action.py",
     "source_tool.py",
 ])
 
@@ -133,6 +134,10 @@ electron_source_action(
         "generate",
         "result.json",
     ],
+    literal_files = {
+        "scripts/literal 世界.txt": "Declared literal 世界.\n",
+        "third_party/fixture package/.bazel-license-input": "",
+    },
     logical_outputs = ["result.json"],
     out_files = ["python_plugin_fixture_output.json"],
     python_tools = {"scripts/plugin": "scripts/fixture.py"},

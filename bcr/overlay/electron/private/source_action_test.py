@@ -23,6 +23,8 @@ class SourceActionTest(unittest.TestCase):
         scripts = {
             "scripts/fixture.py": (source / "source_action_plugin_fixture.py").read_text(),
             "scripts/helper.py": (source / "source_action_plugin_helper.py").read_text(),
+            "scripts/literal 世界.txt": "Declared literal 世界.\n",
+            "third_party/fixture package/.bazel-license-input": "",
         }
         inputs = []
         for logical, content in scripts.items():
@@ -53,6 +55,8 @@ class SourceActionTest(unittest.TestCase):
             "path": "",
             "safe_path": True,
             "no_user_site": 1,
+            "literal": "Declared literal 世界.\n",
+            "empty_literal": True,
         }
         self.assertEqual(json.loads(self.output.read_text()), expected)
         self.assertEqual(json.loads(GENERATED.read_text()), expected)

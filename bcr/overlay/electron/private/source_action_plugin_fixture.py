@@ -26,4 +26,6 @@ else:
         "path": os.environ["PATH"],
         "safe_path": sys.flags.safe_path,
         "no_user_site": sys.flags.no_user_site,
+        "literal": Path(__file__).with_name("literal 世界.txt").read_text(encoding="utf-8"),
+        "empty_literal": (Path(__file__).parents[1] / "third_party/fixture package/.bazel-license-input").read_bytes() == b"",
     }, sort_keys=True))

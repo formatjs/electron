@@ -1,6 +1,9 @@
 """Declared upstream Python actions with matching execution-platform tools."""
 
 def _impl(ctx):
+    python = ctx.toolchains["@rules_python//python:toolchain_type"].py3_runtime
+    if not python.interpreter:
+        fail("Source generators require a declared Python interpreter")
     mappings = {}
     for target, logical in ctx.attr.srcs.items():
         files = target[DefaultInfo].files.to_list()
@@ -21,6 +24,14 @@ def _impl(ctx):
             if logical in mappings and mappings[logical] != file:
                 fail("Conflicting generator source-group path")
             mappings[logical] = file
+    for logical, content in ctx.attr.literal_files.items():
+        if not logical or logical.startswith("/") or "\\" in logical or ":" in logical or any([part in ["", ".", ".."] for part in logical.split("/")]):
+            fail("Literal generator input must use a canonical relative path")
+        if logical in mappings:
+            fail("Literal generator input conflicts with a declared source")
+        file = ctx.actions.declare_file(ctx.label.name + "_literal/" + logical)
+        ctx.actions.write(file, content)
+        mappings[logical] = file
     tools = []
     for target, logical in ctx.attr.tools.items():
         runner = target[DefaultInfo].files_to_run
@@ -56,20 +67,22 @@ def _impl(ctx):
         contents["python_tools"] = ctx.attr.python_tools
     ctx.actions.write(manifest, json.encode(contents))
     ctx.actions.run(
-        executable = ctx.attr._runner[DefaultInfo].files_to_run,
-        arguments = [manifest.path],
-        inputs = depset(mappings.values() + [manifest], transitive = [target[DefaultInfo].files for target in ctx.attr.deps] + [target[DefaultInfo].files for target in ctx.attr.tools] + [target[DefaultInfo].files for target in ctx.attr.tool_inputs]),
+        executable = python.interpreter,
+        arguments = ["-I", "-B", ctx.file._script.path, manifest.path],
+        inputs = depset(mappings.values() + [manifest, ctx.file._script], transitive = ([python.files] if python.files else []) + [target[DefaultInfo].files for target in ctx.attr.deps] + [target[DefaultInfo].files for target in ctx.attr.tools] + [target[DefaultInfo].files for target in ctx.attr.tool_inputs]),
         tools = tools,
         outputs = ctx.outputs.out_files,
-        env = {"LANG": "C", "LC_ALL": "C", "TZ": "UTC", "PYTHONHASHSEED": "0"},
+        env = {"PATH": "", "LANG": "C", "LC_ALL": "C", "TZ": "UTC", "PYTHONHASHSEED": "0"},
         mnemonic = "ElectronPython",
     )
     return [DefaultInfo(files = depset(ctx.outputs.out_files))]
 
 _electron_source_action = rule(
     implementation = _impl,
+    toolchains = ["@rules_python//python:toolchain_type"],
     attrs = {
         "srcs": attr.label_keyed_string_dict(allow_files = True),
+        "literal_files": attr.string_dict(doc = "Declared logical input paths mapped to UTF-8 contents, including empty discovery markers."),
         "tools": attr.label_keyed_string_dict(cfg = "exec", allow_files = True),
         "source_groups": attr.label_list(cfg = "exec"),
         "mapped_source_groups": attr.label_keyed_string_dict(cfg = "exec"),
@@ -84,7 +97,7 @@ _electron_source_action = rule(
         "python_tools": attr.string_dict(),
         "python_launcher": attr.label(executable = True, cfg = "exec"),
         "verify_reproducible": attr.bool(default = True),
-        "_runner": attr.label(default = Label("//electron/private:source_action"), executable = True, cfg = "exec"),
+        "_script": attr.label(default = Label("//electron/private:source_action.py"), allow_single_file = True, cfg = "exec"),
     },
 )
 
