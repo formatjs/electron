@@ -28,6 +28,7 @@ SOURCE_PREFIXES += MEDIA_SOURCE_PREFIXES + COMPOSITOR_SOURCE_PREFIXES + BLINK_SO
 SOURCE_PREFIXES += ["third_party/cros_system_api"]
 TOOLCHAIN = {"//buildtools/third_party/libc++:" + name for name in ("all_modules", "custom_headers", "libcxx_headers", "libc++")}
 EXTRA_NATIVE_HEADERS = {
+    "//components/signin/public/identity_manager:identity_manager": ["//components/account_manager_core/account.h"],
     "//printing/mojom:mojom": ["//printing/page_range.h"],
     "//device/bluetooth:bluetooth": ["//chromeos/constants/chromeos_features.h", "//third_party/cros_system_api/dbus/service_constants.h"],
 }
