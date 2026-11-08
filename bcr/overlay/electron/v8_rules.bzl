@@ -203,7 +203,7 @@ electron_v8_torque_tool = rule(
 
 def v8_sources():
     """Declare source targets behind the stable repository BUILD shim."""
-    native.exports_files(["electron_patches.json", "DEPS", "LICENSE"])
+    native.exports_files(["electron_patches.json", "DEPS", "LICENSE", "include/js_protocol-1.3.json"])
     native.filegroup(name = "sources", srcs = native.glob(["**"], exclude = ["BUILD.bazel"]))
 
     v8_generator_headers(name = "generator_headers")

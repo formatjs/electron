@@ -177,6 +177,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
     previous = [("base", "base"), ("embedder", "embedder"), ("ipcz", "ipcz"), ("libnode", "libnode"), ("perfetto", "perfetto_native"), ("protobuf", "protobuf"), ("v8_engine", "v8_engine"), ("v8_support", "v8_support"), ("network", "network"), ("mojo", "mojo"), ("fonts", "fonts"), ("codecs", "codecs"), ("skia", "skia"), ("gfx", "gfx"), ("display", "display"), ("events", "events"), ("ui", "ui")]
     external, shared = load_profiles(profiles, previous)
     shared[BUILD + "icudtl.dat"] = "@electron_icu_sources//:common/icudtl.dat"
+    shared["//v8/include/js_protocol-1.3.json"] = "@electron_v8_sources//:include/js_protocol-1.3.json"
     external["//media/filters:symphonia_glue"] = "@electron//source/media:symphonia"
     external["//media/filters:symphonia_glue_cxx_generated"] = "@electron//source/media:symphonia_bridge"
     temporal = json.loads((profiles / "temporal_inputs.json").read_text())
@@ -385,6 +386,18 @@ def capture(graph, digest, chromium, source_roots, profiles):
                     inputs.add(esbuild)
                 record["devtools_node_modules"] = True
             args = [arg.replace("$SOURCE_ROOT/out/bazel-import/", "") for arg in target.get("args", [])]
+            if target["script"] == "//third_party/inspector_protocol/check_protocol_compatibility.py":
+                for arg in args:
+                    if not arg.startswith("../../") or not arg.endswith(".pdl"):
+                        continue
+                    source = arg[6:]
+                    version = re.search(r"(?m)^version\s+major (\d+)\s+minor (\d+)", physical(source).read_text())
+                    if not version:
+                        raise ValueError("Missing original protocol version: " + source)
+                    baseline = source.removesuffix(".pdl") + "-" + version[1] + "." + version[2] + ".json"
+                    if not physical(baseline).is_file():
+                        raise ValueError("Missing original protocol baseline: " + baseline)
+                    inputs.add("//" + baseline)
             if target["script"] == "//third_party/blink/renderer/build/scripts/generate_permission_element_grd.py":
                 directory = args[args.index("--input_base_dir") + 1]
                 if directory != "../../third_party/blink/public/strings/":
