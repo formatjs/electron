@@ -1362,7 +1362,7 @@ python3 tools/capture_platform.py \
 ## GPU command-buffer integration (validation pending)
 
 The graphics profile now also captures GLES2 client/service command buffers and
-Viz common and GPU process IPC services: 2,633 native units across 407
+Viz common and GPU process IPC client/host/service: 2,639 native units across 409
 library/group/runtime targets, 179 declared generator targets (180 runs), and 16 exact source pins. Libyuv comes
 from its Chromium DEPS revision. GPU/Mojo/Dawn generation and the original
 Protobuf wrapper retain their declared tools and outputs.
@@ -1387,3 +1387,7 @@ Quoted sibling includes keep their checked-in relative file layout across profil
 boundaries. The capture projects their recursive source closure locally instead
 of redirecting those files into another source repository. No compiler include
 path workaround or source patch is needed.
+
+The GPU transport launcher declares the complete pinned desktop runtime and native
+shared GLib/zlib owners. Its isolated library path includes that closure before
+host defaults; driver lookup points only to the declared SwiftShader manifest.
