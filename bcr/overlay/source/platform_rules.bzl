@@ -62,10 +62,12 @@ def electron_platform():
     layers = PROFILE.get("header_layers")
     platform_actions = PROFILE.get("native_header_actions", PROFILE["actions"].keys())
     core_libraries = {}
+    module_libraries = {}
     if layers:
         common_headers = [_file("//" + path) for path in layers["platform"]["headers"]]
         platform_actions = layers["platform"]["actions"]
         core_libraries = {label: True for label in layers["blink_core"]["libraries"]}
+        module_libraries = {label: True for label in layers.get("blink_modules", {}).get("libraries", [])}
     else:
         common_headers = {_file("//" + path): True for directory, headers in PROFILE["headers"].items() for path in headers if directory != "third_party/wayland/include"}.keys()
     electron_source_headers(
@@ -92,6 +94,14 @@ def electron_platform():
             hdrs = [_file("//" + path) for path in layers["blink_core"]["headers"]] + [_file(path) for label in layers["blink_core"]["actions"] for path in PROFILE["actions"][label]["outputs"] if path.endswith((".h", ".hpp", ".inc", ".inl"))],
             includes = [".", "gen", "src"],
             deps = [":source_headers"],
+            target_compatible_with = _COMPATIBLE,
+        )
+    if layers and "blink_modules" in layers:
+        cc_library(
+            name = "modules_source_headers",
+            hdrs = [_file("//" + path) for path in layers["blink_modules"]["headers"]] + [_file(path) for label in layers["blink_modules"]["actions"] for path in PROFILE["actions"][label]["outputs"] if path.endswith((".h", ".hpp", ".inc", ".inl"))],
+            includes = [".", "gen", "src"],
+            deps = [":core_source_headers"],
             target_compatible_with = _COMPATIBLE,
         )
     native.filegroup(name = "devtools_node_modules", srcs = PROFILE.get("devtools_node_modules_files", []))
@@ -147,7 +157,7 @@ def electron_platform():
             linkopts = ["-l" + name for name in library["libs"] if name in ["m", "dl", "rt", "pthread", "resolv"]],
             linkstatic = True,
             target_compatible_with = _COMPATIBLE,
-            deps = {dep: True for dep in [":tool_headers" if original in PROFILE["execution_closure"] else (":core_source_headers" if original in core_libraries else ":source_headers")] + _system_deps(original, library) + [_label(dep) for dep in library["gn_deps"] if dep not in PROFILE["toolchain_deps"] and dep not in PROFILE["execution_tools"]]}.keys(),
+            deps = {dep: True for dep in [":tool_headers" if original in PROFILE["execution_closure"] else (":modules_source_headers" if original in module_libraries else ":core_source_headers" if original in core_libraries else ":source_headers")] + _system_deps(original, library) + [_label(dep) for dep in library["gn_deps"] if dep not in PROFILE["toolchain_deps"] and dep not in PROFILE["execution_tools"]]}.keys(),
         )
         if library.get("resource_sources"):
             settings["data"] = [_file(path) for path in library["resource_sources"]]
@@ -188,6 +198,8 @@ def electron_platform():
     native.alias(name = "blink_platform", actual = _label("//third_party/blink/renderer/platform:platform"))
     if "//third_party/blink/renderer/core:core" in PROFILE["libraries"]:
         native.alias(name = "blink_core", actual = _label("//third_party/blink/renderer/core:core"))
+    if "//third_party/blink/renderer/modules:modules" in PROFILE["libraries"]:
+        native.alias(name = "blink_modules", actual = _label("//third_party/blink/renderer/modules:modules"))
     native.alias(name = "ozone", actual = _label("//ui/ozone:ozone"))
     native.alias(name = "gl", actual = _label("//ui/gl:gl"))
 

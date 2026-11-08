@@ -104,6 +104,7 @@ test_suite(
         "//source:v8_tasks_test",
         "//source/blink_bindings:bindings_test",
         "//source/blink_core:core_test",
+        "//source/blink_modules:modules_test",
         "//source/blink_platform:platform_test",
         "//source/blink_rust:crash_test",
         "//source/blink_rust:font_format_test",

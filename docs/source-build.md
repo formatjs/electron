@@ -1707,3 +1707,38 @@ archive. The prefetch list also includes the exact Electron 39.0.0 archive from
 codeload, verified against the existing `bcr/source.json` integrity. Its staged
 filename remains `v39.0.0.tar.gz`, matching the BCR URL. This changes transport
 only; all source patches and module metadata remain unchanged.
+
+### Blink modules
+
+The Linux AMD64 profile includes the complete original
+`//third_party/blink/renderer/modules:modules` closure. It adds 271 library/group
+targets, 3,040 native source/object units and 40 original generators. The same
+50 source pins remain; existing library, generator, copy, metadata and generated
+file records retain their exact values.
+
+Modules have a separate header provider: 1,371 additional raw headers and 41
+generated owners. Platform and core header layers remain byte-for-byte equal as
+parsed data. These layers derive from the pinned GN graph, without using an old
+profile as configuration.
+
+The native modules probe calls the original WebSocket implementation for token
+validation, Unicode/control escaping and ordered protocol-header construction.
+Hosted compilation, linking and runtime validation remain pending. Content and
+the complete Electron executable are still unfinished.
+
+The [168a174 aggregate](https://formatjs.buildbuddy.io/invocation/c517dd1d-417e-430e-9fb0-45d5eeb521cb)
+passed the hermetic execution check, then timed out fetching the pinned
+protobuf-javascript GitHub archive before the graphics test. Direct codeload
+returns the same 400,574 bytes and pinned SHA-256
+`dd78fad1311e7819913047f5ee544a384183ae88ca118a22f6d4992d4b2a081b`.
+Source archive declarations now try codeload first, with the original GitHub
+archive URL as fallback and explicit `tar.gz` extraction type. Original digests,
+refs and strip prefixes remain unchanged; release ZIPs and non-GitHub URLs keep
+their original routes. CI also checks the URL mapping contract.
+
+The expanded aggregate/modules-probe metadata audit contains 83,962 actions and
+37,381 CppCompile keys, with zero CMake/foreign action mnemonics. Across that
+scope and the companion core-probe query, all 34,341 current-HEAD baseline compile
+keys remain present. This checks action identity, not build speed or runtime
+correctness. Earlier audit files predated scoped source-header fixes and are not
+the baseline for this comparison.
