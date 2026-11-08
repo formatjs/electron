@@ -1513,7 +1513,7 @@ Blink platform closure adds 5,989 C/C++ units plus Rust crash/font-format and
 CrabbyAVIF prerequisites. Its graph also requires original IDL, USB identifiers,
 DevTools overlay and additional Blink generators.
 
-## Blink Rust bridges (validation pending)
+## Blink Rust bridges
 
 The Rust profile now captures Blink's original font-format and mixed-language
 crash modules: two additional Rust targets, with all 117 existing records and
@@ -1533,5 +1533,14 @@ not covered by that check.
 Capture is stable across hash seeds. Analysis of the new libraries/tests passes
 with zero build actions. The complete platform/bridge dependency audit found
 zero CMake/foreign-cc actions, with 20,791 CppCompile actions as a positive control.
-Hosted compilation/runtime validation remains pending. Full source profiles
-remain Linux AMD64; CrabbyAVIF, Blink and full Electron remain unfinished.
+[d158dbb components](https://formatjs.buildbuddy.io/invocation/16dbafe5-cc1e-40b8-961b-0ae8fae9d3bd),
+[BCR consumer](https://formatjs.buildbuddy.io/invocation/74320089-9454-4c96-9c7e-23d9a7140085)
+and [cross probes](https://formatjs.buildbuddy.io/invocation/136d9125-d6f6-4c63-a668-8e89365933b6)
+passed. Structured results explicitly report both new probes as PASSED. The BCR
+source suite took 39.841 seconds with 12 tracked remote actions, 2.445 CPU seconds,
+395,137,024 bytes maximum action peak memory, 156,105,220 input bytes and
+10,663,694 output bytes. These are incremental CI observations.
+
+Full source profiles remain Linux AMD64; CrabbyAVIF, Blink and full Electron
+remain unfinished. CrabbyAVIF's dav1d/libyuv bindings will reuse the matching
+native source owners already present in the platform profile.
