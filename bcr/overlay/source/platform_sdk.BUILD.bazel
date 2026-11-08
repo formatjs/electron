@@ -27,6 +27,8 @@ cc_library(
         "usr/include/alsa/**/*.h",
         "usr/include/libdrm/**/*.h",
         "usr/include/pulse/**/*.h",
+        "usr/include/pipewire-0.3/**/*.h",
+        "usr/include/spa-0.2/**/*.h",
         "usr/include/sound/**/*.h",
         "usr/include/X11/**/*.h",
         "usr/include/GL/**/*.h",
@@ -58,6 +60,8 @@ cc_library(
         "usr/include/gtk-3.0",
         "usr/include/libdrm",
         "usr/include/pango-1.0",
+        "usr/include/pipewire-0.3",
+        "usr/include/spa-0.2",
         "usr/lib/x86_64-linux-gnu/dbus-1.0/include",
     ],
     deps = [
