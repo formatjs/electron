@@ -1359,12 +1359,12 @@ python3 tools/capture_platform.py \
   --output=bcr/overlay/source/native/platform_inputs.json
 ```
 
-## GPU command-buffer integration (validation pending)
+## GPU command-buffer integration
 
-The graphics profile now also captures GLES2 client/service command buffers and
-Viz common and GPU process IPC client/host/service: 2,639 native units across 409
-library/group/runtime targets, 179 declared generator targets (180 runs), and 16 exact source pins. Libyuv comes
-from its Chromium DEPS revision. GPU/Mojo/Dawn generation and the original
+The graphics profile captures GLES2 client/service command buffers, Viz common
+and GPU IPC client/host/service: 2,639 native units across 409 library/group/runtime
+targets, 179 declared generator targets (180 runs), and 16 exact source pins.
+Libyuv comes from its Chromium DEPS revision. GPU/Mojo/Dawn generation and the original
 Protobuf wrapper retain their declared tools and outputs.
 
 Chromium's `lastchange_dawn` checkout hook is a declared action. Its original
@@ -1380,8 +1380,15 @@ shared-memory byte transfer, invalid ranges/handles, bucket limits and error
 callbacks. It also exercises real GPU preference serialization, shader-cache
 protobufs, Viz NV12 plane sizing and pinned libyuv ARGB-to-NV12 conversion.
 Converted chroma bytes pass through the native transfer buffer and decoder.
-The existing SwiftShader pixel probe and complete source suite remain required. Runtime validation of this expansion is
-pending; full Electron remains unfinished.
+GPU preferences use the real source-built Mojo embedder. The existing SwiftShader
+pixel probe and complete source suite remain required.
+
+[9a26e4a components](https://formatjs.buildbuddy.io/invocation/85548eee-1919-463f-b3bc-faff67712494),
+[BCR consumer](https://formatjs.buildbuddy.io/invocation/7fe6e314-f4e1-48e2-a742-0f55ecf58e30)
+and [cross probes](https://formatjs.buildbuddy.io/invocation/2c7580d3-ff97-41a2-a821-cdd4ce646ecb)
+passed. The [complete native suite](https://formatjs.buildbuddy.io/invocation/a2205917-022b-4e00-a863-c111dae2b214)
+includes the transport and real SwiftShader rendering checks. Full Electron
+remains unfinished.
 
 Quoted sibling includes keep their checked-in relative file layout across profile
 boundaries. The capture projects their recursive source closure locally instead
