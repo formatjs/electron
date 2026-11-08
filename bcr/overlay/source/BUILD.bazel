@@ -38,7 +38,7 @@ cc_test(
     name = "gpu_transport_test",
     srcs = ["gpu_transport_probe.cc"],
     args = [PLATFORM_PROFILE["source_revisions"]["third_party/dawn"]["commit"]],
-    copts = PLATFORM_PROFILE["libraries"]["//gpu/command_buffer/service:gles2"]["copts"],
+    copts = PLATFORM_PROFILE["libraries"]["//gpu/command_buffer/service:service_sources"]["copts"],
     dynamic_deps = ["//source/glib:" + name for name in [
         "zlib",
         "glib",
@@ -47,7 +47,7 @@ cc_test(
         "gio",
     ]],
     linkstatic = True,
-    local_defines = PLATFORM_PROFILE["libraries"]["//gpu/command_buffer/service:gles2"]["defines"],
+    local_defines = PLATFORM_PROFILE["libraries"]["//gpu/command_buffer/service:service_sources"]["defines"],
     target_compatible_with = [
         "@platforms//os:linux",
         "@platforms//cpu:x86_64",
