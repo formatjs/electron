@@ -64,11 +64,13 @@ def electron_platform():
     platform_actions = PROFILE.get("native_header_actions", PROFILE["actions"].keys())
     core_libraries = {}
     module_libraries = {}
+    content_libraries = {}
     if layers:
         common_headers = [_file("//" + path) for path in layers["platform"]["headers"]]
         platform_actions = layers["platform"]["actions"]
         core_libraries = {label: True for label in layers["blink_core"]["libraries"]}
         module_libraries = {label: True for label in layers.get("blink_modules", {}).get("libraries", [])}
+        content_libraries = {label: True for label in layers.get("content", {}).get("libraries", [])}
     else:
         common_headers = {_file("//" + path): True for directory, headers in PROFILE["headers"].items() for path in headers if directory != "third_party/wayland/include"}.keys()
     electron_source_headers(
@@ -103,6 +105,14 @@ def electron_platform():
             hdrs = [_file("//" + path) for path in layers["blink_modules"]["headers"]] + [_file(path) for label in layers["blink_modules"]["actions"] for path in PROFILE["actions"][label]["outputs"] if path.endswith((".h", ".hpp", ".inc", ".inl"))],
             includes = [".", "gen", "src"],
             deps = [":core_source_headers"],
+            target_compatible_with = _COMPATIBLE,
+        )
+    if layers and "content" in layers:
+        cc_library(
+            name = "content_source_headers",
+            hdrs = [_file("//" + path) for path in layers["content"]["headers"]] + [_file(path) for label in layers["content"]["actions"] for path in PROFILE["actions"][label]["outputs"] if path.endswith((".h", ".hpp", ".inc", ".inl"))],
+            includes = [".", "gen", "src"],
+            deps = [":modules_source_headers"],
             target_compatible_with = _COMPATIBLE,
         )
     native.filegroup(name = "devtools_node_modules", srcs = PROFILE.get("devtools_node_modules_files", []))
@@ -172,7 +182,7 @@ def electron_platform():
             linkopts = ["-l" + name for name in library["libs"] if name in ["m", "dl", "rt", "pthread", "resolv"]],
             linkstatic = True,
             target_compatible_with = _COMPATIBLE,
-            deps = {dep: True for dep in [":tool_headers" if original in PROFILE["execution_closure"] else (":modules_source_headers" if original in module_libraries else ":core_source_headers" if original in core_libraries else ":source_headers")] + _system_deps(original, library) + [_label(dep) for dep in library["gn_deps"] if dep not in PROFILE["toolchain_deps"] and dep not in PROFILE["execution_tools"]]}.keys(),
+            deps = {dep: True for dep in [":tool_headers" if original in PROFILE["execution_closure"] else (":content_source_headers" if original in content_libraries else ":modules_source_headers" if original in module_libraries else ":core_source_headers" if original in core_libraries else ":source_headers")] + _system_deps(original, library) + [_label(dep) for dep in library["gn_deps"] if dep not in PROFILE["toolchain_deps"] and dep not in PROFILE["execution_tools"]]}.keys(),
         )
         if library.get("resource_sources"):
             settings["data"] = [_file(path) for path in library["resource_sources"]]
@@ -233,3 +243,5 @@ def electron_platform():
 
     for name, original in {"compositor": "//cc:cc", "media": "//media:media", "ffmpeg": "//third_party/ffmpeg:ffmpeg", "gpu_client": "//gpu/command_buffer/client:gles2_implementation", "gpu_service": "//gpu/command_buffer/service:gles2", "viz_common": "//components/viz/common:common"}.items():
         native.alias(name = name, actual = _label(original))
+    if "//content:content" in PROFILE["libraries"]:
+        native.alias(name = "content", actual = _label("//content:content"))

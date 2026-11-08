@@ -51,13 +51,14 @@ CONTENT_GENERATORS = {
     "speech_dispatcher_loader": "//third_party/speech-dispatcher:speech-dispatcher_loader",
     "bubble_histograms": "//ui/views:bubble_histograms_variant",
 }
-ROOTS = CORE_ROOTS + ["//third_party/blink/renderer/modules:modules", DEVTOOLS_ROOT] + list(CONTENT_METADATA.values()) + list(CONTENT_RESOURCES.values()) + list(CONTENT_WEB_ASSETS.values()) + list(CONTENT_GENERATORS.values())
+MODULE_ROOTS = CORE_ROOTS + ["//third_party/blink/renderer/modules:modules", DEVTOOLS_ROOT] + list(CONTENT_METADATA.values()) + list(CONTENT_RESOURCES.values()) + list(CONTENT_WEB_ASSETS.values()) + list(CONTENT_GENERATORS.values())
+ROOTS = MODULE_ROOTS + ["//content:content"]
 SOURCE_PREFIXES = ["third_party/libyuv", "third_party/angle", "third_party/dawn", "third_party/swiftshader", "third_party/spirv-tools/src", "third_party/spirv-headers/src", "third_party/vulkan-loader/src", "third_party/vulkan-tools/src", "third_party/vulkan-utility-libraries/src", "third_party/vulkan-headers/src", "third_party/vulkan_memory_allocator", "third_party/wayland/src", "third_party/wayland-protocols/src", "third_party/wayland-protocols/kde"]
 MEDIA_SOURCE_PREFIXES = ["third_party/flac", "media/cdm/api", "third_party/libaom/source/libaom", "third_party/crc32c/src", "third_party/ffmpeg", "third_party/libvpx/source/libvpx", "third_party/openh264/src", "third_party/dav1d/libdav1d", "third_party/libgav1/src", "third_party/leveldatabase/src", "third_party/libwebm/source"]
 COMPOSITOR_SOURCE_PREFIXES = ["third_party/webrtc", "third_party/federated_compute/src", "third_party/libsrtp"]
 BLINK_SOURCE_PREFIXES = ['third_party/cld_3/src', 'third_party/cpuinfo/src', 'third_party/devtools-frontend/src', 'third_party/eigen3/src', 'third_party/emoji-segmenter/src', 'third_party/farmhash/src', 'third_party/flatbuffers/src', 'third_party/fxdiv/src', 'third_party/gemmlowp/src', 'third_party/libphonenumber/dist', 'third_party/material_color_utilities/src', 'third_party/neon_2_sse/src', 'third_party/ots/src', 'third_party/pthreadpool/src', 'third_party/ruy/src', 'third_party/search_engines_data/resources', 'third_party/smhasher/src', 'third_party/tflite/src', 'third_party/xnnpack/src']
 SOURCE_PREFIXES += MEDIA_SOURCE_PREFIXES + COMPOSITOR_SOURCE_PREFIXES + BLINK_SOURCE_PREFIXES
-SOURCE_PREFIXES += ["third_party/cros_system_api", "third_party/perfetto", "third_party/catapult"]
+SOURCE_PREFIXES += ["third_party/cros_system_api", "third_party/perfetto", "third_party/catapult", "third_party/openscreen/src", "third_party/pdfium"]
 TOOLCHAIN = {"//buildtools/third_party/libc++:" + name for name in ("all_modules", "custom_headers", "libcxx_headers", "libc++")}
 EXTRA_NATIVE_HEADERS = {
     "//components/viz/host:host": ["//skia/ext/skia_commit_hash.h"],
@@ -243,13 +244,19 @@ def source_revisions(chromium):
 
 def capture(graph, digest, chromium, source_roots, profiles):
     revisions = source_revisions(chromium)
-    previous = [("base", "base"), ("embedder", "embedder"), ("ipcz", "ipcz"), ("libnode", "libnode"), ("perfetto", "perfetto_native"), ("protobuf", "protobuf"), ("v8_engine", "v8_engine"), ("v8_support", "v8_support"), ("network", "network"), ("mojo", "mojo"), ("fonts", "fonts"), ("codecs", "codecs"), ("skia", "skia"), ("gfx", "gfx"), ("display", "display"), ("events", "events"), ("ui", "ui")]
+    previous = [("base", "base"), ("embedder", "embedder"), ("ipcz", "ipcz"), ("libnode", "libnode"), ("perfetto", "perfetto_native"), ("protobuf", "protobuf"), ("v8_engine", "v8_engine"), ("v8_support", "v8_support"), ("network", "network"), ("mojo", "mojo"), ("fonts", "fonts"), ("codecs", "codecs"), ("skia", "skia"), ("gfx", "gfx"), ("display", "display"), ("events", "events"), ("ui", "ui"), ("content_webui", "content_webui")]
     external, shared = load_profiles(profiles, previous)
+    external = {label: owner for label, owner in external.items() if not owner.startswith("@electron_platform_sources//:")}
     shared[BUILD + "icudtl.dat"] = "@electron_icu_sources//:common/icudtl.dat"
     shared["//v8/include/js_protocol-1.3.json"] = "@electron_v8_sources//:include/js_protocol-1.3.json"
     external["//media/filters:symphonia_glue"] = "@electron//source/media:symphonia"
     external["//media/filters:symphonia_glue_cxx_generated"] = "@electron//source/media:symphonia_bridge"
     temporal = json.loads((profiles / "temporal_inputs.json").read_text())
+    for label, crate in temporal["rust"].items():
+        if crate["kind"] in ("rust_library", "executable"):
+            external.setdefault(label, "@electron_rust_sources//:" + crate["name"])
+    for label in ("//base/allocator/partition_allocator:partition_alloc", "//base/allocator/partition_allocator/src/partition_alloc:partition_alloc"):
+        external[label] = "@electron_partition_alloc_sources//:partition_alloc"
     for name, library in temporal.get("content_libraries", {}).items():
         external[library["root"]] = "@electron_rust_sources//:" + name
     for name, bridge in temporal["blink_bridges"].items():
@@ -274,7 +281,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
             pending.extend(targets[label].get("deps", []))
         return seen
 
-    platform_seen, core_seen, seen = closure(PLATFORM_ROOTS), closure(CORE_ROOTS), closure(ROOTS)
+    platform_seen, core_seen, module_seen, seen = closure(PLATFORM_ROOTS), closure(CORE_ROOTS), closure(MODULE_ROOTS), closure(ROOTS)
     names = {label: "target_" + hashlib.sha256(label.encode()).hexdigest()[:16] for label in sorted(seen)}
 
     def physical(path):
@@ -386,9 +393,11 @@ def capture(graph, digest, chromium, source_roots, profiles):
     platform_directories, platform_implicit = header_directories(platform_seen)
     core_directories, core_implicit = header_directories(core_seen)
     core_directories = platform_directories + [path for path in core_directories if path not in platform_directories]
+    module_directories, module_implicit = header_directories(module_seen)
+    module_directories = core_directories + [path for path in module_directories if path not in core_directories]
     all_directories, implicit_header_roots = header_directories(seen)
-    directories = core_directories + [path for path in all_directories if path not in core_directories]
-    implicit_header_roots.update(platform_implicit | core_implicit)
+    directories = module_directories + [path for path in all_directories if path not in module_directories]
+    implicit_header_roots.update(platform_implicit | core_implicit | module_implicit)
     assembly_inputs = {}
     for directory in directories:
         root = physical(directory)
@@ -814,6 +823,9 @@ def capture(graph, digest, chromium, source_roots, profiles):
     core_headers = list(dict.fromkeys(path for directory in core_directories if directory != "third_party/wayland/include" for path in headers[directory] if path not in platform_header_set))
     core_header_set = platform_header_set | set(core_headers)
     core_actions = native_actions(label for label in libraries if label in core_seen)
+    module_headers = list(dict.fromkeys(path for directory in module_directories if directory != "third_party/wayland/include" for path in headers[directory] if path not in core_header_set))
+    module_header_set = core_header_set | set(module_headers)
+    module_actions = native_actions(label for label in libraries if label in module_seen)
     header_layers = dict(
         platform=dict(headers=platform_headers, actions=native_actions(platform_seen)),
         blink_core=dict(
@@ -822,9 +834,14 @@ def capture(graph, digest, chromium, source_roots, profiles):
             actions=sorted(set(core_actions) - set(native_actions(platform_seen))),
         ),
         blink_modules=dict(
-            libraries=sorted(label for label in libraries if label not in core_seen),
-            headers=list(dict.fromkeys(path for directory in directories if directory != "third_party/wayland/include" for path in headers[directory] if path not in core_header_set)),
-            actions=sorted(set(native_header_actions) - set(core_actions)),
+            libraries=sorted(label for label in libraries if label in module_seen and label not in core_seen),
+            headers=module_headers,
+            actions=sorted(set(module_actions) - set(core_actions)),
+        ),
+        content=dict(
+            libraries=sorted(label for label in libraries if label not in module_seen),
+            headers=list(dict.fromkeys(path for directory in directories if directory != "third_party/wayland/include" for path in headers[directory] if path not in module_header_set)),
+            actions=sorted(set(native_header_actions) - set(module_actions)),
         ),
     )
     used = {dep for label in seen for dep in targets[label].get("deps", []) if dep in external}

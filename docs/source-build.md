@@ -2150,3 +2150,40 @@ The same hosted consumer reports `policy_test`, `web_assets_test`,
 policy template/depfile contract and corrected DevTools manifest fixture. The
 Catapult asset and PAK targets still failed to build before this resource fix.
 Combined SDK/resource metadata analysis passed with zero executed actions.
+
+
+### Full native content closure
+
+The profile now requests the original `//content:content` closure. Capture adds
+445 native libraries and 382 producers. Original GN sources, flags, dependencies
+and public headers remain attached to their owning libraries. Existing Rust and
+PartitionAlloc targets reuse real providers; content WebUI outputs retain their
+existing owner. Imported provider aliases back to the platform repository are
+excluded while recapturing its own targets.
+
+Content gets a fourth header layer with 7,445 original headers and 384 producer
+dependencies. The previous platform, Blink core and Blink modules header layers
+and all existing library/action records are identical to the preceding profile.
+The capture keeps the pinned QUICHE source root when scanning the network tree.
+
+The aggregate source target requests all new native objects. This is not a linked
+content executable or Electron. Local work only inspects metadata; compilation,
+generation and tests remain on BB. Action analysis and hosted validation are
+still required for this expanded closure.
+
+
+The expanded metadata graph analyzes successfully with 93,735 actions and zero
+CMake/foreign-cc actions. C++ compile actions increase from 37,384 to 41,454;
+Rust remains 254 plus 26 Cargo build-script actions. Python actions increase
+from 6,606 to 6,991 and all previous Python/Rust keys remain present.
+
+One existing SQLite header becomes platform-owned so new native sources can use
+its quoted relative include. This replaces 19,128 existing platform C++ keys;
+18,256 other C++ keys remain present. The prior header lists and native library
+records are unchanged. This measured rebuild is not a performance improvement;
+cache ownership can be narrowed after correctness is verified on BB.
+
+Open Screen and PDFium are fetched at Chromium's exact DEPS revisions. Their
+source projections are required by the new closure; Electron-owned source files
+continue to use the existing Electron archive anchor. Hosted native compilation
+and eventual Electron linkage remain unproven.
