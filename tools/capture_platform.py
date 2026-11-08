@@ -461,6 +461,11 @@ def capture(graph, digest, chromium, source_roots, profiles):
             metadata[label] = record
         elif kind in ("group", "static_library", "source_set", "executable", "shared_library"):
             libraries[label] = capture_library(graph, target, record, input_file, label, SDK_LIBS | {"z"})
+            if label == "//printing/mojom:mojom":
+                # GN omits the header included by printing's Mojo traits.
+                header = "//printing/page_range.h"
+                input_file(header)
+                record["source_headers"] = sorted(set(record["source_headers"] + [header]))
             record["outputs"] = target.get("outputs", [])
             replaced_rust_flags = [flag for flag in record["gn_ldflags"] if flag.startswith("prebuilt_rustc_sysroot/lib/rustlib/x86_64-unknown-linux-gnu/lib/lib") and flag.endswith(".rlib")]
             if replaced_rust_flags:
