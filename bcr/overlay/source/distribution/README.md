@@ -27,10 +27,12 @@ Electron's embedded Node and `--version`. Its Ozone headless BrowserWindow check
 an app.asar packed by Electron's original generator, executable renaming,
 packaged-app identity, isolated preload IPC, disabled renderer Node integration and actual rendered
 HTML pixels, using a declared font/configuration and no display server or network
-content. These checks remain unverified on BB; native runtime/app launch
-remains open.
+content. The full-runtime checks remain unverified on BB; native runtime/app
+launch remains open.
 
 The BB preflight already passed original version generation, exact notice
-staging, real Chromium credits and default-app ASAR generation. Archive fixture
-and complete runtime action analysis passed. No assembly or fixture tests have
-run locally.
+staging, real Chromium credits and default-app ASAR generation. The
+[runtime archive preflight](https://formatjs.buildbuddy.io/invocation/12cb63f6-c691-41e5-9303-2a8c3c548470)
+passed real transitive-library loading after relocation, plus missing-library
+and wrong-SONAME rejection. Complete runtime action analysis passed; actual
+Electron linking and runtime execution remain open.
