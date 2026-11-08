@@ -172,6 +172,14 @@ def capture(graph, digest, chromium, node_modules, profiles, *, roots=None, addi
                     inputs.add("//" + arg[6:])
                 elif BUILD + arg in graph["generated_files"]:
                     inputs.add(BUILD + arg)
+            if target["script"] == "//ui/webui/resources/tools/bundle_js.py":
+                base = args[args.index("--input") + 1]
+                if base.startswith("../../"):
+                    directory = base.removeprefix("../../")
+                    if directory.startswith(("/", "../")):
+                        raise ValueError("Invalid original bundle input directory")
+                    root = physical(directory)
+                    inputs.update("//" + directory + "/" + path.relative_to(root).as_posix() for path in source_files(root) if path.is_file() and path.suffix in (".js", ".mjs", ".json"))
             if reuse_providers and target["script"] == "//tools/grit/grit.py":
                 inputs.update(grit_resource_inputs(inputs, physical))
             if target["script"] == "//tools/grit/grit.py":

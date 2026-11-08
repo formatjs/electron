@@ -427,6 +427,20 @@ def capture(graph, digest, chromium, source_roots, profiles):
     for path in headers["khronos_exports"]:
         input_file("//" + path)
 
+    # Public interfaces referenced by patched content and generated Mojo code.
+    content_interfaces = [
+        "components/password_manager/content/common/credential_manager_mojom_traits.h",
+        "components/password_manager/core/common/credential_manager_types.h",
+        "components/reporting/util/encrypted_reporting_json_keys.h",
+        "electron/shell/browser/ui/file_dialog.h",
+    ]
+    puffin = "third_party/puffin/src/include"
+    content_interfaces += sorted(puffin + "/" + path.relative_to(physical(puffin)).as_posix() for path in source_files(physical(puffin)) if path.is_file() and path.suffix == ".h")
+    if not any(path.endswith("/puffpatch.h") for path in content_interfaces):
+        raise ValueError("Missing original Puffin public headers")
+    for path in content_interfaces:
+        input_file("//" + path)
+
     def dependency_inputs(label):
         paths, visited, pending = set(), set(), list(targets[label].get("deps", []))
         while pending:
@@ -851,6 +865,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
     module_header_set = core_header_set | set(module_headers)
     module_actions = native_actions(label for label in libraries if label in module_seen)
     content_headers = list(dict.fromkeys(path for directory in content_directories if directory != "third_party/wayland/include" for path in headers[directory] if path not in module_header_set))
+    content_headers = list(dict.fromkeys(content_headers + content_interfaces))
     content_header_set = module_header_set | set(content_headers)
     content_actions = native_actions(label for label in libraries if label in content_seen)
     header_layers = dict(

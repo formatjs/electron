@@ -2279,3 +2279,31 @@ The dependency audit has 93,774 actions. All 41,456 C++ compile, 254 Rust,
 exactly two captured Python producer keys are added. No CMake or foreign-cc
 mnemonics matched. No build, generator or test ran locally. The executable
 frontier still has 2,076 uncaptured targets; full Electron linkage remains open.
+
+
+### Hosted content input failures
+
+At `0f2b70e`, the [BCR consumer](https://formatjs.buildbuddy.io/invocation/d95c2ae9-2364-4e15-a145-bc7d59516f3a)
+passed, including Catapult, tracing WebUI, policy, SDK ABI, binary resources,
+Blink and DevTools probes. The [components build](https://formatjs.buildbuddy.io/invocation/c69cb285-f229-4804-84ed-8443dd4105fb)
+failed on undeclared content headers and security interstitial bundle inputs.
+
+Capture now declares the original raw JavaScript bundle directories. GN's
+bundle arguments name those inputs, but its action input list omits them.
+Four bundle actions gain inputs; no new WebUI files, native libraries, source
+pins or generator bodies change. Rollup and two-run reproducibility stay intact.
+
+The content header layer also exports the original credential-manager traits
+and types, reporting JSON keys, Electron file-dialog interface and Puffin
+public headers. All come from existing pinned archives. Earlier platform and
+Blink header layers retain their exact inventories; content compile inputs
+change to cover the missing interfaces. Hosted validation remains required.
+
+
+The corrected 93,774-action graph passes metadata analysis with zero local
+processes and no CMake/foreign-cc mnemonics. It retains 41,456 C++ compile,
+254 Rust, 26 Cargo build-script and 6,995 Python actions. The content interface
+change replaces 4,072 C++ action keys; the other 37,384 remain present.
+Rust and Python keys stay unchanged, though the four bundle actions now declare
+additional inputs. Matching action keys alone do not prove cache reuse when
+input sets change.
