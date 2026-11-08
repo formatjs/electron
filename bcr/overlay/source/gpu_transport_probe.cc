@@ -8,6 +8,7 @@
 
 #include "base/at_exit.h"
 #include "base/command_line.h"
+#include "base/feature_list.h"
 #include "components/viz/common/resources/shared_image_format.h"
 #include "gpu/command_buffer/common/buffer.h"
 #include "gpu/command_buffer/common/cmd_buffer_common.h"
@@ -18,6 +19,7 @@
 #include "gpu/config/gpu_preferences.h"
 #include "gpu/webgpu/dawn_commit_hash.h"
 #include "libyuv/convert_from_argb.h"
+#include "mojo/core/embedder/embedder.h"
 
 namespace {
 void Require(bool condition, const char* check) {
@@ -52,6 +54,10 @@ class Decoder : public gpu::CommonDecoder {
 int main(int argc, char** argv) {
   base::AtExitManager at_exit;
   base::CommandLine::Init(argc, argv);
+  base::FeatureList::InitInstance("", "");
+  mojo::core::Configuration configuration;
+  configuration.is_broker_process = true;
+  mojo::core::Init(configuration);
   Require(argc == 2 && std::strcmp(DAWN_COMMIT_HASH, argv[1]) == 0,
           "declared Dawn source revision");
 
@@ -159,5 +165,6 @@ int main(int argc, char** argv) {
               format.GetPlaneSize(1, odd_size) == gfx::Size(4, 3) &&
               format.MaybeEstimatedSizeInBytes(odd_size) == size_t{59},
           "native Viz subsampled plane layout");
+  mojo::core::ShutDown();
   return 0;
 }

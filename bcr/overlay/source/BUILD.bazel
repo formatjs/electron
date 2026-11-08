@@ -52,6 +52,7 @@ cc_binary(
         "@platforms//cpu:x86_64",
     ],
     deps = [
+        "@electron_network_sources//:mojo_embedder",
         "@electron_platform_sources//:gpu_client",
         "@electron_platform_sources//:gpu_service",
         "@electron_platform_sources//:viz_common",
