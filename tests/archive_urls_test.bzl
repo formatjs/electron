@@ -1,7 +1,7 @@
 """Source archive transport must retain exact refs and safe fallback URLs."""
 
 load("@bazel_skylib//lib:unittest.bzl", "asserts", "unittest")
-load("//bcr/overlay/electron:archive_urls.bzl", "source_archive_urls")
+load("@electron//electron:archive_urls.bzl", "source_archive_urls")
 
 def _impl(ctx):
     env = unittest.begin(ctx)

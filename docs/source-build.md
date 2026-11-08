@@ -1742,3 +1742,9 @@ scope and the companion core-probe query, all 34,341 current-HEAD baseline compi
 keys remain present. This checks action identity, not build speed or runtime
 correctness. Earlier audit files predated scoped source-header fixes and are not
 the baseline for this comparison.
+
+The first `98d1d70` aggregate stopped while loading the URL-contract test: its
+load label pointed inside the development checkout's ignored `bcr/overlay` tree.
+The test now loads the helper through the staged `@electron` module, matching
+consumer visibility. No build or runtime probe had executed in that failed
+aggregate invocation.
