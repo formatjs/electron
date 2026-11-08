@@ -1399,7 +1399,7 @@ The GPU transport launcher declares the complete pinned desktop runtime and nati
 shared GLib/zlib owners. Its isolated library path includes that closure before
 host defaults; driver lookup points only to the declared SwiftShader manifest.
 
-## Symphonia media dependency (validation pending)
+## Symphonia media dependency
 
 Chromium's compositor depends on media, including its original Symphonia FLAC
 Rust bridge. The capture now includes that exact closure: ten additional Rust
@@ -1416,5 +1416,20 @@ The test also checks empty packets, decoder recovery and rejected initialization
 Both fixtures come from the pinned public Chromium sources.
 
 Metadata analysis passed without local build actions; capture bytes remain stable
-across hash seeds. BB compile/runtime validation is pending. This dependency does
-not complete the compositor, media stack or Electron executable.
+across hash seeds. [bdd6d7e components](https://formatjs.buildbuddy.io/invocation/86cc1e18-00a5-4033-96eb-cb6f81f7e986),
+[BCR consumer](https://formatjs.buildbuddy.io/invocation/b5e0d4f7-7a0e-43a7-9cc1-e93a4dfe85de)
+and [cross probes](https://formatjs.buildbuddy.io/invocation/86f8eb41-b3fe-4e20-8731-d765a70eced7)
+passed. The [complete native suite](https://formatjs.buildbuddy.io/invocation/0bb1fe8e-7bab-42eb-9eee-a3d994fa6a60)
+reports Symphonia, GPU transport and SwiftShader probes as PASSED. Original CXX
+generation retains its Python helper imports and checks output bytes across
+changed source paths and mtimes.
+
+This dependency remains Linux AMD64. It does not complete the compositor, media
+stack or Electron executable; cross probes cover their existing contracts.
+
+The remaining compositor closure includes media codecs, WebRTC and their original
+generators. The pinned Chromium reference already has a native
+[media rule implementation](https://github.com/formatjs/chromium/blob/4a2321d1086a36b4bb99ec237a379827b784b0b0/overlays/chromium/bcr/overlay/native/media.bzl)
+that can guide those ports. Its Chromium 142.0.7444.59 graph cannot replace
+Electron's patched 142.0.7444.52 configuration: recapture Electron flags, source
+pins and generated outputs, and verify codec/provider compatibility.
