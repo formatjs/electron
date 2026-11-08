@@ -1,4 +1,4 @@
-"""Original Ozone, GPU, media, compositor and graphics native targets."""
+"""Original Chromium native targets, generators and scoped content headers."""
 
 load("@bazel_skylib//rules:expand_template.bzl", "expand_template")
 load("@electron_platform_sources//:profile.bzl", "PROFILE")

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""Capture native Linux graphics, GPU/media/compositor targets and original generators."""
+"""Capture original Linux graphics, Blink/content targets and declared generators."""
 
 import argparse
 import ast
@@ -496,7 +496,13 @@ def capture(graph, digest, chromium, source_roots, profiles):
                 inputs.add(target["script"].rsplit("/", 1)[0] + "/" + path.name)
             helper_directories = []
             if label == CONTENT_WEB_ASSETS["about_tracing"]:
-                inputs.add("//third_party/catapult/third_party/polymer/components/webcomponentsjs/webcomponents.js")
+                asset_types = (".js", ".html", ".css", ".svg", ".png", ".jpg", ".jpeg", ".gif", ".woff", ".woff2", ".ttf", ".otf", ".eot")
+                for directory in ("third_party/catapult/tracing/tracing", "third_party/catapult/third_party/polymer", "third_party/catapult/tracing/third_party"):
+                    root = physical(directory)
+                    assets = ["//" + directory + "/" + path.relative_to(root).as_posix() for path in source_files(root) if path.suffix in asset_types]
+                    if not assets:
+                        raise ValueError("Missing pinned tracing asset inventory: " + directory)
+                    inputs.update(assets)
                 helper_directories += ["third_party/catapult/" + path for path in (
                     "tracing/tracing_build",
                     "third_party/beautifulsoup4-4.9.3/py3k/bs4",

@@ -2187,3 +2187,20 @@ Open Screen and PDFium are fetched at Chromium's exact DEPS revisions. Their
 source projections are required by the new closure; Electron-owned source files
 continue to use the existing Electron archive anchor. Hosted native compilation
 and eventual Electron linkage remain unproven.
+
+
+### Complete tracing asset inventory
+
+The 0f52db8 consumer passes the new SDK ABI checks and policy test. Catapult gets
+past Web Components and reports another undeclared script, `pako.min.js`.
+The capture now declares web assets under the original tracing, Polymer and
+tracing third-party roots. This covers the project's vendored script search
+paths while retaining its upstream parser/minifiers. Large trace-data archives
+are outside this inventory. Generation and PAK contracts still need BB evidence.
+
+
+The combined tracing/native content/SDK metadata check passes after adding all
+four repository imports to the development module and matching BCR templates.
+No build, generator or test actions ran locally. The tracing asset inventory
+changes only Catapult inputs; existing native records and header layers stay
+identical to the expanded content profile.
