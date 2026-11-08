@@ -293,3 +293,35 @@ py_test(
         "@platforms//cpu:x86_64",
     ],
 )
+
+_API_FEATURE_ACTIONS = [
+    PLATFORM_PROFILE["actions"][label]
+    for label in PLATFORM_PROFILE["electron_api_generators"]
+    if PLATFORM_PROFILE["actions"][label]["script"] == "tools/json_schema_compiler/feature_compiler.py"
+]
+
+_API_FEATURE_CASES = [dict(
+    header = "@electron_platform_sources//:" + action["outputs"][1].removeprefix("//out/bazel-import/"),
+    method = action["runs"][0]["args"][2],
+    sources = [("@electron//:" + path.removeprefix("../../electron/") if path.startswith("../../electron/") else "@electron_chromium_sources//:" + path.removeprefix("../../")) for path in action["runs"][0]["args"][6:]],
+    implementation = "@electron_platform_sources//:" + action["outputs"][0].removeprefix("//out/bazel-import/"),
+) for action in _API_FEATURE_ACTIONS]
+
+py_test(
+    name = "api_features_test",
+    srcs = ["api_features_test.py"],
+    args = ["$(rootpath @electron_chromium_sources//:tools/json_comment_eater/json_comment_eater.py)"] + [json.encode(dict(
+        header = "$(rootpath " + case["header"] + ")",
+        method = case["method"],
+        sources = ["$(rootpath " + label + ")" for label in case["sources"]],
+        implementation = "$(rootpath " + case["implementation"] + ")",
+    )) for case in _API_FEATURE_CASES],
+    data = ["@electron_chromium_sources//:tools/json_comment_eater/json_comment_eater.py"] + [label for case in _API_FEATURE_CASES for label in case["sources"] + [
+        case["implementation"],
+        case["header"],
+    ]],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)

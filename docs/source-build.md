@@ -2399,3 +2399,29 @@ keys for the expanded Electron header layer and adds 18 resource-map compiles.
 All 254 Rust, 26 Cargo and 7,001 previous Python keys remain present; 534
 Python actions are added. Metadata analysis ran zero build/test processes.
 Hosted execution remains required; full Electron executable linkage is open.
+
+
+### Original extension schema and feature compilers
+
+Capture now follows `electron_app` to its 25 original JSON/IDL compiler targets.
+Their foreach expansions request 155 generator runs. All use declared schema
+inputs plus the original compiler, legacy/modern IDL parser, comment parser and
+PLY files. `electron_api_generated` exposes the real products to source builds.
+No host Python packages or replacement API compiler are used.
+
+Four copyright helpers read the wall clock. Checked source adapters replace
+those year reads with `ELECTRON_SOURCE_COPYRIGHT_YEAR=2025`, declared only on
+these compiler actions, matching this source snapshot. Existing actions consume
+none of the adapted files. Generator logic and two-run reproducibility checks
+remain intact.
+
+The hosted contract compares all 13 generated feature registration tables with
+the original JSON keys using Chromium's declared comment parser. It also checks
+public provider declarations and the fixed source copyright year. The test
+does not import the feature compiler. Execution remains pending.
+
+The 95,526-action dependency audit passes with zero local processes and zero
+CMake/foreign-cc mnemonics. All 41,474 C++, 254 Rust, 26 Cargo and 7,535
+previous Python action keys remain present; exactly 155 Python actions are added.
+Native libraries, header layers, source pins and existing producer records retain
+their exact values. Full executable integration remains open.

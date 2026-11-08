@@ -63,6 +63,7 @@ ELECTRON_GENERATORS = {
 }
 NPM_PREFLIGHT = "//electron:npm_pre_flight_electron_version_args"
 ELECTRON_PLATFORM_ROOTS = ["//electron:electron_gtk_stubs", "//electron:libnotify_loader"]
+API_SCRIPTS = {"//tools/json_schema_compiler/compiler.py", "//tools/json_schema_compiler/feature_compiler.py"}
 ELECTRON_RESOURCE_ROOT = "//electron:packed_resources"
 ROOTS = CONTENT_ROOTS + ELECTRON_PLATFORM_ROOTS + list(ELECTRON_GENERATORS.values()) + [ELECTRON_RESOURCE_ROOT]
 SOURCE_PREFIXES = ["third_party/dom_distiller_js/dist", "third_party/readability/src", "third_party/libyuv", "third_party/angle", "third_party/dawn", "third_party/swiftshader", "third_party/spirv-tools/src", "third_party/spirv-headers/src", "third_party/vulkan-loader/src", "third_party/vulkan-tools/src", "third_party/vulkan-utility-libraries/src", "third_party/vulkan-headers/src", "third_party/vulkan_memory_allocator", "third_party/wayland/src", "third_party/wayland-protocols/src", "third_party/wayland-protocols/kde"]
@@ -86,7 +87,7 @@ EXTRA_NATIVE_HEADERS = {
     "//device/bluetooth:bluetooth": ["//chromeos/constants/chromeos_features.h", "//third_party/cros_system_api/dbus/service_constants.h"],
 }
 SDK_LIBS = {"gdk_pixbuf-2.0", "cups", "xshmfence", "atspi", "Xcomposite", "Xdamage", "Xfixes", "Xrandr", "Xrender", "Xtst", "drm", "asound", "ffi_pic", "X11", "Xi", "Xext", "pci", "gbm", "dbus-1", "udev", "cairo", "harfbuzz", "pango-1.0", "pangocairo-1.0", "atk-1.0", "atk-bridge-2.0"}
-SCRIPTS = MOJO_SCRIPTS | {"//" + name for name in (
+SCRIPTS = MOJO_SCRIPTS | API_SCRIPTS | {"//" + name for name in (
     "build/write_buildflag_header.py", "build/gn_run_binary.py", "build/util/version.py",
     "components/safe_browsing/content/resources/gen_file_type_proto.py",
     "components/resources/ssl/ssl_error_assistant/gen_ssl_error_assistant_proto.py",
@@ -309,6 +310,16 @@ def capture(graph, digest, chromium, source_roots, profiles):
     if targets[NPM_PREFLIGHT]["inputs"] != ["//electron/package.json", "//electron/yarn.lock"]:
         raise ValueError("Original Electron npm preflight inputs changed")
 
+    app_seen, app_pending = set(), ["//electron:electron_app"]
+    while app_pending:
+        label = app_pending.pop()
+        if label in app_seen or label in TOOLCHAIN:
+            continue
+        app_seen.add(label)
+        app_pending.extend(targets[label].get("deps", []))
+    api_generators = sorted(label for label in app_seen if targets[label].get("script") in API_SCRIPTS)
+    capture_roots = ROOTS + api_generators
+
     def closure(roots):
         seen, pending = set(), list(roots)
         while pending:
@@ -319,7 +330,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
             pending.extend(targets[label].get("deps", []))
         return seen
 
-    platform_seen, core_seen, module_seen, content_seen, seen = closure(PLATFORM_ROOTS), closure(CORE_ROOTS), closure(MODULE_ROOTS), closure(CONTENT_ROOTS), closure(ROOTS)
+    platform_seen, core_seen, module_seen, content_seen, seen = closure(PLATFORM_ROOTS), closure(CORE_ROOTS), closure(MODULE_ROOTS), closure(CONTENT_ROOTS), closure(capture_roots)
     names = {label: "target_" + hashlib.sha256(label.encode()).hexdigest()[:16] for label in sorted(seen)}
 
     def physical(path):
@@ -571,6 +582,8 @@ def capture(graph, digest, chromium, source_roots, profiles):
                 )]
             if label in CONTENT_RESOURCES.values():
                 helper_directories.append("components/resources/protobufs")
+            if target["script"] in API_SCRIPTS:
+                helper_directories += ["tools/json_schema_compiler", "tools/json_comment_eater", "tools/idl_parser", "third_party/ply"]
             if target["script"].startswith("//tools/grit/") or target["script"] == "//third_party/blink/renderer/build/scripts/generate_permission_element_grd.py":
                 helper_directories.append("tools/grit")
             if target["script"].startswith("//tools/metrics/"):
@@ -751,6 +764,8 @@ def capture(graph, digest, chromium, source_roots, profiles):
             record["environment"] = {"ANGLE_UPSTREAM_HASH": revisions["third_party/angle"]["commit"][:12]} if target["script"] == "//third_party/angle/src/commit_id.py" else {}
             if label in CONTENT_RESOURCES.values() or label == CONTENT_GENERATORS["model_descriptors"]:
                 record["environment"]["PROTOBUF_PYTHON_IMPLEMENTATION"] = "python"
+            if target["script"] in API_SCRIPTS:
+                record["environment"]["ELECTRON_SOURCE_COPYRIGHT_YEAR"] = "2025"
             actions[label] = record
         elif kind == "copy":
             if len(target["sources"]) != len(target["outputs"]):
@@ -938,7 +953,18 @@ def capture(graph, digest, chromium, source_roots, profiles):
     if physical(policy_script).read_text().count(original) != 1:
         raise ValueError("Original policy depfile writer changed")
     source_adapters = {"//" + policy_script: {original: "f.write(' '.join(os.path.relpath(path) for path in source_files))"}}
-    return dict(electron_repack_actions=sorted(label for label in actions if actions[label]["script"] == "tools/grit/pak_util.py"), electron_generators=ELECTRON_GENERATORS, content_generators=CONTENT_GENERATORS, source_adapters=source_adapters, content_web_assets=CONTENT_WEB_ASSETS, content_resources=CONTENT_RESOURCES, content_protobuf_runtime=CONTENT_PROTO_RUNTIME_COPIES, content_metadata=CONTENT_METADATA, devtools_workspace=devtools_workspace, devtools_frontend_actions=devtools_actions, header_layers=header_layers, devtools_esbuild=devtools_esbuild, copies=copies, devtools_node_modules_files=devtools_packages, native_header_actions=sorted(native_header_actions), source_aliases=source_aliases, roots=ROOTS, graph_sha256=digest, source_revisions=revisions, names=names, libraries=libraries, actions=actions, metadata=metadata, literal_metadata=literal_metadata, execution_tools=sorted(set(tools.values())), execution_closure=sorted(execution_closure), producers=producers, headers=headers, files=sorted(files), external_files={path: shared[path] for path in sorted(used_shared)}, external={label: external[label] for label in sorted(used)}, generated_files=generated, toolchain_deps=sorted(TOOLCHAIN), sdk_libraries=sorted(SDK_LIBS))
+    clock_adapters = {
+        "feature_compiler.py": {"datetime.now().year": "int(os.environ['ELECTRON_SOURCE_COPYRIGHT_YEAR'])"},
+        "cpp_util.py": {"datetime.now().year": "int(os.environ['ELECTRON_SOURCE_COPYRIGHT_YEAR'])"},
+        "js_util.py": {"from datetime import datetime": "import os", "datetime.now().year": "int(os.environ['ELECTRON_SOURCE_COPYRIGHT_YEAR'])"},
+        "ts_definition_generator.py": {"import datetime": "import os", "datetime.date.today().year": "int(os.environ['ELECTRON_SOURCE_COPYRIGHT_YEAR'])"},
+    }
+    for name, substitutions in clock_adapters.items():
+        path = "tools/json_schema_compiler/" + name
+        if any(physical(path).read_text().count(before) != 1 for before in substitutions):
+            raise ValueError("Original schema compiler copyright source changed: " + path)
+        source_adapters["//" + path] = substitutions
+    return dict(electron_api_generators=api_generators, electron_repack_actions=sorted(label for label in actions if actions[label]["script"] == "tools/grit/pak_util.py"), electron_generators=ELECTRON_GENERATORS, content_generators=CONTENT_GENERATORS, source_adapters=source_adapters, content_web_assets=CONTENT_WEB_ASSETS, content_resources=CONTENT_RESOURCES, content_protobuf_runtime=CONTENT_PROTO_RUNTIME_COPIES, content_metadata=CONTENT_METADATA, devtools_workspace=devtools_workspace, devtools_frontend_actions=devtools_actions, header_layers=header_layers, devtools_esbuild=devtools_esbuild, copies=copies, devtools_node_modules_files=devtools_packages, native_header_actions=sorted(native_header_actions), source_aliases=source_aliases, roots=capture_roots, graph_sha256=digest, source_revisions=revisions, names=names, libraries=libraries, actions=actions, metadata=metadata, literal_metadata=literal_metadata, execution_tools=sorted(set(tools.values())), execution_closure=sorted(execution_closure), producers=producers, headers=headers, files=sorted(files), external_files={path: shared[path] for path in sorted(used_shared)}, external={label: external[label] for label in sorted(used)}, generated_files=generated, toolchain_deps=sorted(TOOLCHAIN), sdk_libraries=sorted(SDK_LIBS))
 
 
 def main():
