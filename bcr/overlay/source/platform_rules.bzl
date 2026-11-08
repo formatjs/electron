@@ -193,6 +193,7 @@ def electron_platform():
             cc_library(name = library["name"], srcs = [_file(path) for path in library["srcs"]], copts = library["copts"], alwayslink = library["kind"] == "source_set", **settings)
     icds = [_file(path) for action in PROFILE["actions"].values() if action["script"] in ["third_party/swiftshader/src/Vulkan/write_icd_json.py", "third_party/vulkan-tools/src/scripts/gn/generate_vulkan_icd_json.py"] for path in action["outputs"]]
     native.filegroup(name = "libraries", srcs = [_label(label) for label, library in PROFILE["libraries"].items() if library["kind"] != "executable"] + shared + icds)
+    native.filegroup(name = "devtools_frontend", srcs = [":" + PROFILE["actions"][label]["name"] + "_runs" for label in PROFILE.get("devtools_frontend_actions", [])])
     native.filegroup(name = "blink_bindings", srcs = [":" + PROFILE["actions"][label]["name"] + "_runs" for label in PROFILE["roots"] if label.startswith("//third_party/blink/") and label in PROFILE["actions"]])
     native.filegroup(name = "runtime", srcs = ["@electron//source/glib:runtime"] + shared + icds + ["@electron_platform_runtime//:libraries", "@electron_platform_pciutils//:libpci.so.3"])
     native.alias(name = "blink_platform", actual = _label("//third_party/blink/renderer/platform:platform"))

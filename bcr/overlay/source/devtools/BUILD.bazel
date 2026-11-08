@@ -1,0 +1,24 @@
+load("@rules_python//python:defs.bzl", "py_test")
+
+package(default_visibility = ["//visibility:public"])
+
+_LOCALE = "@electron_platform_sources//:gen/third_party/devtools-frontend/src/front_end/core/i18n/locales/generated/en-US.json"
+
+_HTML = "@electron_platform_sources//:gen/third_party/devtools-frontend/src/front_end/devtools_app.html"
+
+py_test(
+    name = "resources_test",
+    srcs = ["resources_test.py"],
+    args = [
+        "$(rootpath " + _LOCALE + ")",
+        "$(rootpath " + _HTML + ")",
+    ],
+    data = [
+        _LOCALE,
+        _HTML,
+    ],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)

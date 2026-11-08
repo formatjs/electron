@@ -20,7 +20,8 @@ BLINK_BINDINGS_ROOTS = ["//third_party/blink/renderer/bindings:web_idl_database"
 BLINK_PLATFORM_GENERATORS = ['//third_party/blink/common:make_generated_document_policy_features', '//third_party/blink/common:make_generated_features', '//third_party/blink/common:make_generated_origin_trials', '//third_party/blink/common:make_runtime_feature_state_contexts_impl', '//third_party/blink/public/common:make_generated_permissions_policy_helper', '//third_party/blink/public/common:make_runtime_feature_state_contexts_headers', '//third_party/blink/public/mojom/origin_trials:generate_origin_trial_feature', '//third_party/blink/public/mojom/runtime_feature_state:generate_runtime_feature', '//third_party/blink/public:runtime_features_for_public', '//third_party/blink/renderer/core:make_core_generated_settings', '//third_party/blink/renderer/platform/loader:make_platform_loader_generated_delivery_type_names', '//third_party/blink/renderer/platform/loader:make_platform_loader_generated_fetch_initiator_type_names', '//third_party/blink/renderer/platform/network:http_names', '//third_party/blink/renderer/platform:color_data', '//third_party/blink/renderer/platform:font_family_names', '//third_party/blink/renderer/platform:runtime_enabled_features', '//third_party/blink/renderer/platform:runtime_feature_state_override_context']
 PLATFORM_ROOTS = ["//ui/ozone:ozone", "//ui/gl:gl", "//gpu/command_buffer/client:gles2_implementation", "//gpu/command_buffer/service:gles2", "//components/viz/common:common", "//gpu/ipc/service:service", "//gpu/ipc/client:client", "//gpu/ipc/host:host", "//media:media", "//cc:cc", "//third_party/blink/renderer/platform:platform"] + BLINK_BINDINGS_ROOTS + BLINK_PLATFORM_GENERATORS
 CORE_ROOTS = PLATFORM_ROOTS + ["//third_party/blink/renderer/core:core"]
-ROOTS = CORE_ROOTS + ["//third_party/blink/renderer/modules:modules"]
+DEVTOOLS_ROOT = "//third_party/devtools-frontend/src:devtools_frontend_resources"
+ROOTS = CORE_ROOTS + ["//third_party/blink/renderer/modules:modules", DEVTOOLS_ROOT]
 SOURCE_PREFIXES = ["third_party/libyuv", "third_party/angle", "third_party/dawn", "third_party/swiftshader", "third_party/spirv-tools/src", "third_party/spirv-headers/src", "third_party/vulkan-loader/src", "third_party/vulkan-tools/src", "third_party/vulkan-utility-libraries/src", "third_party/vulkan-headers/src", "third_party/vulkan_memory_allocator", "third_party/wayland/src", "third_party/wayland-protocols/src", "third_party/wayland-protocols/kde"]
 MEDIA_SOURCE_PREFIXES = ["third_party/flac", "media/cdm/api", "third_party/libaom/source/libaom", "third_party/crc32c/src", "third_party/ffmpeg", "third_party/libvpx/source/libvpx", "third_party/openh264/src", "third_party/dav1d/libdav1d", "third_party/libgav1/src", "third_party/leveldatabase/src", "third_party/libwebm/source"]
 COMPOSITOR_SOURCE_PREFIXES = ["third_party/webrtc", "third_party/federated_compute/src", "third_party/libsrtp"]
@@ -36,6 +37,9 @@ EXTRA_NATIVE_HEADERS = {
 SDK_LIBS = {"atspi", "Xcomposite", "Xdamage", "Xfixes", "Xrandr", "Xrender", "Xtst", "drm", "asound", "ffi_pic", "X11", "Xi", "Xext", "pci", "gbm", "dbus-1", "udev", "cairo", "harfbuzz", "pango-1.0", "pangocairo-1.0", "atk-1.0", "atk-bridge-2.0"}
 SCRIPTS = MOJO_SCRIPTS | {"//" + name for name in (
     "build/write_buildflag_header.py", "build/gn_run_binary.py",
+    "third_party/node/node.py",
+    "third_party/devtools-frontend/src/scripts/build/assert_grd.py",
+    "third_party/devtools-frontend/src/scripts/build/assert_third_party_readmes.py",
     "tools/json_to_struct/json_to_struct.py",
     "services/device/public/cpp/usb/tools/usb_ids.py",
     "third_party/devtools-frontend/src/scripts/build/typescript/ts_library.py",
@@ -350,6 +354,8 @@ def capture(graph, digest, chromium, source_roots, profiles):
     if not devtools_packages:
         raise ValueError("Missing original DevTools npm inventory")
     files.update(devtools_packages)
+    devtools_scripts = "third_party/devtools-frontend/src/scripts"
+    devtools_javascript = sorted("//" + devtools_scripts + "/" + path.relative_to(physical(devtools_scripts)).as_posix() for path in source_files(physical(devtools_scripts)) if path.suffix in (".js", ".mjs", ".cjs", ".json"))
     actions, libraries, metadata, copies = {}, {}, {}, {}
     ml_dtypes_headers = []
     for label in sorted(seen):
@@ -394,6 +400,26 @@ def capture(graph, digest, chromium, source_roots, profiles):
                     inputs.add(esbuild)
                 record["devtools_node_modules"] = True
             args = [arg.replace("$SOURCE_ROOT/out/bazel-import/", "") for arg in target.get("args", [])]
+            if target["script"] == "//third_party/node/node.py":
+                if not args or not args[0].startswith("../../third_party/devtools-frontend/src/"):
+                    raise ValueError("Untranslated Node generator entry point")
+                entry = args[0][6:]
+                inputs.update(devtools_javascript)
+                inputs.add("//" + entry)
+                inputs.add("//third_party/devtools-frontend/src/package.json")
+                if entry.endswith("/collect-ui-strings.js"):
+                    helpers = "third_party/devtools-frontend/src/third_party/i18n"
+                    inputs.update("//" + helpers + "/" + path.relative_to(physical(helpers)).as_posix() for path in source_files(physical(helpers)) if path.suffix in (".js", ".json"))
+                    frontend = "third_party/devtools-frontend/src/front_end"
+                    inputs.update("//" + frontend + "/" + path.relative_to(physical(frontend)).as_posix() for path in source_files(physical(frontend)) if path.suffix in (".js", ".ts", ".gn"))
+                inputs.add(node)
+                # Frontend entry points also import local sibling helpers.
+                parent = physical(entry).parent
+                inputs.update("//" + entry.rsplit("/", 1)[0] + "/" + path.name for path in parent.iterdir() if path.is_file() and path.suffix in (".js", ".mjs", ".cjs", ".json"))
+                builtin = entry.rsplit("/", 1)[-1] in ("copy-file.js", "copy-files.js", "generate-tsconfig.js", "minify-json-files.js")
+                if not builtin:
+                    record["devtools_node_modules"] = True
+                    inputs.add(esbuild)
             if target["script"] == "//third_party/inspector_protocol/check_protocol_compatibility.py":
                 for arg in args:
                     if not arg.startswith("../../") or not arg.endswith(".pdl"):
@@ -653,7 +679,8 @@ def capture(graph, digest, chromium, source_roots, profiles):
         ),
     )
     used = {dep for label in seen for dep in targets[label].get("deps", []) if dep in external}
-    return dict(header_layers=header_layers, devtools_esbuild=devtools_esbuild, copies=copies, devtools_node_modules_files=devtools_packages, native_header_actions=sorted(native_header_actions), source_aliases=source_aliases, roots=ROOTS, graph_sha256=digest, source_revisions=revisions, names=names, libraries=libraries, actions=actions, metadata=metadata, literal_metadata=literal_metadata, execution_tools=sorted(set(tools.values())), execution_closure=sorted(execution_closure), producers=producers, headers=headers, files=sorted(files), external_files={path: shared[path] for path in sorted(used_shared)}, external={label: external[label] for label in sorted(used)}, generated_files=generated, toolchain_deps=sorted(TOOLCHAIN), sdk_libraries=sorted(SDK_LIBS))
+    devtools_actions = sorted(label for label in closure([DEVTOOLS_ROOT]) if label in actions)
+    return dict(devtools_frontend_actions=devtools_actions, header_layers=header_layers, devtools_esbuild=devtools_esbuild, copies=copies, devtools_node_modules_files=devtools_packages, native_header_actions=sorted(native_header_actions), source_aliases=source_aliases, roots=ROOTS, graph_sha256=digest, source_revisions=revisions, names=names, libraries=libraries, actions=actions, metadata=metadata, literal_metadata=literal_metadata, execution_tools=sorted(set(tools.values())), execution_closure=sorted(execution_closure), producers=producers, headers=headers, files=sorted(files), external_files={path: shared[path] for path in sorted(used_shared)}, external={label: external[label] for label in sorted(used)}, generated_files=generated, toolchain_deps=sorted(TOOLCHAIN), sdk_libraries=sorted(SDK_LIBS))
 
 
 def main():

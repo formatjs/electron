@@ -1748,3 +1748,30 @@ load label pointed inside the development checkout's ignored `bcr/overlay` tree.
 The test now loads the helper through the staged `@electron` module, matching
 consumer visibility. No build or runtime probe had executed in that failed
 aggregate invocation.
+
+### DevTools frontend resources
+
+The Linux profile now captures the complete original
+`//third_party/devtools-frontend/src:devtools_frontend_resources` closure: 1,341
+producer actions, including 1,340 additions and nine resource groups. Existing
+library/generator records and all 50 source pins retain their exact values.
+All three native header providers retain the same raw/generated header lists.
+
+Original Node wrappers use the declared Chromium Node executable. Esbuild uses
+its existing pinned execution binary; npm inputs come from the exact DevTools
+checkout inventory. Builtin-only copy, JSON and tsconfig producers omit npm
+source groups. Local script helpers are declared explicitly. Locale collection
+also declares its implicit frontend JS/TS/GN scan and i18n helpers, since GN lists
+only the collector script and write helper.
+
+The aggregate explicitly requests every frontend producer output. Original GRD
+inventory and third-party README assertions remain enabled. Every generator
+retains the isolated source-path/mtime reproducibility check. A semantic resource
+test checks collected strings from Elements and Network plus the generated
+DevTools HTML module entrypoint. Hosted execution remains pending; this does not
+package a source-built Electron runtime or establish a build speedup.
+
+Metadata analysis completed with zero build actions. The expanded action audit
+contains 86,721 actions; all 37,382 baseline CppCompile keys remain present, with
+no additional native compilation keys and no CMake/foreign action mnemonics.
+This is an input-stability check, not a runtime or performance result.
