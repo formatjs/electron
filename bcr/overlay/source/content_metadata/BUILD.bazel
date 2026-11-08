@@ -142,6 +142,8 @@ _CONTENT_WEBUI_INPUTS = [
     "@electron_chromium_sources//:content/shell/resources/shell_devtools_discovery_page.html",
     "@electron_chromium_sources//:components/resources/default_100_percent/neterror/error_network_generic.png",
     "@electron_chromium_sources//:components/resources/default_200_percent/neterror/error_network_generic.png",
+    "@electron_content_webui_sources//:gen/chrome/grit/chrome_unscaled_resources.h",
+    "@electron_chromium_sources//:chrome/app/theme/chromium/linux/product_logo_64.png",
 ]
 
 py_test(
@@ -203,6 +205,8 @@ _NATIVE_GENERATOR_INPUTS = [
     "@electron_platform_sources//:gen/electron/push_and_undef_node_defines.h",
     "//source:node_defines_pop",
     "@electron_platform_sources//:gen/electron/pop_node_defines.h",
+    "//source:electron_natives",
+    "@electron_platform_sources//:gen/electron_natives.cc",
 ]
 
 py_test(

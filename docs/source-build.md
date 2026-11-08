@@ -2446,3 +2446,29 @@ The 95,526-action graph passes metadata analysis with zero local processes and
 no CMake/foreign-cc mnemonics. All 41,474 C++, 254 Rust, 26 Cargo and 7,690
 Python action keys remain present. Input sets change, so this does not prove
 cache reuse. Hosted resource validation and full Electron linkage remain open.
+
+
+### Original Electron JS2C invocation and declared GRIT variables
+
+The native profile now invokes Electron's original JS2C Python wrapper with the
+source-built Node JS2C tool. Its eight inputs come from existing native webpack
+producers. Capture verifies the original configuration, output names, buildflags
+and development-mode arguments before assigning those providers. Npm preflight
+stamps are not fabricated; pinned package/lock validation remains authoritative.
+
+The producer contract compares the resulting `gen/electron_natives.cc` bytes
+with the existing native generator, alongside fuse and Node macro products.
+Both execute the real source-built tool. Webpack declaration generation and
+typechecking remain unfinished; this provider bridge does not close that gap.
+
+GRIT discovery now reads declared `-E` values for source-tree paths and branding.
+Generated-tree variables remain with their generated providers. The final-pack
+contract checks the Linux Chromium logo bytes against the original source image.
+This covers the newly observed branding/scaled-image input failures.
+
+The 95,528-action dependency audit passes with zero local processes and no
+CMake/foreign-cc mnemonics. All 41,474 C++, 254 Rust, 26 Cargo and 7,690
+previous Python action keys remain present; one original JS2C invocation is
+added. Existing native records, header layers and source pins remain unchanged.
+Byte equality and resource contracts still require hosted execution; full
+Electron linkage remains open.

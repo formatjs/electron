@@ -57,6 +57,7 @@ CONTENT_ROOTS = MODULE_ROOTS + ["//content:content"]
 ELECTRON_GENERATORS = {
     "fuses": "//electron:electron_fuses",
     "node_defines": "//electron:electron_generate_node_defines",
+    "js2c": "//electron:electron_js2c",
     "version_args": "//electron:electron_version_args",
     "version_header": "//electron:electron_version_header",
     "windows_version_resource": "//electron:electron_win_rc",
@@ -93,6 +94,7 @@ SCRIPTS = MOJO_SCRIPTS | API_SCRIPTS | {"//" + name for name in (
     "components/resources/ssl/ssl_error_assistant/gen_ssl_error_assistant_proto.py",
     "electron/build/fuses/build.py",
     "electron/build/generate_node_defines.py",
+    "electron/build/js2c.py",
     "electron/build/generate-template.py",
     "components/certificate_transparency/tools/make_ct_known_logs_list.py",
     "components/domain_reliability/bake_in_configs.py",
@@ -157,7 +159,24 @@ def source_files(root):
 
 
 
-def grit_resource_inputs(inputs, physical):
+def grit_resource_inputs(inputs, physical, arguments=()):
+    variables = {}
+    for index, arg in enumerate(arguments[:-1]):
+        if arg == "-E":
+            name, separator, value = arguments[index + 1].partition("=")
+            if separator and name not in ("root_gen_dir", "mojom_root"):
+                variables[name] = value
+
+    def source_name(name):
+        rooted = name.startswith("${root_src_dir}") and variables.get("root_src_dir") in ("../../", "../..", "$SOURCE_ROOT", "$SOURCE_ROOT/")
+        for key, value in variables.items():
+            if key == "root_src_dir":
+                if rooted:
+                    name = name.replace("${root_src_dir}", "//")
+            else:
+                name = name.replace("${" + key + "}", value)
+        return name.replace("\\", "/"), rooted
+
     pending = [(path[2:], None) for path in inputs if path.startswith("//") and not path.startswith(BUILD) and path.endswith((".grd", ".grdp"))]
     seen, resources = set(), set()
     asset_types = {".html", ".css", ".js", ".svg", ".png", ".jpg", ".jpeg", ".webp", ".gif", ".ico", ".cur", ".woff", ".woff2", ".ttf", ".json", ".bin"}
@@ -171,9 +190,11 @@ def grit_resource_inputs(inputs, physical):
             base = posixpath.normpath(posixpath.join(posixpath.dirname(source), tree.getroot().attrib.get("base_dir", ".").replace("\\", "/")))
         for node in tree.iter():
             name = node.attrib.get("file") or (node.attrib.get("path") if node.tag == "file" else None)
-            if not name or any(marker in name for marker in ("$", "<(", "%(")):
+            if not name:
                 continue
-            name = name.replace("\\", "/")
+            name, rooted = source_name(name)
+            if any(marker in name for marker in ("$", "<(", "%(")):
+                continue
             if node.attrib.get("type") == "chrome_scaled_image":
                 for layout in physical(base).iterdir():
                     if layout.is_dir() and re.search(r"_\d+_percent$", layout.name):
@@ -181,7 +202,7 @@ def grit_resource_inputs(inputs, physical):
                         if not variant.startswith(("/", "../")) and physical(variant).is_file():
                             resources.add("//" + variant)
                 continue
-            path = posixpath.normpath(posixpath.join(base, name))
+            path = posixpath.normpath(name.lstrip("/") if rooted else posixpath.join(base, name))
             if path.startswith(("/", "../")) or not physical(path).is_file():
                 continue
             resources.add("//" + path)
@@ -205,12 +226,13 @@ def grit_resource_inputs(inputs, physical):
         for srcset in re.findall(r'\bsrcset=["\']([^"\']+)["\']', text, re.I):
             references.extend(part.strip().split()[0] for part in srcset.split(",") if part.strip())
         for include in references:
-            if include.startswith(("/", "#", "$", "{{", "[[")) or re.match(r"^[A-Za-z][A-Za-z0-9+.-]*:", include):
+            include, rooted = source_name(include)
+            if (include.startswith("/") and not rooted) or include.startswith(("#", "$", "{{", "[[")) or re.match(r"^[A-Za-z][A-Za-z0-9+.-]*:", include):
                 continue
             include = include.split("#", 1)[0].split("?", 1)[0]
             if any(len(part.encode("utf-8")) > 255 for part in include.split("/")):
                 continue
-            path = posixpath.normpath(posixpath.join(posixpath.dirname(source[2:]), include))
+            path = posixpath.normpath(include.lstrip("/") if rooted else posixpath.join(posixpath.dirname(source[2:]), include))
             if path.startswith(("/", "../")) or not physical(path).is_file():
                 continue
             original = "//" + path
@@ -313,6 +335,30 @@ def capture(graph, digest, chromium, source_roots, profiles):
     external["//third_party/crabbyavif:crabbyavif"] = "@electron//source/crabbyavif:crabbyavif"
     external["//third_party/crabbyavif:header_files"] = "@electron_rust_sources//:crabbyavif_headers"
     targets = graph["targets"]
+    inventory = ast.parse((profiles / "webpack_inputs.bzl").read_text())
+    bundles = next(ast.literal_eval(node.value) for node in inventory.body if isinstance(node, ast.Assign) and any(isinstance(name, ast.Name) and name.id == "ELECTRON_BUNDLES" for name in node.targets))
+    bundle_providers = {}
+    for label, target in targets.items():
+        if not label.startswith("//electron:") or target.get("script") != "//electron/build/npm-run.py" or len(target.get("outputs", [])) != 1:
+            continue
+        output = target["outputs"][0]
+        name = Path(output).stem
+        if not output.startswith(BUILD + "gen/electron/js2c/") or name not in bundles:
+            continue
+        expected = [
+            "--silent", "webpack", "--", "--config", "$SOURCE_ROOT/electron/" + bundles[name]["config"],
+            "--output-filename", name + ".js", "--output-path", "$SOURCE_ROOT/out/bazel-import/gen/electron/js2c",
+            "--env", "buildflags=$SOURCE_ROOT/out/bazel-import/gen/electron/buildflags/buildflags.h", "--env", "mode=development",
+        ]
+        if target.get("args") != expected:
+            raise ValueError("Original Electron webpack entry point changed: " + label)
+        provider = "@electron//source:" + name
+        external[label] = provider
+        shared[output] = provider
+        bundle_providers[label] = dict(provider=provider, output=output, config=bundles[name]["config"], args=target["args"], typecheck_pending=True)
+    if len(bundle_providers) != len(bundles) or len(bundles) != 8:
+        raise ValueError("Expected eight original Electron bundle providers")
+    external["//third_party/electron_node:node_js2c"] = "@electron_node_sources//:node_js2c"
     node_lock = json.loads((profiles / "node_tools_lock.json").read_text())
     if capture_node_tools(source_roots.get("electron", chromium / "electron")) != node_lock:
         raise ValueError("Electron Node tool closure differs from original Yarn metadata")
@@ -502,6 +548,9 @@ def capture(graph, digest, chromium, source_roots, profiles):
                 continue
             visited.add(dependency)
             target = targets[dependency]
+            if dependency in bundle_providers:
+                paths.update(target["outputs"])
+                continue
             if target["type"] in ("action", "action_foreach", "copy", "generated_file"):
                 paths.update(target.get("outputs", []))
                 paths.update(target.get("inputs", []))
@@ -572,7 +621,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
                         raise ValueError("Missing pinned policy inputs: " + directory)
                     inputs.update(paths)
             if target["script"] == "//tools/grit/grit.py":
-                inputs.update(grit_resource_inputs(inputs, physical))
+                inputs.update(grit_resource_inputs(inputs, physical, target.get("args", [])))
             script_parent = physical(target["script"][2:]).parent
             for path in script_parent.glob("*.py"):
                 inputs.add(target["script"].rsplit("/", 1)[0] + "/" + path.name)
@@ -633,6 +682,11 @@ def capture(graph, digest, chromium, source_roots, profiles):
                 inputs.update(["//electron/package.json", "//electron/yarn.lock", "//third_party/node/node.py", node])
                 record["mapped_source_groups"] = {"@electron_npm//:pkg_" + identity: "electron/node_modules/" + name for name, identity in node_lock["roots"].items()}
                 args = ["../../electron/script/generate-version-json.js"] + args[3:]
+            if target["script"] == "//electron/build/js2c.py":
+                if args[:3] != ["node_js2c", "gen", "electron_natives.cc"]:
+                    raise ValueError("Original Electron JS2C invocation changed")
+                inputs.add(BUILD + "node_js2c")
+                args[0] = "./node_js2c"
             if target["script"] == "//tools/grit/pak_util.py" and (not args or args[0] != "repack"):
                 raise ValueError("Only original resource repack actions are captured")
             if "--protoc-gen-ts" in args:
@@ -976,7 +1030,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
         if any(physical(path).read_text().count(before) != 1 for before in substitutions):
             raise ValueError("Original schema compiler copyright source changed: " + path)
         source_adapters["//" + path] = substitutions
-    return dict(electron_api_generators=api_generators, electron_repack_actions=sorted(label for label in actions if actions[label]["script"] == "tools/grit/pak_util.py"), electron_generators=ELECTRON_GENERATORS, content_generators=CONTENT_GENERATORS, source_adapters=source_adapters, content_web_assets=CONTENT_WEB_ASSETS, content_resources=CONTENT_RESOURCES, content_protobuf_runtime=CONTENT_PROTO_RUNTIME_COPIES, content_metadata=CONTENT_METADATA, devtools_workspace=devtools_workspace, devtools_frontend_actions=devtools_actions, header_layers=header_layers, devtools_esbuild=devtools_esbuild, copies=copies, devtools_node_modules_files=devtools_packages, native_header_actions=sorted(native_header_actions), source_aliases=source_aliases, roots=capture_roots, graph_sha256=digest, source_revisions=revisions, names=names, libraries=libraries, actions=actions, metadata=metadata, literal_metadata=literal_metadata, execution_tools=sorted(set(tools.values())), execution_closure=sorted(execution_closure), producers=producers, headers=headers, files=sorted(files), external_files={path: shared[path] for path in sorted(used_shared)}, external={label: external[label] for label in sorted(used)}, generated_files=generated, toolchain_deps=sorted(TOOLCHAIN), sdk_libraries=sorted(SDK_LIBS))
+    return dict(electron_bundle_providers=bundle_providers, electron_api_generators=api_generators, electron_repack_actions=sorted(label for label in actions if actions[label]["script"] == "tools/grit/pak_util.py"), electron_generators=ELECTRON_GENERATORS, content_generators=CONTENT_GENERATORS, source_adapters=source_adapters, content_web_assets=CONTENT_WEB_ASSETS, content_resources=CONTENT_RESOURCES, content_protobuf_runtime=CONTENT_PROTO_RUNTIME_COPIES, content_metadata=CONTENT_METADATA, devtools_workspace=devtools_workspace, devtools_frontend_actions=devtools_actions, header_layers=header_layers, devtools_esbuild=devtools_esbuild, copies=copies, devtools_node_modules_files=devtools_packages, native_header_actions=sorted(native_header_actions), source_aliases=source_aliases, roots=capture_roots, graph_sha256=digest, source_revisions=revisions, names=names, libraries=libraries, actions=actions, metadata=metadata, literal_metadata=literal_metadata, execution_tools=sorted(set(tools.values())), execution_closure=sorted(execution_closure), producers=producers, headers=headers, files=sorted(files), external_files={path: shared[path] for path in sorted(used_shared)}, external={label: external[label] for label in sorted(used)}, generated_files=generated, toolchain_deps=sorted(TOOLCHAIN), sdk_libraries=sorted(SDK_LIBS))
 
 
 def main():

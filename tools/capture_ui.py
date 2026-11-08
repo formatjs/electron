@@ -181,7 +181,7 @@ def capture(graph, digest, chromium, node_modules, profiles, *, roots=None, addi
                     root = physical(directory)
                     inputs.update("//" + directory + "/" + path.relative_to(root).as_posix() for path in source_files(root) if path.is_file() and path.suffix in (".js", ".mjs", ".json"))
             if reuse_providers and target["script"] == "//tools/grit/grit.py":
-                inputs.update(grit_resource_inputs(inputs, physical))
+                inputs.update(grit_resource_inputs(inputs, physical, target.get("args", [])))
             if target["script"] == "//tools/grit/grit.py":
                 for source in list(inputs):
                     if source.startswith("//ui/strings/") and source.endswith(".grd"):
