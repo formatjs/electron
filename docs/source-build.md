@@ -2204,3 +2204,32 @@ four repository imports to the development module and matching BCR templates.
 No build, generator or test actions ran locally. The tracing asset inventory
 changes only Catapult inputs; existing native records and header layers stay
 identical to the expanded content profile.
+
+
+### WebUI provider interfaces and deterministic Rollup configuration
+
+Live source-components diagnostics identify undeclared GRIT images/translations,
+missing TypeScript project inputs, an absolute Rollup config root and the vector
+icon unit-test template. Capture now stages external producers' output closure
+without reopening their implementation scripts. TypeScript providers also expose
+source/declaration/config inputs required by project references. GRIT reuses the
+existing XML resource scanner for images, scale variants and locale catalogs;
+its Brotli argument names the declared local executable explicitly.
+
+Content WebUI capture filters its own inherited provider aliases and discovers
+entry points through the native content graph, so recapture works after native
+content is imported. Original roots/native records stay unchanged. A checked
+Rollup source adapter stores a relative build path and resolves it with Node's
+`node:path` during execution. The plugin receives the same absolute input root;
+source-action reproducibility verification remains enabled. The icon producer
+now declares its original `vector_icons_unittest.h.template`.
+
+These changes address observed BB failures. Static input checks find the reported
+images/catalogs, generated frontend compression products and TypeScript provider
+declarations. Actual generation and all resource contracts still require BB.
+
+
+The corrected graph analyzes with 93,736 actions. All 41,454 C++ compile, 254 Rust,
+26 Cargo build-script and 6,991 Python action keys from the expanded content
+baseline remain present. No CMake/foreign-cc actions matched. This audit verifies
+declarations/configuration; hosted execution still must prove the fixes.

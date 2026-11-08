@@ -11,6 +11,7 @@ import re
 from pathlib import Path
 
 from capture_mojo import SCRIPTS as MOJO_SCRIPTS
+from capture_platform import grit_resource_inputs, source_files
 from native_graph import BUILD, capture_library, load_profiles
 
 ROOTS = ["//ui/base:base"]
@@ -26,9 +27,12 @@ SCRIPTS = MOJO_SCRIPTS | {"//" + name for name in ["build/write_buildflag_header
 PROVIDERS = [("base", "base"), ("embedder", "embedder"), ("ipcz", "ipcz"), ("libnode", "libnode"), ("perfetto", "perfetto_native"), ("protobuf", "protobuf"), ("v8_engine", "v8_engine"), ("v8_support", "v8_support"), ("network", "network"), ("mojo", "mojo"), ("fonts", "fonts"), ("codecs", "codecs"), ("skia", "skia"), ("gfx", "gfx"), ("display", "display"), ("events", "events")]
 
 
-def capture(graph, digest, chromium, node_modules, profiles, *, roots=None, additional_profiles=(), reuse_providers=False):
+def capture(graph, digest, chromium, node_modules, profiles, *, roots=None, additional_profiles=(), reuse_providers=False, current_repository=None):
     roots = ROOTS if roots is None else roots
     external, shared = load_profiles(profiles, PROVIDERS + list(additional_profiles))
+    if current_repository is not None:
+        owner = "@electron_" + current_repository + "_sources//:"
+        external = {label: target for label, target in external.items() if not target.startswith(owner)}
     targets, seen, pending = graph["targets"], set(), list(roots)
     while pending:
         label = pending.pop()
@@ -124,7 +128,12 @@ def capture(graph, digest, chromium, node_modules, profiles, *, roots=None, addi
             visited.add(dependency)
             target = targets[dependency]
             if reuse_providers and dependency in external and target["type"] != "group":
-                outputs.update(target.get("outputs", []))
+                if target["type"] in ("action", "action_foreach", "copy", "generated_file"):
+                    outputs.update(target.get("outputs", []))
+                    if target.get("script") == "//tools/typescript/ts_library.py":
+                        outputs.update(path for path in target.get("inputs", []) + target.get("sources", []) if path.endswith((".ts", ".json", ".js")))
+                    outputs.update(resource_inputs(target))
+                    pending.extend(target.get("deps", []))
                 continue
             if target["type"] in ("action", "action_foreach", "copy", "generated_file"):
                 outputs.update(target.get("outputs", []))
@@ -163,10 +172,13 @@ def capture(graph, digest, chromium, node_modules, profiles, *, roots=None, addi
                     inputs.add("//" + arg[6:])
                 elif BUILD + arg in graph["generated_files"]:
                     inputs.add(BUILD + arg)
+            if reuse_providers and target["script"] == "//tools/grit/grit.py":
+                inputs.update(grit_resource_inputs(inputs, physical))
             if target["script"] == "//tools/grit/grit.py":
                 for source in list(inputs):
                     if source.startswith("//ui/strings/") and source.endswith(".grd"):
                         inputs.update("//" + path.relative_to(chromium).as_posix() for path in (chromium / "ui/strings").rglob("*") if path.is_file() and path.suffix in (".xtb", ".grdp"))
+            args = ["./" + arg if BUILD + arg in tools else arg for arg in args]
             if any("{{" in arg.replace("{{response_file_name}}", "") for arg in args):
                 raise ValueError("Untranslated UI generator placeholder: " + label)
             for path in sorted(inputs):
@@ -219,8 +231,20 @@ def capture(graph, digest, chromium, node_modules, profiles, *, roots=None, addi
     for path in files:
         if not physical(path).is_file():
             raise ValueError("Missing original UI input: " + path)
+    source_adapters = {}
+    if reuse_providers and any(action["script"] == "ui/webui/resources/tools/bundle_js.py" for action in actions.values()):
+        script = "ui/webui/resources/tools/bundle_js.py"
+        substitutions = {
+            "import plugin from '{plugin_path}';": "import plugin from '{plugin_path}';\n    import {{resolve as resolveBuildPath}} from 'node:path';",
+            "plugin('{in_path}',": "plugin(resolveBuildPath('{in_path}'),",
+            "in_path=in_path.replace('\\\\', '/'),": "in_path=os.path.relpath(in_path, _CWD).replace('\\\\', '/'),",
+        }
+        contents = physical(script).read_text()
+        if any(contents.count(before) != 1 for before in substitutions):
+            raise ValueError("Original Rollup configuration writer changed")
+        source_adapters["//" + script] = substitutions
     used = {dep for label in seen for dep in targets[label].get("deps", []) if dep in external}
-    return dict(roots=roots, graph_sha256=digest, names=names, libraries=libraries, actions=actions, metadata=metadata, copies=copies, execution_tools=sorted(set(tools.values())), source_archives=PINS, node_modules_files=[path[2:] for path in package_files], producers=producers, headers=headers, textual_headers=sorted(textual_headers), files=sorted(files), external_files={path: shared[path] for path in sorted(used_shared)}, external={label: external[label] for label in sorted(used)}, generated_files=generated, toolchain_deps=sorted(TOOLCHAIN))
+    return dict(source_adapters=source_adapters, roots=roots, graph_sha256=digest, names=names, libraries=libraries, actions=actions, metadata=metadata, copies=copies, execution_tools=sorted(set(tools.values())), source_archives=PINS, node_modules_files=[path[2:] for path in package_files], producers=producers, headers=headers, textual_headers=sorted(textual_headers), files=sorted(files), external_files={path: shared[path] for path in sorted(used_shared)}, external={label: external[label] for label in sorted(used)}, generated_files=generated, toolchain_deps=sorted(TOOLCHAIN))
 
 
 def main():

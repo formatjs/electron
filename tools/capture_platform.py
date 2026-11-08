@@ -479,6 +479,11 @@ def capture(graph, digest, chromium, source_roots, profiles):
                     raise ValueError("Expected one generated resource Python module: " + label)
                 inputs.update(modules)
                 record["generated_proto_inputs"] = modules
+            if target["script"] == "//components/vector_icons/aggregate_vector_icons.py" and any(arg.startswith("--output_test_h") for arg in target.get("args", [])):
+                directory = next(arg.split("=", 1)[1] for arg in target["args"] if arg.startswith("--working_directory="))
+                if not directory.startswith("../../"):
+                    raise ValueError("Untranslated icon template directory")
+                inputs.add("//" + directory[6:] + "/vector_icons_unittest.h.template")
             if label == CONTENT_GENERATORS["model_descriptors"]:
                 for runtime in CONTENT_PROTO_RUNTIME_COPIES:
                     inputs.update(targets[runtime]["sources"])

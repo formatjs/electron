@@ -1,5 +1,6 @@
 """Complete native ui/base with original WebUI, lint and TypeScript producers."""
 
+load("@bazel_skylib//rules:expand_template.bzl", "expand_template")
 load("@electron_ui_sources//:profile.bzl", "PROFILE")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
@@ -31,11 +32,16 @@ def electron_ui(profile = PROFILE, aliases = None, node_modules = ":node_modules
         target_compatible_with = _COMPATIBLE,
     )
     native.filegroup(name = "node_modules", srcs = [_file(profile, "//" + path) for path in profile["node_modules_files"]])
+    adapters = {}
+    for source, substitutions in profile.get("source_adapters", {}).items():
+        name = "source_adapter_" + source[2:].replace("/", "_").replace(".", "_")
+        expand_template(name = name, template = _file(profile, source), substitutions = substitutions, out = "source_adapters/" + source[2:])
+        adapters[source] = ":" + name
     for original, action in profile["actions"].items():
         outputs = [path[len(_BUILD):] for path in action["outputs"]]
         electron_source_action(
             name = action["name"] + "_run",
-            srcs = {_file(profile, path): path[2:] for path in action["inputs"]},
+            srcs = {adapters.get(path, _file(profile, path)): path[2:] for path in action["inputs"]},
             tools = {_label(profile, label): path[2:] for path, label in action["tools"].items()},
             source_groups = [node_modules] if action["node_modules"] else [],
             deps = [":" + profile["names"][label] + "_run" for label in action["ordering_deps"]],
