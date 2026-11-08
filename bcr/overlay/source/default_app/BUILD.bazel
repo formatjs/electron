@@ -1,0 +1,118 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_python//python:defs.bzl", "py_test")
+load("//electron:node_project.bzl", "electron_node_project", "electron_npm_file")
+load("//source/native:default_app_inputs.bzl", "DEFAULT_APP")
+
+package(default_visibility = ["//visibility:public"])
+
+_LOCK = "//source/native:electron_app_lock.json"
+
+_BASE = "out/bazel-import/gen/electron/js/default_app/electron/default_app/"
+
+_JAVASCRIPT = [path.split("/")[-1] for path in DEFAULT_APP["javascript_outputs"]]
+
+electron_node_project(
+    name = "generate_declarations",
+    srcs = {"@electron//:" + path: "electron/" + path for path in DEFAULT_APP["sources"]["declarations"]},
+    commands = [json.encode(command) for command in [
+        ["script/create-api-json.mjs"],
+        [
+            "node_modules/@electron/typescript-definitions/dist/bin.js",
+            "--api=electron-api.json",
+        ],
+        ["spec/ts-smoke/runner.js"],
+    ]],
+    lock = _LOCK,
+    logical_outputs = [
+        "electron/electron-api.json",
+        "electron/electron.d.ts",
+    ],
+    npm_packages = DEFAULT_APP["packages"],
+    out_files = [
+        "electron-api.json",
+        "electron.d.ts",
+    ],
+    project = "electron",
+    version = "39.0.0",
+)
+
+cc_library(
+    name = "declarations",
+    data = [":generate_declarations"],
+)
+
+_JAVASCRIPT_SOURCES = {"@electron//:" + path: "electron/" + path for path in DEFAULT_APP["sources"]["javascript"]}
+
+_JAVASCRIPT_SOURCES.update({":electron.d.ts": "electron/electron.d.ts"})
+
+electron_node_project(
+    name = "compile_javascript",
+    srcs = _JAVASCRIPT_SOURCES,
+    commands = [json.encode(DEFAULT_APP["javascript_command"])],
+    lock = _LOCK,
+    logical_outputs = [path.removeprefix("//") for path in DEFAULT_APP["javascript_outputs"]],
+    npm_packages = DEFAULT_APP["packages"],
+    out_files = _JAVASCRIPT,
+    project = "electron",
+)
+
+cc_library(
+    name = "javascript",
+    data = [":compile_javascript"],
+)
+
+[electron_npm_file(
+    name = "octicon_" + str(index),
+    out = "octicon/" + output.split("/")[-1],
+    package = DEFAULT_APP["octicons_package"],
+    path = source.removeprefix("//electron/node_modules/@primer/octicons/"),
+) for index, (source, output) in enumerate(zip(
+    DEFAULT_APP["octicons"]["sources"],
+    DEFAULT_APP["octicons"]["outputs"],
+))]
+
+_APP_FILES = {path.removeprefix("default_app/"): "@electron//:" + path for path in DEFAULT_APP["sources"]["archive"] if path.startswith("default_app/")}
+
+_APP_FILES.update({path: ":" + path for path in _JAVASCRIPT})
+
+_APP_FILES.update({"octicon/" + path.split("/")[-1]: ":octicon_" + str(index) for index, path in enumerate(DEFAULT_APP["octicons"]["outputs"])})
+
+_ARCHIVE_SOURCES = {"@electron//:" + path: "electron/" + path for path in DEFAULT_APP["sources"]["archive"] if not path.startswith("default_app/")}
+
+_ARCHIVE_SOURCES.update({label: _BASE + path for path, label in _APP_FILES.items()})
+
+electron_node_project(
+    name = "generate_archive",
+    srcs = _ARCHIVE_SOURCES,
+    commands = [json.encode(DEFAULT_APP["archive_command"])],
+    lock = _LOCK,
+    logical_outputs = [DEFAULT_APP["archive_output"].removeprefix("//")],
+    npm_packages = DEFAULT_APP["packages"],
+    out_files = ["default_app.asar"],
+    project = "electron",
+)
+
+cc_library(
+    name = "archive",
+    data = [":default_app.asar"],
+)
+
+py_test(
+    name = "assets_test",
+    srcs = ["assets_test.py"],
+    args = [
+        "$(rootpath :default_app.asar)",
+        "$(rootpath @electron_chromium_node_tool//:node-linux-x64/bin/node)",
+    ] + [value for path, label in _APP_FILES.items() for value in [
+        path,
+        "$(rootpath " + label + ")",
+    ]],
+    data = [
+        ":default_app.asar",
+        "@electron_chromium_node_tool//:node-linux-x64/bin/node",
+    ] + _APP_FILES.values(),
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)

@@ -12,7 +12,7 @@ import unittest
 
 (HEADER, PACK, HTML, JAVASCRIPT, NODE, COMPONENT_HEADER, COMPONENT_PACK,
  DISTILLER, READABILITY, READERABLE, FINAL_PACK, ELECTRON_HEADER,
- DISCOVERY_HTML, ERROR_IMAGE_1X, ERROR_IMAGE_2X, LOGO_HEADER, LOGO_IMAGE, WEBID_LIGHT, WEBID_DARK) = [Path(value) for value in sys.argv[1:]]
+ DISCOVERY_HTML, ERROR_IMAGE_1X, ERROR_IMAGE_2X, LOGO_HEADER, LOGO_IMAGE, LOGO_PACK, WEBID_LIGHT, WEBID_DARK) = [Path(value) for value in sys.argv[1:]]
 sys.argv[1:] = []
 
 
@@ -74,7 +74,10 @@ class ContentWebUI(unittest.TestCase):
             r"^#define (IDR_\w+) (\d+)$", COMPONENT_HEADER.read_text(), re.MULTILINE))
         final = resources(FINAL_PACK)
         components = resources(COMPONENT_PACK)
-        self.assertEqual(final[electron_ids["IDR_CONTENT_SHELL_DEVTOOLS_DISCOVERY_PAGE"]], DISCOVERY_HTML.read_bytes())
+        discovery = final[electron_ids["IDR_CONTENT_SHELL_DEVTOOLS_DISCOVERY_PAGE"]]
+        if discovery.startswith(b"\x1f\x8b"):
+            discovery = gzip.decompress(discovery)
+        self.assertEqual(discovery, DISCOVERY_HTML.read_bytes())
         for name in ("IDR_DISTILLER_JS", "IDR_READABILITY_DISTILLER_JS", "IDR_READABILITY_TRIGGERING_JS"):
             with self.subTest(resource=name):
                 identifier = component_ids[name]
@@ -90,10 +93,10 @@ class ContentWebUI(unittest.TestCase):
             with self.subTest(image=str(image)):
                 self.assertIn(base64.b64encode(image.read_bytes()), payload)
 
-    def test_final_pack_preserves_linux_branding_image(self):
+    def test_unscaled_resource_pack_preserves_linux_branding_image(self):
         identifiers = dict((name, int(value)) for name, value in re.findall(
             r"^#define (IDR_\w+) (\d+)$", LOGO_HEADER.read_text(), re.MULTILINE))
-        self.assertEqual(resources(FINAL_PACK)[identifiers["IDR_PRODUCT_LOGO_64"]], LOGO_IMAGE.read_bytes())
+        self.assertEqual(resources(LOGO_PACK)[identifiers["IDR_PRODUCT_LOGO_64"]], LOGO_IMAGE.read_bytes())
 
     def test_final_pack_preserves_unscaled_webid_include_images(self):
         payloads = resources(FINAL_PACK).values()

@@ -25,7 +25,7 @@ def _webpack_impl(ctx):
     if ctx.attr.config not in mappings:
         fail("Webpack configuration must be a declared source input")
     arguments = ["--node", node.path, "--driver", ctx.file._driver.path, "--manifest", manifest.path, "--lock", ctx.file.lock.path, "--buildflags", ctx.file.buildflags.path, "--output", output.path, "--config", ctx.attr.config]
-    ctx.actions.run(executable = ctx.executable._runner, arguments = arguments, inputs = inputs + [manifest], outputs = [output], mnemonic = "ElectronWebpack")
+    ctx.actions.run(executable = ctx.attr._runner[DefaultInfo].files_to_run, arguments = arguments, inputs = inputs + [manifest], outputs = [output], mnemonic = "ElectronWebpack")
     return [DefaultInfo(files = depset([output]))]
 
 electron_webpack = rule(

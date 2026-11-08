@@ -2526,3 +2526,60 @@ Python generator actions. Analysis executes zero build actions. No CMake or
 foreign-cc mnemonics appear. Of the prior graph's compile keys, 27,040 C++,
 all 254 Rust and all 26 Cargo script keys remain present. Expanded tool/header
 contexts change other keys; this is not evidence of warm-cache performance.
+
+
+### Final executable and original default app
+
+The Linux AMD64 profile now includes `//electron:electron_app`, the sandbox
+helper and Crashpad handler. `//source:electron_programs` exposes all three to
+the component build; `//source:electron_binary` selects the main executable.
+Compilation, linkage and native launch still need hosted evidence.
+
+```mermaid
+flowchart LR
+  docs[Pinned API docs] --> types[Original declarations and TypeScript smoke]
+  types --> javascript[Original default-app TypeScript]
+  javascript --> asar[Original gn-asar.js]
+  assets[Pinned static files and Octicons] --> asar
+  asar --> app[electron_app data dependency]
+  native[Native Electron libraries] --> app
+```
+
+Default-app actions run the original docs parser, declaration generator,
+upstream type smoke suite, TypeScript compiler and ASAR script through declared
+Node/Python toolchains. Their 145-package closure comes from the original Yarn
+lock, including the versioned DefinitelyTyped Node archive root. Checked source
+inventories preserve original GN/npm commands. The version helper reads declared
+`override_electron_version` metadata; generator products are compared across two
+source paths and input mtimes. Shared npm staging also serves existing bundles.
+No install hooks or npm preflight stamps are generated.
+
+The archive contract checks every packaged JS/static/icon file against its
+producer, verifies per-file/block SHA-256 and checks module syntax with declared
+Node. Declaration generation runs the upstream main/renderer/utility type suite
+before publishing outputs. Full webpack project typechecking remains open.
+
+The feature-table contract merges original override JSON and excludes explicit
+`nocompile` entries, matching the original compiler's documented behavior.
+Download code records an additional native dependency on the original enterprise
+obfuscation library under the broader content-analysis flag. Original GN edges
+remain recorded. DomDistiller's two Python protoc plugins use the existing native
+launcher and declared interpreter with the pinned pure-Python protobuf backend.
+
+Default-app package loading and action analysis pass with zero local build
+actions. Hosted generator execution, full ELF linkage, runtime assembly and
+native launch remain required. Other source triples remain unfinished.
+
+
+The complete executable/test graph analyzes: 132,721 actions, 67,499 C++
+compilations, 330 links and three Node project actions. Link actions are present
+for the main executable, sandbox helper and Crashpad handler. The component's
+actual files-to-build include `default_app.asar`. No CMake/foreign-cc mnemonics
+appear; local analysis executes zero build actions. These results establish
+action ownership, not successful generator execution or linkage.
+
+
+WebUI contracts decode GRIT's default gzip discovery HTML before comparing the
+original source bytes. Branding checks read the original unscaled resource pack,
+following the captured repack graph. Final runtime resource checks retain the
+component payload and plain WebID image comparisons.

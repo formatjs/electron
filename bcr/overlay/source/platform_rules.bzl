@@ -196,7 +196,7 @@ def electron_platform():
             linkopts = ["-l" + name for name in library["libs"] if name in ["m", "dl", "rt", "pthread", "resolv"]],
             linkstatic = True,
             target_compatible_with = _COMPATIBLE,
-            deps = {dep: True for dep in [":tool_headers" if original in PROFILE.get("tool_header_libraries", PROFILE["execution_closure"]) else (":electron_source_headers" if original in electron_libraries else ":content_source_headers" if original in content_libraries else ":modules_source_headers" if original in module_libraries else ":core_source_headers" if original in core_libraries else ":source_headers")] + _system_deps(original, library) + [_label(dep) for dep in library["gn_deps"] if dep not in PROFILE["toolchain_deps"] and dep not in PROFILE["execution_tools"]]}.keys(),
+            deps = {dep: True for dep in [":tool_headers" if original in PROFILE.get("tool_header_libraries", PROFILE["execution_closure"]) else (":electron_source_headers" if original in electron_libraries else ":content_source_headers" if original in content_libraries else ":modules_source_headers" if original in module_libraries else ":core_source_headers" if original in core_libraries else ":source_headers")] + _system_deps(original, library) + [_label(dep) for dep in library["gn_deps"] + library.get("additional_native_deps", []) if dep not in PROFILE["toolchain_deps"] and dep not in PROFILE["execution_tools"]]}.keys(),
         )
         if library.get("resource_sources"):
             settings["data"] = [_file(path) for path in library["resource_sources"]]
@@ -267,6 +267,9 @@ def electron_platform():
 
     for name, original in {"compositor": "//cc:cc", "media": "//media:media", "ffmpeg": "//third_party/ffmpeg:ffmpeg", "gpu_client": "//gpu/command_buffer/client:gles2_implementation", "gpu_service": "//gpu/command_buffer/service:gles2", "viz_common": "//components/viz/common:common"}.items():
         native.alias(name = name, actual = _label(original))
+    if "//electron:electron_app" in PROFILE["libraries"]:
+        native.alias(name = "electron_binary", actual = _label("//electron:electron_app"))
+        native.filegroup(name = "electron_programs", srcs = [_label(label) for label in ["//electron:electron_app", "//sandbox/linux:chrome_sandbox", "//components/crash/core/app:chrome_crashpad_handler"]])
     if "//electron:electron_lib" in PROFILE["libraries"]:
         native.alias(name = "electron_lib", actual = _label("//electron:electron_lib"))
     if "//content:content" in PROFILE["libraries"]:

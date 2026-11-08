@@ -1185,6 +1185,16 @@ alias(
 )
 
 alias(
+    name = "electron_binary",
+    actual = "@electron_platform_sources//:electron_binary",
+)
+
+alias(
+    name = "electron_programs",
+    actual = "@electron_platform_sources//:electron_programs",
+)
+
+alias(
     name = "platform_libraries",
     actual = "@electron_platform_sources//:libraries",
 )

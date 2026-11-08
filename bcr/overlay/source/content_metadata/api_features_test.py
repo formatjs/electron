@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""Check original feature tables retain declared API names and source year."""
+"""Check original feature tables retain merged compilable API names and source year."""
 
 import json
 from pathlib import Path
@@ -14,13 +14,24 @@ del sys.argv[1:]
 
 
 class APIFeatures(unittest.TestCase):
-    def test_generated_feature_tables_preserve_all_source_keys_and_declared_year(self):
+    def test_generated_feature_tables_match_merged_compilable_sources_and_declared_year(self):
         self.assertEqual(len(CASES), 13)
         for case in CASES:
             with self.subTest(method=case["method"]):
-                names = set()
+                overrides = {str(Path(path).with_name(Path(path).name.replace(".override.", ".", 1))): Path(path) for path in case["overrides"]}
+                self.assertLessEqual(set(overrides), set(case["sources"]))
+                definitions = {}
                 for source in case["sources"]:
-                    names.update(json.loads(COMMENT_EATER(Path(source).read_text())))
+                    feature = json.loads(COMMENT_EATER(Path(source).read_text()))
+                    if source in overrides:
+                        feature.update(json.loads(COMMENT_EATER(overrides[source].read_text())))
+                    definitions.update(feature)
+                names = set()
+                for name, feature in definitions.items():
+                    if isinstance(feature, dict) and "nocompile" in feature:
+                        self.assertTrue(feature["nocompile"])
+                    else:
+                        names.add(name)
                 implementation = Path(case["implementation"]).read_text()
                 header = Path(case["header"]).read_text()
                 registered = re.findall(r'provider->AddFeature\("([^"\n]+)", feature\);', implementation)

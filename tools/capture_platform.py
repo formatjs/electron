@@ -75,9 +75,13 @@ BLINK_SOURCE_PREFIXES = ['third_party/cld_3/src', 'third_party/cpuinfo/src', 'th
 SOURCE_PREFIXES += MEDIA_SOURCE_PREFIXES + COMPOSITOR_SOURCE_PREFIXES + BLINK_SOURCE_PREFIXES
 SOURCE_PREFIXES += ["third_party/libaddressinput/src", "third_party/ink/src", "third_party/ink_stroke_modeler/src", "third_party/cros_system_api", "third_party/perfetto", "third_party/catapult", "third_party/openscreen/src", "third_party/pdfium"]
 TOOLCHAIN = {"//buildtools/third_party/libc++:" + name for name in ("all_modules", "custom_headers", "libcxx_headers", "libc++")}
+# Download code uses obfuscation under the broader content-analysis buildflag.
+EXTRA_NATIVE_DEPS = {
+    "//components/download/internal/common:internal": ["//components/enterprise/obfuscation/core:enterprise_obfuscation"],
+}
+
 EXTRA_NATIVE_HEADERS = {
     "//content/browser:browser": ["//ash/constants/ash_switches.h", "//gpu/config/gpu_lists_version.h"],
-    "//components/download/internal/common:internal": ["//components/enterprise/obfuscation/core/download_obfuscator.h"],
     "//components/viz/host:host": ["//skia/ext/skia_commit_hash.h"],
     "//services/viz/privileged/mojom/compositing:compositing": ["//services/viz/privileged/cpp/renderer_settings_mojom_traits.h", "//services/viz/privileged/cpp/overlay_strategy_mojom_traits.h"],
     "//third_party/blink/renderer/platform:platform": ["//third_party/blink/renderer/core/frame/web_feature.h"],
@@ -380,7 +384,7 @@ def isolated_header_libraries(libraries, actions, copies, metadata, producers, l
             seen.add(label)
             row = libraries.get(label) or actions.get(label) or copies.get(label) or metadata.get(label)
             if row:
-                pending.extend(row.get("gn_deps", []))
+                pending.extend(row.get("gn_deps", []) + row.get("additional_native_deps", []))
         return frozenset(seen & libraries.keys())
 
     isolated = set()
@@ -400,6 +404,8 @@ def capture(graph, digest, chromium, source_roots, profiles, *, extra_roots=()):
     external = {label: owner for label, owner in external.items() if not owner.startswith("@electron_platform_sources//:")}
     shared[BUILD + "icudtl.dat"] = "@electron_icu_sources//:common/icudtl.dat"
     shared["//third_party/icu/common/icudtl.dat"] = "@electron_icu_sources//:common/icudtl.dat"
+    external["//electron:default_app_asar"] = "@electron//source/default_app:archive"
+    shared[BUILD + "resources/default_app.asar"] = "@electron//source/default_app:default_app.asar"
     shared["//v8/include/js_protocol-1.3.json"] = "@electron_v8_sources//:include/js_protocol-1.3.json"
     external["//media/filters:symphonia_glue"] = "@electron//source/media:symphonia"
     external["//media/filters:symphonia_glue_cxx_generated"] = "@electron//source/media:symphonia_bridge"
@@ -481,7 +487,7 @@ def capture(graph, digest, chromium, source_roots, profiles, *, extra_roots=()):
             if label in seen or label in external or label in TOOLCHAIN or label == NPM_PREFLIGHT:
                 continue
             seen.add(label)
-            pending.extend(targets[label].get("deps", []))
+            pending.extend(targets[label].get("deps", []) + EXTRA_NATIVE_DEPS.get(label, []))
         return seen
 
     platform_seen, core_seen, module_seen, content_seen, seen = closure(PLATFORM_ROOTS), closure(CORE_ROOTS), closure(MODULE_ROOTS), closure(CONTENT_ROOTS), closure(capture_roots)
@@ -561,7 +567,7 @@ def capture(graph, digest, chromium, source_roots, profiles, *, extra_roots=()):
         if label in execution_closure or label not in seen:
             continue
         execution_closure.add(label)
-        pending.extend(targets[label].get("deps", []))
+        pending.extend(targets[label].get("deps", []) + EXTRA_NATIVE_DEPS.get(label, []))
 
     def input_file(path):
         if path in source_aliases:
@@ -797,6 +803,18 @@ def capture(graph, digest, chromium, source_roots, profiles, *, extra_roots=()):
                 args[0] = "./node_js2c"
             if target["script"] == "//tools/grit/pak_util.py" and (not args or args[0] != "repack"):
                 raise ValueError("Only original resource repack actions are captured")
+            if target["script"] == "//tools/protoc_wrapper/protoc_wrapper.py" and "--plugin" in args:
+                position = args.index("--plugin") + 1
+                if args[position].endswith(".py"):
+                    plugin = "third_party/dom_distiller_js/protoc_plugins/json_values_converter.py"
+                    if args[position] != "../../" + plugin:
+                        raise ValueError("Untranslated original Python protobuf plugin")
+                    record["gn_args"] = list(args)
+                    launcher = plugin.removesuffix(".py") + ".launcher"
+                    args[position] = "../../" + launcher
+                    record["python_tools"] = {launcher: plugin}
+                    record["pure_python_protobuf_plugin"] = True
+                    inputs.add("//" + plugin)
             if "--protoc-gen-ts" in args:
                 if target["script"] != "//tools/protoc_wrapper/protoc_wrapper.py":
                     raise ValueError("Unexpected TypeScript protobuf plugin producer")
@@ -940,6 +958,8 @@ def capture(graph, digest, chromium, source_roots, profiles, *, extra_roots=()):
                 record["environment"]["PROTOBUF_PYTHON_IMPLEMENTATION"] = "python"
             if target["script"] in API_SCRIPTS:
                 record["environment"]["ELECTRON_SOURCE_COPYRIGHT_YEAR"] = "2025"
+            if record.get("pure_python_protobuf_plugin"):
+                record["environment"]["PROTOBUF_PYTHON_IMPLEMENTATION"] = "python"
             actions[label] = record
         elif kind == "copy":
             if len(target["sources"]) != len(target["outputs"]):
@@ -962,6 +982,8 @@ def capture(graph, digest, chromium, source_roots, profiles, *, extra_roots=()):
                 record["gn_missing_source_headers"] = missing_headers
                 target = dict(target, sources=[path for path in target["sources"] if path not in missing_headers])
             libraries[label] = capture_library(graph, target, record, input_file, label, SDK_LIBS | {"z"})
+            if label in EXTRA_NATIVE_DEPS:
+                record["additional_native_deps"] = EXTRA_NATIVE_DEPS[label]
             if "third_party/ml_dtypes/src" in record["includes"]:
                 # GN exposes these vendored headers through a config.
                 if not ml_dtypes_headers:
@@ -1093,7 +1115,7 @@ def capture(graph, digest, chromium, source_roots, profiles, *, extra_roots=()):
             visited.add(label)
             if label in actions and not actions[label].get("scoped_native_headers"):
                 selected.add(label)
-            pending.extend(targets[label].get("deps", []))
+            pending.extend(targets[label].get("deps", []) + EXTRA_NATIVE_DEPS.get(label, []))
         selected.update(label for label in actions if label not in targets and not actions[label].get("scoped_checkout_hook"))
         return sorted(selected)
 
@@ -1133,7 +1155,7 @@ def capture(graph, digest, chromium, source_roots, profiles, *, extra_roots=()):
             actions=sorted(set(native_header_actions) - set(content_actions)),
         ),
     )
-    used = {dep for label in seen for dep in targets[label].get("deps", []) if dep in external}
+    used = {dep for label in seen for dep in targets[label].get("deps", []) + EXTRA_NATIVE_DEPS.get(label, []) if dep in external}
     devtools_actions = sorted(label for label in closure([DEVTOOLS_ROOT]) if label in actions)
     policy_script = "components/policy/resources/policy_templates.py"
     original = "f.write(' '.join(source_files))"

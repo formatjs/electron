@@ -35,6 +35,8 @@ exports_files([
     "node_inputs.bzl",
     "webpack_lock.json",
     "node_tools_lock.json",
+    "electron_app_lock.json",
+    "default_app_inputs.bzl",
     "webpack_inputs.bzl",
     "electron_buildflags.bzl",
 ])

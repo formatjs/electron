@@ -72,7 +72,11 @@ py_binary(
 
 py_binary(
     name = "webpack",
-    srcs = ["webpack.py"],
+    srcs = [
+        "npm_workspace.py",
+        "webpack.py",
+    ],
+    imports = ["."],
 )
 
 py_binary(
@@ -133,4 +137,13 @@ electron_source_action(
     python_tools = {"scripts/plugin": "scripts/fixture.py"},
     script = "scripts/fixture.py",
     target_compatible_with = ["@platforms//os:linux"],
+)
+
+py_binary(
+    name = "node_project",
+    srcs = [
+        "node_project.py",
+        "npm_workspace.py",
+    ],
+    imports = ["."],
 )

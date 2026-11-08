@@ -12,14 +12,15 @@ _hub = repository_rule(implementation = _hub_impl, attrs = {"packages": attr.str
 
 def _impl(ctx):
     packages = json.decode(ctx.read(Label("//source/native:webpack_lock.json")))["packages"]
-    node_tools = json.decode(ctx.read(Label("//source/native:node_tools_lock.json")))
-    for identity, entry in node_tools["packages"].items():
-        if identity in packages and packages[identity] != entry:
-            fail("Conflicting locked Node tool package")
-        packages[identity] = entry
+    for lock in ["node_tools_lock.json", "electron_app_lock.json"]:
+        node_tools = json.decode(ctx.read(Label("//source/native:" + lock)))
+        for identity, entry in node_tools["packages"].items():
+            if identity in packages and packages[identity] != entry:
+                fail("Conflicting locked Node tool package")
+            packages[identity] = entry
     for identity, entry in packages.items():
         prefix = entry["name"].removeprefix("@types/") if entry["name"].startswith("@types/") else "package"
-        http_archive(name = "electron_npm_" + identity, urls = [entry["url"]], integrity = entry["integrity"], strip_prefix = prefix, type = "tgz", build_file_content = "package(default_visibility = [\"//visibility:public\"])\nfilegroup(name = \"files\", srcs = glob([\"**\"], exclude = [\"BUILD.bazel\"]))")
+        http_archive(name = "electron_npm_" + identity, urls = [entry["url"]], integrity = entry["integrity"], strip_prefix = entry.get("strip_prefix", prefix), type = "tgz", build_file_content = "package(default_visibility = [\"//visibility:public\"])\nfilegroup(name = \"files\", srcs = glob([\"**\"], exclude = [\"BUILD.bazel\"]))")
     _hub(name = "electron_npm", packages = packages.keys())
     return ctx.extension_metadata(reproducible = True, root_module_direct_deps = ["electron_npm"], root_module_direct_dev_deps = [])
 

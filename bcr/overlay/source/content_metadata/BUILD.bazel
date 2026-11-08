@@ -146,6 +146,7 @@ _CONTENT_WEBUI_INPUTS = [
     "@electron_chromium_sources//:components/resources/default_200_percent/neterror/error_network_generic.png",
     "@electron_content_webui_sources//:gen/chrome/grit/chrome_unscaled_resources.h",
     "@electron_chromium_sources//:chrome/app/theme/chromium/linux/product_logo_64.png",
+    "@electron_content_webui_sources//:gen/chrome/chrome_unscaled_resources.pak",
     "@electron_chromium_sources//:chrome/browser/ui/views/webid/resources/modal_icon_background_light.png",
     "@electron_chromium_sources//:chrome/browser/ui/views/webid/resources/modal_icon_background_dark.png",
 ]
@@ -321,6 +322,7 @@ _API_FEATURE_ACTIONS = [
 _API_FEATURE_CASES = [dict(
     header = "@electron_platform_sources//:" + action["outputs"][1].removeprefix("//out/bazel-import/"),
     method = action["runs"][0]["args"][2],
+    overrides = [("@electron//:" + path.removeprefix("//electron/") if path.startswith("//electron/") else "@electron_chromium_sources//:" + path.removeprefix("//")) for path in action["inputs"] if path.endswith(".override.json")],
     sources = [("@electron//:" + path.removeprefix("../../electron/") if path.startswith("../../electron/") else "@electron_chromium_sources//:" + path.removeprefix("../../")) for path in action["runs"][0]["args"][6:]],
     implementation = "@electron_platform_sources//:" + action["outputs"][0].removeprefix("//out/bazel-import/"),
 ) for action in _API_FEATURE_ACTIONS]
@@ -331,10 +333,11 @@ py_test(
     args = ["$(rootpath @electron_chromium_sources//:tools/json_comment_eater/json_comment_eater.py)"] + [shell.quote(json.encode(dict(
         header = "$(rootpath " + case["header"] + ")",
         method = case["method"],
+        overrides = ["$(rootpath " + label + ")" for label in case["overrides"]],
         sources = ["$(rootpath " + label + ")" for label in case["sources"]],
         implementation = "$(rootpath " + case["implementation"] + ")",
     ))) for case in _API_FEATURE_CASES],
-    data = ["@electron_chromium_sources//:tools/json_comment_eater/json_comment_eater.py"] + [label for case in _API_FEATURE_CASES for label in case["sources"] + [
+    data = ["@electron_chromium_sources//:tools/json_comment_eater/json_comment_eater.py"] + [label for case in _API_FEATURE_CASES for label in case["sources"] + case["overrides"] + [
         case["implementation"],
         case["header"],
     ]],
