@@ -12,13 +12,17 @@
     "libasound.so.2",
     "libatk-1.0.so.0",
     "libatk-bridge-2.0.so.0",
+    "libatomic.so.1",
+    "libcairo-gobject.so.2",
     "libcairo.so.2",
     "libcups.so.2",
     "libdbus-1.so.3",
     "libdrm.so.2",
     "libffi.so.7",
     "libgbm.so.1",
+    "libgdk-3.so.0",
     "libgdk_pixbuf-2.0.so.0",
+    "libgtk-3.so.0",
     "libpango-1.0.so.0",
     "libpangocairo-1.0.so.0",
     "libudev.so.1",
@@ -929,6 +933,166 @@
       ],
       "url": "https://archive.debian.org/debian/pool/main/libn/libnotify/libnotify4_0.7.9-3_amd64.deb",
       "md5": "e5dbd47c00c6e8569a2211ed9b06f609"
+    },
+    "libatomic.so.1": {
+      "package": "libatomic1",
+      "interface": "usr/lib/x86_64-linux-gnu/libatomic.so.1.2.0",
+      "needed": [
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "url": "https://archive.debian.org/debian/pool/main/g/gcc-10/libatomic1_10.2.1-6_amd64.deb",
+      "md5": "287557ac6847d7760ec0009be0c88b36"
+    },
+    "libcairo-gobject.so.2": {
+      "package": "libcairo-gobject2",
+      "interface": "usr/lib/x86_64-linux-gnu/libcairo-gobject.so.2.11600.0",
+      "needed": [
+        "libcairo.so.2",
+        "libgobject-2.0.so.0",
+        "libglib-2.0.so.0"
+      ],
+      "url": "https://archive.debian.org/debian/pool/main/c/cairo/libcairo-gobject2_1.16.0-5_amd64.deb",
+      "md5": "43aabb5fe188de1f22882ae2c6d72622"
+    },
+    "libgdk-3.so.0": {
+      "package": "libgtk-3-0",
+      "interface": "usr/lib/x86_64-linux-gnu/libgdk-3.so.0.2404.20",
+      "needed": [
+        "libpangocairo-1.0.so.0",
+        "libpango-1.0.so.0",
+        "libgdk_pixbuf-2.0.so.0",
+        "libcairo-gobject.so.2",
+        "libgio-2.0.so.0",
+        "libgobject-2.0.so.0",
+        "libglib-2.0.so.0",
+        "libfontconfig.so.1",
+        "libXinerama.so.1",
+        "libXi.so.6",
+        "libXrandr.so.2",
+        "libXcursor.so.1",
+        "libXcomposite.so.1",
+        "libXdamage.so.1",
+        "libXfixes.so.3",
+        "libxkbcommon.so.0",
+        "libwayland-cursor.so.0",
+        "libwayland-egl.so.1",
+        "libwayland-client.so.0",
+        "libX11.so.6",
+        "libXext.so.6",
+        "libcairo.so.2",
+        "libepoxy.so.0",
+        "libfribidi.so.0",
+        "libm.so.6",
+        "librt.so.1",
+        "libc.so.6"
+      ],
+      "url": "https://archive.debian.org/debian/pool/main/g/gtk+3.0/libgtk-3-0_3.24.24-4+deb11u4_amd64.deb",
+      "md5": "a0c3bb49e7536298e5bfb349f68dc039"
+    },
+    "libepoxy.so.0": {
+      "package": "libepoxy0",
+      "interface": "usr/lib/x86_64-linux-gnu/libepoxy.so.0.0.0",
+      "needed": [
+        "libdl.so.2",
+        "libc.so.6"
+      ],
+      "url": "https://archive.debian.org/debian/pool/main/libe/libepoxy/libepoxy0_1.5.8-1~bpo11+1_amd64.deb",
+      "md5": "f72d0bb9fdcc7f90a2591ee2f330a6a3"
+    },
+    "libwayland-client.so.0": {
+      "package": "libwayland-client0",
+      "interface": "usr/lib/x86_64-linux-gnu/libwayland-client.so.0.3.0",
+      "needed": [
+        "libffi.so.7",
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "url": "https://archive.debian.org/debian/pool/main/w/wayland/libwayland-client0_1.18.0-2~exp1.1_amd64.deb",
+      "md5": "d8ab0bf41d95907b5cc79b0ca170e342"
+    },
+    "libwayland-egl.so.1": {
+      "package": "libwayland-egl1",
+      "interface": "usr/lib/x86_64-linux-gnu/libwayland-egl.so.1.0.0",
+      "needed": [
+        "libc.so.6"
+      ],
+      "url": "https://archive.debian.org/debian/pool/main/w/wayland/libwayland-egl1_1.18.0-2~exp1.1_amd64.deb",
+      "md5": "f17d6c4fee85a2d144ed5e9370808789"
+    },
+    "libwayland-cursor.so.0": {
+      "package": "libwayland-cursor0",
+      "interface": "usr/lib/x86_64-linux-gnu/libwayland-cursor.so.0.0.0",
+      "needed": [
+        "libwayland-client.so.0",
+        "libc.so.6"
+      ],
+      "url": "https://archive.debian.org/debian/pool/main/w/wayland/libwayland-cursor0_1.18.0-2~exp1.1_amd64.deb",
+      "md5": "bf22141b9f1bef2892b4f553b99d78a2"
+    },
+    "libxkbcommon.so.0": {
+      "package": "libxkbcommon0",
+      "interface": "usr/lib/x86_64-linux-gnu/libxkbcommon.so.0.0.0",
+      "needed": [
+        "libc.so.6"
+      ],
+      "url": "https://archive.debian.org/debian/pool/main/libx/libxkbcommon/libxkbcommon0_1.0.3-2_amd64.deb",
+      "md5": "1fc3d2023858af8b9214ecc9509e40dc"
+    },
+    "libXcursor.so.1": {
+      "package": "libxcursor1",
+      "interface": "usr/lib/x86_64-linux-gnu/libXcursor.so.1.0.2",
+      "needed": [
+        "libXrender.so.1",
+        "libXfixes.so.3",
+        "libX11.so.6",
+        "libc.so.6"
+      ],
+      "url": "https://archive.debian.org/debian/pool/main/libx/libxcursor/libxcursor1_1.2.0-2_amd64.deb",
+      "md5": "4a343e100f22773e3c5a28a909d5ca1c"
+    },
+    "libXinerama.so.1": {
+      "package": "libxinerama1",
+      "interface": "usr/lib/x86_64-linux-gnu/libXinerama.so.1.0.0",
+      "needed": [
+        "libX11.so.6",
+        "libXext.so.6",
+        "libc.so.6"
+      ],
+      "url": "https://archive.debian.org/debian/pool/main/libx/libxinerama/libxinerama1_1.1.4-2_amd64.deb",
+      "md5": "b257b4d382a71721362cd2a678796be0"
+    },
+    "libgtk-3.so.0": {
+      "package": "libgtk-3-0",
+      "interface": "usr/lib/x86_64-linux-gnu/libgtk-3.so.0.2404.20",
+      "needed": [
+        "libgdk-3.so.0",
+        "libgmodule-2.0.so.0",
+        "libpangocairo-1.0.so.0",
+        "libX11.so.6",
+        "libXi.so.6",
+        "libXfixes.so.3",
+        "libcairo-gobject.so.2",
+        "libcairo.so.2",
+        "libgdk_pixbuf-2.0.so.0",
+        "libatk-1.0.so.0",
+        "libatk-bridge-2.0.so.0",
+        "libepoxy.so.0",
+        "libfribidi.so.0",
+        "libgio-2.0.so.0",
+        "libm.so.6",
+        "libpangoft2-1.0.so.0",
+        "libpango-1.0.so.0",
+        "libgobject-2.0.so.0",
+        "libglib-2.0.so.0",
+        "libharfbuzz.so.0",
+        "libfontconfig.so.1",
+        "libfreetype.so.6",
+        "libpthread.so.0",
+        "libc.so.6"
+      ],
+      "url": "https://archive.debian.org/debian/pool/main/g/gtk+3.0/libgtk-3-0_3.24.24-4+deb11u4_amd64.deb",
+      "md5": "b3750c4e3563cbb412934664fcbcb7b1"
     }
   },
   "packages": [
@@ -1613,6 +1777,96 @@
         "https://deb.debian.org/debian/pool/main/libn/libnotify/libnotify4_0.7.9-3_amd64.deb"
       ],
       "sha256": "8d86852bba4592de16b89e610d916fd2364cb04b9e8e95776e503bd6acaa7c89"
+    },
+    {
+      "url": "https://archive.debian.org/debian/pool/main/g/gcc-10/libatomic1_10.2.1-6_amd64.deb",
+      "urls": [
+        "https://archive.debian.org/debian/pool/main/g/gcc-10/libatomic1_10.2.1-6_amd64.deb",
+        "https://deb.debian.org/debian/pool/main/g/gcc-10/libatomic1_10.2.1-6_amd64.deb",
+        "https://snapshot.debian.org/archive/debian/20250129T203412Z/pool/main/g/gcc-10/libatomic1_10.2.1-6_amd64.deb"
+      ],
+      "sha256": "e8f1d04653698ab185c1144f35f905a1de87571c12ea630b65be669a2823d8c7"
+    },
+    {
+      "url": "https://archive.debian.org/debian/pool/main/c/cairo/libcairo-gobject2_1.16.0-5_amd64.deb",
+      "urls": [
+        "https://archive.debian.org/debian/pool/main/c/cairo/libcairo-gobject2_1.16.0-5_amd64.deb",
+        "https://deb.debian.org/debian/pool/main/c/cairo/libcairo-gobject2_1.16.0-5_amd64.deb",
+        "https://snapshot.debian.org/archive/debian/20250129T203412Z/pool/main/c/cairo/libcairo-gobject2_1.16.0-5_amd64.deb"
+      ],
+      "sha256": "a046d3ca805d4151029941fae736bfdf1c6f3dbcf1bd581102bd5ad844ea013e"
+    },
+    {
+      "url": "https://archive.debian.org/debian/pool/main/g/gtk+3.0/libgtk-3-0_3.24.24-4+deb11u4_amd64.deb",
+      "urls": [
+        "https://archive.debian.org/debian/pool/main/g/gtk+3.0/libgtk-3-0_3.24.24-4+deb11u4_amd64.deb",
+        "https://deb.debian.org/debian/pool/main/g/gtk+3.0/libgtk-3-0_3.24.24-4+deb11u4_amd64.deb",
+        "https://snapshot.debian.org/archive/debian/20250129T203412Z/pool/main/g/gtk+3.0/libgtk-3-0_3.24.24-4+deb11u4_amd64.deb"
+      ],
+      "sha256": "4d2fc6bd9d076107a4374b2e2311988c992f482e2cc26b25f92591b7f1a7cc2f"
+    },
+    {
+      "url": "https://archive.debian.org/debian/pool/main/libe/libepoxy/libepoxy0_1.5.8-1~bpo11+1_amd64.deb",
+      "urls": [
+        "https://archive.debian.org/debian/pool/main/libe/libepoxy/libepoxy0_1.5.8-1~bpo11+1_amd64.deb",
+        "https://deb.debian.org/debian/pool/main/libe/libepoxy/libepoxy0_1.5.8-1~bpo11+1_amd64.deb",
+        "https://snapshot.debian.org/archive/debian/20250129T203412Z/pool/main/libe/libepoxy/libepoxy0_1.5.8-1~bpo11+1_amd64.deb"
+      ],
+      "sha256": "68c9bcd9ae2522d8993b740a8ba806b9d4d38dc090d3c47dcae8bbf6b18165f6"
+    },
+    {
+      "url": "https://archive.debian.org/debian/pool/main/w/wayland/libwayland-client0_1.18.0-2~exp1.1_amd64.deb",
+      "urls": [
+        "https://archive.debian.org/debian/pool/main/w/wayland/libwayland-client0_1.18.0-2~exp1.1_amd64.deb",
+        "https://deb.debian.org/debian/pool/main/w/wayland/libwayland-client0_1.18.0-2~exp1.1_amd64.deb",
+        "https://snapshot.debian.org/archive/debian/20250129T203412Z/pool/main/w/wayland/libwayland-client0_1.18.0-2~exp1.1_amd64.deb"
+      ],
+      "sha256": "4baf16bb3a35823251453368ee078b6be6a14f97b05c19783b5acd4232a608ea"
+    },
+    {
+      "url": "https://archive.debian.org/debian/pool/main/w/wayland/libwayland-egl1_1.18.0-2~exp1.1_amd64.deb",
+      "urls": [
+        "https://archive.debian.org/debian/pool/main/w/wayland/libwayland-egl1_1.18.0-2~exp1.1_amd64.deb",
+        "https://deb.debian.org/debian/pool/main/w/wayland/libwayland-egl1_1.18.0-2~exp1.1_amd64.deb",
+        "https://snapshot.debian.org/archive/debian/20250129T203412Z/pool/main/w/wayland/libwayland-egl1_1.18.0-2~exp1.1_amd64.deb"
+      ],
+      "sha256": "b98e636f08eca9e818e326fc8cd75810dbb50b1ed4e3586c2394e11248e29275"
+    },
+    {
+      "url": "https://archive.debian.org/debian/pool/main/w/wayland/libwayland-cursor0_1.18.0-2~exp1.1_amd64.deb",
+      "urls": [
+        "https://archive.debian.org/debian/pool/main/w/wayland/libwayland-cursor0_1.18.0-2~exp1.1_amd64.deb",
+        "https://deb.debian.org/debian/pool/main/w/wayland/libwayland-cursor0_1.18.0-2~exp1.1_amd64.deb",
+        "https://snapshot.debian.org/archive/debian/20250129T203412Z/pool/main/w/wayland/libwayland-cursor0_1.18.0-2~exp1.1_amd64.deb"
+      ],
+      "sha256": "1b48d1d8e17a95b28a2876c7f2a95667ee1618a5f586d4dff05aeb09488172cb"
+    },
+    {
+      "url": "https://archive.debian.org/debian/pool/main/libx/libxkbcommon/libxkbcommon0_1.0.3-2_amd64.deb",
+      "urls": [
+        "https://archive.debian.org/debian/pool/main/libx/libxkbcommon/libxkbcommon0_1.0.3-2_amd64.deb",
+        "https://deb.debian.org/debian/pool/main/libx/libxkbcommon/libxkbcommon0_1.0.3-2_amd64.deb",
+        "https://snapshot.debian.org/archive/debian/20250129T203412Z/pool/main/libx/libxkbcommon/libxkbcommon0_1.0.3-2_amd64.deb"
+      ],
+      "sha256": "d74d0b9f0a6641b44c279644c7ac627fa7a9b92350b7c6ff37da94352885bcfc"
+    },
+    {
+      "url": "https://archive.debian.org/debian/pool/main/libx/libxcursor/libxcursor1_1.2.0-2_amd64.deb",
+      "urls": [
+        "https://archive.debian.org/debian/pool/main/libx/libxcursor/libxcursor1_1.2.0-2_amd64.deb",
+        "https://deb.debian.org/debian/pool/main/libx/libxcursor/libxcursor1_1.2.0-2_amd64.deb",
+        "https://snapshot.debian.org/archive/debian/20250129T203412Z/pool/main/libx/libxcursor/libxcursor1_1.2.0-2_amd64.deb"
+      ],
+      "sha256": "d9fee761e4c50572c3ce3c3965b70fcfecd277d0d7d598e102134d12757a3d11"
+    },
+    {
+      "url": "https://archive.debian.org/debian/pool/main/libx/libxinerama/libxinerama1_1.1.4-2_amd64.deb",
+      "urls": [
+        "https://archive.debian.org/debian/pool/main/libx/libxinerama/libxinerama1_1.1.4-2_amd64.deb",
+        "https://deb.debian.org/debian/pool/main/libx/libxinerama/libxinerama1_1.1.4-2_amd64.deb",
+        "https://snapshot.debian.org/archive/debian/20250129T203412Z/pool/main/libx/libxinerama/libxinerama1_1.1.4-2_amd64.deb"
+      ],
+      "sha256": "f692c854935571ee44fe313541d8a9f678a4f11dc513bc43b9d0a501c6dff0bd"
     }
   ],
   "header_interfaces": {

@@ -8,7 +8,7 @@ import sys
 import unittest
 
 
-VERSION_HEADER, REVISION_HEADER, VERSION, BRANDING, LASTCHANGE, SKIA_HEADER, SKIA_PROFILE = sys.argv[1:]
+VERSION_HEADER, REVISION_HEADER, VERSION, BRANDING, LASTCHANGE, SKIA_HEADER, SKIA_PROFILE, GPU_HEADER = sys.argv[1:]
 del sys.argv[1:]
 
 
@@ -36,6 +36,13 @@ class MetadataTest(unittest.TestCase):
         profile = json.loads(Path(SKIA_PROFILE).read_text())
         self.assertEqual(macros(SKIA_HEADER), {
             "SKIA_COMMIT_HASH": json.dumps(profile["source_revisions"]["skia"]),
+        })
+
+    def test_gpu_lists_version_matches_pinned_chromium_release(self):
+        version = fields(VERSION)
+        self.assertEqual(".".join(version[key] for key in ("MAJOR", "MINOR", "BUILD", "PATCH")), "142.0.7444.52")
+        self.assertEqual(macros(GPU_HEADER), {
+            "GPU_LISTS_VERSION": json.dumps("7efca501bfcc84657ba2921a852e98ce1fb37641"),
         })
 
     def test_git_revision_uses_original_gn_truncation(self):

@@ -12,7 +12,7 @@ import unittest
 
 (HEADER, PACK, HTML, JAVASCRIPT, NODE, COMPONENT_HEADER, COMPONENT_PACK,
  DISTILLER, READABILITY, READERABLE, FINAL_PACK, ELECTRON_HEADER,
- DISCOVERY_HTML, ERROR_IMAGE_1X, ERROR_IMAGE_2X, LOGO_HEADER, LOGO_IMAGE) = [Path(value) for value in sys.argv[1:]]
+ DISCOVERY_HTML, ERROR_IMAGE_1X, ERROR_IMAGE_2X, LOGO_HEADER, LOGO_IMAGE, WEBID_LIGHT, WEBID_DARK) = [Path(value) for value in sys.argv[1:]]
 sys.argv[1:] = []
 
 
@@ -94,6 +94,12 @@ class ContentWebUI(unittest.TestCase):
         identifiers = dict((name, int(value)) for name, value in re.findall(
             r"^#define (IDR_\w+) (\d+)$", LOGO_HEADER.read_text(), re.MULTILINE))
         self.assertEqual(resources(FINAL_PACK)[identifiers["IDR_PRODUCT_LOGO_64"]], LOGO_IMAGE.read_bytes())
+
+    def test_final_pack_preserves_unscaled_webid_include_images(self):
+        payloads = resources(FINAL_PACK).values()
+        for image in (WEBID_LIGHT, WEBID_DARK):
+            with self.subTest(image=image.name):
+                self.assertIn(image.read_bytes(), payloads)
 
 
 if __name__ == "__main__":

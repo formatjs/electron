@@ -2472,3 +2472,57 @@ previous Python action keys remain present; one original JS2C invocation is
 added. Existing native records, header layers and source pins remain unchanged.
 Byte equality and resource contracts still require hosted execution; full
 Electron linkage remains open.
+
+
+### Native Electron library closure
+
+The `8c98695` hosted consumer passed the original Electron JS2C byte comparison
+and release/beta version tests. API feature testing failed before assertions:
+Bazel tokenized unquoted JSON arguments. The test now quotes each JSON argument.
+Original API compilers also need sibling/include-rule schemas and implementation
+headers for registration discovery; capture declares those source inputs.
+
+GRIT `<include>` entries read plain files even when their `type` says
+`chrome_scaled_image`. Scale-directory discovery now applies only to
+`<structure>`. The WebUI profile keeps its 544 generator records and adds the
+two missing WebID PNG inputs. The final-pack contract checks both payloads.
+
+The Linux AMD64 profile additionally captures `//electron:electron_lib`:
+826 additional library/group targets and the original context snapshot generator,
+checksum, Autofill and DomDistiller helpers. Ink, ink-stroke-modeler and
+libaddressinput use Chromium DEPS commits with SHA-256-pinned public archives.
+Hunspell retains its `.cxx` sources and `.hxx` headers. GN skips Objective-C
+sources without Linux tools; capture records those three paths without compiling
+them. Nonexistent GN header-only entries remain recorded as provenance.
+
+The GPU lists version header comes from the original checkout hook with pinned
+Chromium commit metadata. Compilation receives the missing Ash switches and
+enterprise download headers. Shared generated implementation files retain their
+existing providers across profile boundaries.
+
+GTK/GDK, cairo-gobject and libatomic use the captured SDK's original Debian
+package versions. Runtime binaries match the original package MD5 records in the
+SHA-256-pinned SDK; downloaded packages have SHA-256 pins. Static ELF inspection
+adds their complete dependency closure: 90 libraries from 86 packages. The ABI
+contract now compares seven SDK/runtime pairs. This does not establish GTK data,
+theme or plugin behavior.
+
+Native tools isolate synthetic header providers only when they feed their own
+header layer. Dependency capture selects 11 library/group targets, rather than
+reclassifying the entire 5,235-target execution closure. Other native libraries
+keep their existing generated-header providers. Isolated tools receive declared
+raw headers and original GN generator dependencies. Country-name generation
+receives native ICU data beside its executable; tools share one staging action
+for identical data in the same output directory.
+
+Hosted compilation and new contracts remain required. Remaining content C++
+constraint failures, webpack typechecking, full executable linkage and all-triple
+source runtimes remain open. No local compilation or tests run for this capture.
+
+
+The complete component/test graph analyzes successfully: 132,653 actions,
+including 67,494 C++ compilations, 260 Rust compilations and 8,799 original
+Python generator actions. Analysis executes zero build actions. No CMake or
+foreign-cc mnemonics appear. Of the prior graph's compile keys, 27,040 C++,
+all 254 Rust and all 26 Cargo script keys remain present. Expanded tool/header
+contexts change other keys; this is not evidence of warm-cache performance.

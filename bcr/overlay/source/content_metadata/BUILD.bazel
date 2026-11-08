@@ -1,3 +1,4 @@
+load("@bazel_skylib//lib:shell.bzl", "shell")
 load("@electron_platform_sources//:profile.bzl", PLATFORM_PROFILE = "PROFILE")
 load("@rules_python//python:defs.bzl", "py_test")
 load("//electron:source_action.bzl", "electron_source_action")
@@ -12,6 +13,7 @@ _INPUTS = [
     "@electron_base_sources//:build/util/LASTCHANGE.dummy",
     "@electron_platform_sources//:src/skia/ext/skia_commit_hash.h",
     "//source/native:skia_inputs.json",
+    "@electron_platform_sources//:src/gpu/config/gpu_lists_version.h",
 ]
 
 py_test(
@@ -144,6 +146,8 @@ _CONTENT_WEBUI_INPUTS = [
     "@electron_chromium_sources//:components/resources/default_200_percent/neterror/error_network_generic.png",
     "@electron_content_webui_sources//:gen/chrome/grit/chrome_unscaled_resources.h",
     "@electron_chromium_sources//:chrome/app/theme/chromium/linux/product_logo_64.png",
+    "@electron_chromium_sources//:chrome/browser/ui/views/webid/resources/modal_icon_background_light.png",
+    "@electron_chromium_sources//:chrome/browser/ui/views/webid/resources/modal_icon_background_dark.png",
 ]
 
 py_test(
@@ -183,6 +187,14 @@ _RUNTIME_ABI_INPUTS = [
     "@electron_platform_runtime//:libxshmfence.so.1",
     "@electron_platform_sdk//:usr/lib/x86_64-linux-gnu/libgdk_pixbuf-2.0.so.0.4200.2",
     "@electron_platform_runtime//:libgdk_pixbuf-2.0.so.0",
+    "@electron_platform_sdk//:usr/lib/x86_64-linux-gnu/libatomic.so.1.2.0",
+    "@electron_platform_runtime//:libatomic.so.1",
+    "@electron_platform_sdk//:usr/lib/x86_64-linux-gnu/libcairo-gobject.so.2.11600.0",
+    "@electron_platform_runtime//:libcairo-gobject.so.2",
+    "@electron_platform_sdk//:usr/lib/x86_64-linux-gnu/libgdk-3.so.0.2404.20",
+    "@electron_platform_runtime//:libgdk-3.so.0",
+    "@electron_platform_sdk//:usr/lib/x86_64-linux-gnu/libgtk-3.so.0.2404.20",
+    "@electron_platform_runtime//:libgtk-3.so.0",
 ]
 
 py_test(
@@ -316,12 +328,12 @@ _API_FEATURE_CASES = [dict(
 py_test(
     name = "api_features_test",
     srcs = ["api_features_test.py"],
-    args = ["$(rootpath @electron_chromium_sources//:tools/json_comment_eater/json_comment_eater.py)"] + [json.encode(dict(
+    args = ["$(rootpath @electron_chromium_sources//:tools/json_comment_eater/json_comment_eater.py)"] + [shell.quote(json.encode(dict(
         header = "$(rootpath " + case["header"] + ")",
         method = case["method"],
         sources = ["$(rootpath " + label + ")" for label in case["sources"]],
         implementation = "$(rootpath " + case["implementation"] + ")",
-    )) for case in _API_FEATURE_CASES],
+    ))) for case in _API_FEATURE_CASES],
     data = ["@electron_chromium_sources//:tools/json_comment_eater/json_comment_eater.py"] + [label for case in _API_FEATURE_CASES for label in case["sources"] + [
         case["implementation"],
         case["header"],

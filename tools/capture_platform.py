@@ -9,6 +9,7 @@ import json
 import os
 import posixpath
 import re
+import shlex
 import xml.etree.ElementTree as ElementTree
 from functools import cache
 from pathlib import Path
@@ -72,9 +73,11 @@ MEDIA_SOURCE_PREFIXES = ["third_party/flac", "media/cdm/api", "third_party/libao
 COMPOSITOR_SOURCE_PREFIXES = ["third_party/webrtc", "third_party/federated_compute/src", "third_party/libsrtp"]
 BLINK_SOURCE_PREFIXES = ['third_party/cld_3/src', 'third_party/cpuinfo/src', 'third_party/devtools-frontend/src', 'third_party/eigen3/src', 'third_party/emoji-segmenter/src', 'third_party/farmhash/src', 'third_party/flatbuffers/src', 'third_party/fxdiv/src', 'third_party/gemmlowp/src', 'third_party/libphonenumber/dist', 'third_party/material_color_utilities/src', 'third_party/neon_2_sse/src', 'third_party/ots/src', 'third_party/pthreadpool/src', 'third_party/ruy/src', 'third_party/search_engines_data/resources', 'third_party/smhasher/src', 'third_party/tflite/src', 'third_party/xnnpack/src']
 SOURCE_PREFIXES += MEDIA_SOURCE_PREFIXES + COMPOSITOR_SOURCE_PREFIXES + BLINK_SOURCE_PREFIXES
-SOURCE_PREFIXES += ["third_party/cros_system_api", "third_party/perfetto", "third_party/catapult", "third_party/openscreen/src", "third_party/pdfium"]
+SOURCE_PREFIXES += ["third_party/libaddressinput/src", "third_party/ink/src", "third_party/ink_stroke_modeler/src", "third_party/cros_system_api", "third_party/perfetto", "third_party/catapult", "third_party/openscreen/src", "third_party/pdfium"]
 TOOLCHAIN = {"//buildtools/third_party/libc++:" + name for name in ("all_modules", "custom_headers", "libcxx_headers", "libc++")}
 EXTRA_NATIVE_HEADERS = {
+    "//content/browser:browser": ["//ash/constants/ash_switches.h", "//gpu/config/gpu_lists_version.h"],
+    "//components/download/internal/common:internal": ["//components/enterprise/obfuscation/core/download_obfuscator.h"],
     "//components/viz/host:host": ["//skia/ext/skia_commit_hash.h"],
     "//services/viz/privileged/mojom/compositing:compositing": ["//services/viz/privileged/cpp/renderer_settings_mojom_traits.h", "//services/viz/privileged/cpp/overlay_strategy_mojom_traits.h"],
     "//third_party/blink/renderer/platform:platform": ["//third_party/blink/renderer/core/frame/web_feature.h"],
@@ -87,13 +90,17 @@ EXTRA_NATIVE_HEADERS = {
     "//printing/mojom:mojom": ["//printing/page_range.h"],
     "//device/bluetooth:bluetooth": ["//chromeos/constants/chromeos_features.h", "//third_party/cros_system_api/dbus/service_constants.h"],
 }
-SDK_LIBS = {"gdk_pixbuf-2.0", "cups", "xshmfence", "atspi", "Xcomposite", "Xdamage", "Xfixes", "Xrandr", "Xrender", "Xtst", "drm", "asound", "ffi_pic", "X11", "Xi", "Xext", "pci", "gbm", "dbus-1", "udev", "cairo", "harfbuzz", "pango-1.0", "pangocairo-1.0", "atk-1.0", "atk-bridge-2.0"}
+SDK_LIBS = {"atomic", "cairo-gobject", "gdk-3", "gtk-3", "gdk_pixbuf-2.0", "cups", "xshmfence", "atspi", "Xcomposite", "Xdamage", "Xfixes", "Xrandr", "Xrender", "Xtst", "drm", "asound", "ffi_pic", "X11", "Xi", "Xext", "pci", "gbm", "dbus-1", "udev", "cairo", "harfbuzz", "pango-1.0", "pangocairo-1.0", "atk-1.0", "atk-bridge-2.0"}
 SCRIPTS = MOJO_SCRIPTS | API_SCRIPTS | {"//" + name for name in (
     "build/write_buildflag_header.py", "build/gn_run_binary.py", "build/util/version.py",
     "components/safe_browsing/content/resources/gen_file_type_proto.py",
     "components/resources/ssl/ssl_error_assistant/gen_ssl_error_assistant_proto.py",
     "electron/build/fuses/build.py",
     "electron/build/generate_node_defines.py",
+    "electron/build/checksum_header.py",
+    "components/autofill/core/browser/data_model/autofill_ai/transpile_entity_schema.py",
+    "components/autofill/core/browser/form_parsing/transpile_regex_patterns.py",
+    "third_party/dom_distiller_js/protoc_plugins/json_values_converter_tests.py",
     "electron/build/js2c.py",
     "electron/build/generate-template.py",
     "components/certificate_transparency/tools/make_ct_known_logs_list.py",
@@ -195,7 +202,7 @@ def grit_resource_inputs(inputs, physical, arguments=()):
             name, rooted = source_name(name)
             if any(marker in name for marker in ("$", "<(", "%(")):
                 continue
-            if node.attrib.get("type") == "chrome_scaled_image":
+            if node.tag == "structure" and node.attrib.get("type") == "chrome_scaled_image":
                 for layout in physical(base).iterdir():
                     if layout.is_dir() and re.search(r"_\d+_percent$", layout.name):
                         variant = posixpath.normpath(posixpath.join(base, layout.name, name))
@@ -240,6 +247,30 @@ def grit_resource_inputs(inputs, physical, arguments=()):
             if path.endswith((".html", ".js", ".css", ".svg")):
                 pending.append(original)
     return resources
+
+
+def api_schema_inputs(inputs, physical, arguments):
+    schemas = {path[2:] for path in inputs if path.startswith("//") and not path.startswith(BUILD) and path.endswith((".json", ".idl", ".webidl"))}
+    directories = {posixpath.dirname(path) for path in schemas}
+    for argument in arguments:
+        if argument.startswith("--include-rules="):
+            directories.update(rule.split(":", 1)[0] for rule in shlex.split(argument.split("=", 1)[1]))
+    for directory in sorted(directories):
+        root = physical(directory)
+        if not root.is_dir():
+            raise ValueError("Missing API namespace directory: " + directory)
+        schemas.update(directory + "/" + path.name for path in root.iterdir() if path.is_file() and path.suffix in (".json", ".idl", ".webidl"))
+    found = {"//" + path for path in schemas}
+    if "--generator=cpp-bundle-registration" in arguments:
+        implementation = next(argument.split("=", 1)[1] for argument in arguments if argument.startswith("--impl-dir="))
+        root = physical(implementation)
+        found.update("//" + implementation + "/" + path.relative_to(root).as_posix() for path in source_files(root) if path.suffix == ".h")
+        for schema in schemas:
+            for header in re.findall(r'"implemented_in"\s*:\s*"([^"\n]+)"', physical(schema).read_text()):
+                if not physical(header).is_file():
+                    raise ValueError("Missing declared API implementation header: " + header)
+                found.add("//" + header)
+    return found
 
 
 def flatbuffer_schema_inputs(inputs, physical):
@@ -288,6 +319,20 @@ def source_revisions(chromium):
         if not remote.startswith("https://") or not re.fullmatch("[0-9a-f]{40}", commit):
             raise ValueError("Invalid exact platform source revision")
         records[prefix] = dict(remote=remote, commit=commit)
+        source_archives = {'third_party/ink/src': {'url': 'https://codeload.github.com/google/ink/tar.gz/4e6081ad7052f97df7d77e1d87cea2d70c18a47b',
+                                 'sha256': '375709f065f3508296ff548c1fed7ddfd12c44d50ae4ea10d0faae28c5154554',
+                                 'strip_prefix': 'ink-4e6081ad7052f97df7d77e1d87cea2d70c18a47b'},
+         'third_party/ink_stroke_modeler/src': {'url': 'https://codeload.github.com/google/ink-stroke-modeler/tar.gz/fe79520c9ad7d2d445d26d3c59fda6fc54eb4d5c',
+                                                'sha256': 'b96b12e9dd07ebff42112b34750cf553e9ce7f08a65871f4de42532816e001b1',
+                                                'strip_prefix': 'ink-stroke-modeler-fe79520c9ad7d2d445d26d3c59fda6fc54eb4d5c'},
+         'third_party/libaddressinput/src': {'url': 'https://codeload.github.com/google/libaddressinput/tar.gz/2610f7b1043d6784ada41392fc9392d1ea09ea07',
+                                             'sha256': 'd7b28b49357f51d3f8f48fdd436be050445125065051c2b2df2839e9e5d36c60',
+                                             'strip_prefix': 'libaddressinput-2610f7b1043d6784ada41392fc9392d1ea09ea07'}}
+        if prefix in source_archives:
+            archive = source_archives[prefix]
+            if not archive["url"].endswith("/" + commit):
+                raise ValueError("Source archive revision differs from Chromium DEPS")
+            records[prefix]["archive"] = archive
         if prefix == "third_party/catapult":
             if commit != "04c85a1d0e324464c6be4b3d193b47cb6177d03a":
                 raise ValueError("Update exact Catapult archive metadata")
@@ -307,12 +352,54 @@ def source_revisions(chromium):
     return records
 
 
-def capture(graph, digest, chromium, source_roots, profiles):
+def isolated_header_libraries(libraries, actions, copies, metadata, producers, layers):
+    """Cut synthetic header cycles where native tools feed their own layer."""
+    order = ["platform", "blink_core", "blink_modules", "content", "electron"]
+    levels = {label: level for level, name in enumerate(order) for label in layers[name].get("libraries", [])}
+
+    @cache
+    def tools(label):
+        row = actions.get(label) or libraries.get(label) or copies.get(label) or metadata.get(label)
+        if not row or (label in libraries and row["kind"] != "group"):
+            return frozenset()
+        result = set(row.get("tools", {}).values())
+        for dependency in row.get("gn_deps", []):
+            result.update(tools(dependency))
+        for path in row.get("inputs", []):
+            if path in producers:
+                result.update(tools(producers[path]))
+        return frozenset(result)
+
+    @cache
+    def closure(tool):
+        seen, pending = set(), [tool]
+        while pending:
+            label = pending.pop()
+            if label in seen:
+                continue
+            seen.add(label)
+            row = libraries.get(label) or actions.get(label) or copies.get(label) or metadata.get(label)
+            if row:
+                pending.extend(row.get("gn_deps", []))
+        return frozenset(seen & libraries.keys())
+
+    isolated = set()
+    for level, name in enumerate(order):
+        for action in layers[name]["actions"]:
+            if not any(path.endswith((".h", ".hpp", ".inc", ".inl")) for path in actions[action]["outputs"]):
+                continue
+            for tool in tools(action):
+                isolated.update(label for label in closure(tool) if levels.get(label, 0) >= level)
+    return sorted(isolated)
+
+
+def capture(graph, digest, chromium, source_roots, profiles, *, extra_roots=()):
     revisions = source_revisions(chromium)
     previous = [("base", "base"), ("embedder", "embedder"), ("ipcz", "ipcz"), ("libnode", "libnode"), ("perfetto", "perfetto_native"), ("protobuf", "protobuf"), ("v8_engine", "v8_engine"), ("v8_support", "v8_support"), ("network", "network"), ("mojo", "mojo"), ("fonts", "fonts"), ("codecs", "codecs"), ("skia", "skia"), ("gfx", "gfx"), ("display", "display"), ("events", "events"), ("ui", "ui"), ("content_webui", "content_webui")]
     external, shared = load_profiles(profiles, previous)
     external = {label: owner for label, owner in external.items() if not owner.startswith("@electron_platform_sources//:")}
     shared[BUILD + "icudtl.dat"] = "@electron_icu_sources//:common/icudtl.dat"
+    shared["//third_party/icu/common/icudtl.dat"] = "@electron_icu_sources//:common/icudtl.dat"
     shared["//v8/include/js_protocol-1.3.json"] = "@electron_v8_sources//:include/js_protocol-1.3.json"
     external["//media/filters:symphonia_glue"] = "@electron//source/media:symphonia"
     external["//media/filters:symphonia_glue_cxx_generated"] = "@electron//source/media:symphonia_bridge"
@@ -322,6 +409,8 @@ def capture(graph, digest, chromium, source_roots, profiles):
             external.setdefault(label, "@electron_rust_sources//:" + crate["name"])
     for label in ("//base/allocator/partition_allocator:partition_alloc", "//base/allocator/partition_allocator/src/partition_alloc:partition_alloc"):
         external[label] = "@electron_partition_alloc_sources//:partition_alloc"
+    for label in ("//base/allocator/partition_allocator:raw_ptr", "//base/allocator/partition_allocator/src/partition_alloc:raw_ptr"):
+        external[label] = "@electron_partition_alloc_sources//:raw_ptr"
     for name, library in temporal.get("content_libraries", {}).items():
         external[library["root"]] = "@electron_rust_sources//:" + name
     for name, bridge in temporal["blink_bridges"].items():
@@ -335,6 +424,13 @@ def capture(graph, digest, chromium, source_roots, profiles):
     external["//third_party/crabbyavif:crabbyavif"] = "@electron//source/crabbyavif:crabbyavif"
     external["//third_party/crabbyavif:header_files"] = "@electron_rust_sources//:crabbyavif_headers"
     targets = graph["targets"]
+    partition_tree = ast.parse((profiles / "partition_alloc_inputs.bzl").read_text())
+    partition_flags = next(ast.literal_eval(node.value) for node in partition_tree.body if isinstance(node, ast.Assign) and any(isinstance(name, ast.Name) and name.id == "PARTITION_ALLOC_BUILDFLAGS" for name in node.targets))
+    original_flags = targets[partition_flags["rule"]]
+    if original_flags.get("response_file_contents") != partition_flags["response"] or original_flags["outputs"] != [BUILD + "gen/" + partition_flags["output"]]:
+        raise ValueError("PartitionAlloc provider differs from original buildflags")
+    external[partition_flags["rule"]] = "@electron_partition_alloc_sources//:buildflags_headers"
+    shared[original_flags["outputs"][0]] = "@electron_partition_alloc_sources//:buildflags"
     inventory = ast.parse((profiles / "webpack_inputs.bzl").read_text())
     bundles = next(ast.literal_eval(node.value) for node in inventory.body if isinstance(node, ast.Assign) and any(isinstance(name, ast.Name) and name.id == "ELECTRON_BUNDLES" for name in node.targets))
     bundle_providers = {}
@@ -376,7 +472,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
         app_seen.add(label)
         app_pending.extend(targets[label].get("deps", []))
     api_generators = sorted(label for label in app_seen if targets[label].get("script") in API_SCRIPTS)
-    capture_roots = ROOTS + api_generators
+    capture_roots = ROOTS + api_generators + list(extra_roots)
 
     def closure(roots):
         seen, pending = set(), list(roots)
@@ -431,6 +527,15 @@ def capture(graph, digest, chromium, source_roots, profiles):
     skia_outputs = [BUILD + "src/skia/ext/skia_commit_hash.h"]
     names[skia_hook_label] = skia_hook_name
     source_aliases["//skia/ext/skia_commit_hash.h"] = skia_outputs[0]
+    gpu_hook = next(node for node in hook_list.elts if isinstance(node, ast.Dict) and any(isinstance(key, ast.Constant) and key.value == "name" and isinstance(value, ast.Constant) and value.value == "gpu_lists_version" for key, value in zip(node.keys, node.values)))
+    gpu_command = ast.literal_eval(next(value for key, value in zip(gpu_hook.keys, gpu_hook.values) if isinstance(key, ast.Constant) and key.value == "action"))
+    if gpu_command != ["python3", "src/build/util/lastchange.py", "-m", "GPU_LISTS_VERSION", "--revision-id-only", "--header", "src/gpu/config/gpu_lists_version.h"]:
+        raise ValueError("Original GPU lists checkout hook changed")
+    gpu_hook_label = "//gpu/config:checkout_gpu_lists_version"
+    gpu_hook_name = "checkout_gpu_lists_version"
+    gpu_outputs = [BUILD + "src/gpu/config/gpu_lists_version.h"]
+    names[gpu_hook_label] = gpu_hook_name
+    source_aliases["//gpu/config/gpu_lists_version.h"] = gpu_outputs[0]
     files, generated, headers, used_shared = set(), {}, {}, set()
     literal_metadata = {}
     producers = {}
@@ -443,6 +548,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
                 producers[output] = label
     producers.update({path: hook_label for path in hook_outputs})
     producers.update({path: skia_hook_label for path in skia_outputs})
+    producers.update({path: gpu_hook_label for path in gpu_outputs})
     tools = {output: label for label, target in targets.items() if target["type"] == "executable" and (label in seen or label in external) for output in target.get("outputs", [])[:1]}
     tools[BUILD + "gperf"] = "@gperf//:gperf"
     node = "//third_party/node/linux/node-linux-x64/bin/node"
@@ -511,7 +617,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
     for directory in directories:
         root = physical(directory)
         roots = [(directory, root)] + [(prefix, checkout) for prefix, checkout in source_roots.items() if prefix.startswith(directory + "/")]
-        inventory = sorted({prefix + "/" + path.relative_to(checkout).as_posix() for prefix, checkout in roots for path in source_files(checkout) if path.is_file() and (path.suffix in (".h", ".hh", ".hpp", ".hpp11", ".inc", ".inl", ".def", ".gen") or (prefix == "third_party/eigen3/src" and not path.suffix and path.relative_to(checkout).as_posix().startswith(("Eigen/", "unsupported/Eigen/"))))})
+        inventory = sorted({prefix + "/" + path.relative_to(checkout).as_posix() for prefix, checkout in roots for path in source_files(checkout) if path.is_file() and (path.suffix in (".h", ".hh", ".hpp", ".hxx", ".hpp11", ".inc", ".inl", ".def", ".gen") or (prefix == "third_party/eigen3/src" and not path.suffix and path.relative_to(checkout).as_posix().startswith(("Eigen/", "unsupported/Eigen/"))))})
         if not inventory and directory not in media_header_roots and directory not in implicit_header_roots:
             raise ValueError("Missing original platform header inventory: " + directory)
         headers[directory] = inventory
@@ -645,6 +751,8 @@ def capture(graph, digest, chromium, source_roots, profiles):
                 helper_directories.append("components/resources/protobufs")
             if target["script"] in API_SCRIPTS:
                 helper_directories += ["tools/json_schema_compiler", "tools/json_comment_eater", "tools/idl_parser", "third_party/ply"]
+                if target["script"] == "//tools/json_schema_compiler/compiler.py":
+                    inputs.update(api_schema_inputs(inputs, physical, target.get("args", [])))
             if target["script"].startswith("//tools/grit/") or target["script"] == "//third_party/blink/renderer/build/scripts/generate_permission_element_grd.py":
                 helper_directories.append("tools/grit")
             if target["script"].startswith("//tools/metrics/"):
@@ -756,7 +864,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
                 inputs.add(BUILD + "gperf")
                 args = ["./gperf" if arg == "gperf" else arg for arg in args]
             if target["script"] == "//build/gn_run_binary.py":
-                executable = BUILD + args[0] if args else ""
+                executable = posixpath.normpath(BUILD + args[0]) if args else ""
                 if executable not in tools:
                     raise ValueError("Untranslated original generator executable: " + executable)
                 inputs.add(executable)
@@ -848,6 +956,11 @@ def capture(graph, digest, chromium, source_roots, profiles):
             record["outputs"] = target["outputs"]
             metadata[label] = record
         elif kind in ("group", "static_library", "source_set", "executable", "shared_library"):
+            # GN does not read header-only entries from a target's source list.
+            missing_headers = [path for path in target.get("sources", []) if not path.startswith(BUILD) and path not in source_aliases and path not in shared and path.endswith((".h", ".hh", ".hpp", ".hxx", ".inc", ".inl")) and not physical(path[2:]).is_file()]
+            if missing_headers:
+                record["gn_missing_source_headers"] = missing_headers
+                target = dict(target, sources=[path for path in target["sources"] if path not in missing_headers])
             libraries[label] = capture_library(graph, target, record, input_file, label, SDK_LIBS | {"z"})
             if "third_party/ml_dtypes/src" in record["includes"]:
                 # GN exposes these vendored headers through a config.
@@ -881,7 +994,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
                 record["replaced_rust_toolchain_flags"] = replaced_rust_flags
             if label == "//third_party/wayland:wayland_scanner":
                 record["native_configuration_headers"] = ["//third_party/wayland/include/config.h"]
-            if label == "//components/url_formatter/spoof_checks/top_domains:top_domain_generator":
+            if label in ("//components/url_formatter/spoof_checks/top_domains:top_domain_generator", "//components/autofill/core/browser:country_native_names_generator"):
                 record["native_tool_data"] = {"@electron_icu_sources//:common/icudtl.dat": "icudtl.dat"}
             linker_inputs = []
             for flag in record["gn_ldflags"]:
@@ -909,6 +1022,14 @@ def capture(graph, digest, chromium, source_roots, profiles):
         checkout_hook={"source": "DEPS", "name": "lastchange_skia", "command": skia_command,
                        "commit_metadata": "https://github.com/google/skia/commit/" + skia},
     )
+    actions[gpu_hook_label] = dict(
+        name=gpu_hook_name, kind="action", gn_deps=[], scoped_checkout_hook=True,
+        script="build/util/lastchange.py", inputs=["//build/util/lastchange.py"], tools={},
+        outputs=gpu_outputs, runs=[dict(outputs=gpu_outputs, args=["-m", "GPU_LISTS_VERSION", "--revision-id-only", "--header", "src/gpu/config/gpu_lists_version.h"])],
+        response=[], environment={"BASE_COMMIT_HASH": "7efca501bfcc84657ba2921a852e98ce1fb37641", "BASE_COMMIT_SUBMISSION_MS": "1761077994000"},
+        checkout_hook={"source": "DEPS", "name": "gpu_lists_version", "command": gpu_command,
+                       "commit_metadata": "https://github.com/chromium/chromium/commit/7efca501bfcc84657ba2921a852e98ce1fb37641"},
+    )
     for label, action in actions.items():
         ordering, visited, pending = set(), set(), list(action["gn_deps"])
         while pending:
@@ -933,7 +1054,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
                 candidates = [posixpath.normpath(posixpath.join(posixpath.dirname(source[2:]), include))]
                 candidates += [posixpath.normpath(posixpath.join(directory, include)) for directory in library["includes"]]
                 candidates += [include, posixpath.join("gen", include)]
-                candidate = next((path for path in candidates if not path.startswith(("/", "../")) and (physical(path).is_file() or BUILD + path in producers or BUILD + path in graph["generated_files"])), None)
+                candidate = next((path for path in candidates if not path.startswith(("/", "../")) and (physical(path).is_file() or BUILD + path in producers or BUILD + path in shared or BUILD + path in graph["generated_files"])), None)
                 if candidate is None:
                     raise ValueError("Missing original textual platform implementation: " + include)
                 original = "//" + candidate if physical(candidate).is_file() else BUILD + candidate
@@ -946,7 +1067,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
     pending, visited = list(files), set()
     while pending:
         source = pending.pop()
-        if source in visited or Path(source).suffix not in (".h", ".hh", ".hpp", ".inc", ".inl", ".def", ".cc", ".cpp", ".c", ".S", ".s"):
+        if source in visited or Path(source).suffix not in (".h", ".hh", ".hpp", ".hxx", ".inc", ".inl", ".def", ".cc", ".cpp", ".cxx", ".c", ".S", ".s"):
             continue
         visited.add(source)
         for include in source_includes(source)[1]:
@@ -1030,7 +1151,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
         if any(physical(path).read_text().count(before) != 1 for before in substitutions):
             raise ValueError("Original schema compiler copyright source changed: " + path)
         source_adapters["//" + path] = substitutions
-    return dict(electron_bundle_providers=bundle_providers, electron_api_generators=api_generators, electron_repack_actions=sorted(label for label in actions if actions[label]["script"] == "tools/grit/pak_util.py"), electron_generators=ELECTRON_GENERATORS, content_generators=CONTENT_GENERATORS, source_adapters=source_adapters, content_web_assets=CONTENT_WEB_ASSETS, content_resources=CONTENT_RESOURCES, content_protobuf_runtime=CONTENT_PROTO_RUNTIME_COPIES, content_metadata=CONTENT_METADATA, devtools_workspace=devtools_workspace, devtools_frontend_actions=devtools_actions, header_layers=header_layers, devtools_esbuild=devtools_esbuild, copies=copies, devtools_node_modules_files=devtools_packages, native_header_actions=sorted(native_header_actions), source_aliases=source_aliases, roots=capture_roots, graph_sha256=digest, source_revisions=revisions, names=names, libraries=libraries, actions=actions, metadata=metadata, literal_metadata=literal_metadata, execution_tools=sorted(set(tools.values())), execution_closure=sorted(execution_closure), producers=producers, headers=headers, files=sorted(files), external_files={path: shared[path] for path in sorted(used_shared)}, external={label: external[label] for label in sorted(used)}, generated_files=generated, toolchain_deps=sorted(TOOLCHAIN), sdk_libraries=sorted(SDK_LIBS))
+    return dict(tool_header_libraries=isolated_header_libraries(libraries, actions, copies, metadata, producers, header_layers), electron_bundle_providers=bundle_providers, electron_api_generators=api_generators, electron_repack_actions=sorted(label for label in actions if actions[label]["script"] == "tools/grit/pak_util.py"), electron_generators=ELECTRON_GENERATORS, content_generators=CONTENT_GENERATORS, source_adapters=source_adapters, content_web_assets=CONTENT_WEB_ASSETS, content_resources=CONTENT_RESOURCES, content_protobuf_runtime=CONTENT_PROTO_RUNTIME_COPIES, content_metadata=CONTENT_METADATA, devtools_workspace=devtools_workspace, devtools_frontend_actions=devtools_actions, header_layers=header_layers, devtools_esbuild=devtools_esbuild, copies=copies, devtools_node_modules_files=devtools_packages, native_header_actions=sorted(native_header_actions), source_aliases=source_aliases, roots=capture_roots, graph_sha256=digest, source_revisions=revisions, names=names, libraries=libraries, actions=actions, metadata=metadata, literal_metadata=literal_metadata, execution_tools=sorted(set(tools.values())), execution_closure=sorted(execution_closure), producers=producers, headers=headers, files=sorted(files), external_files={path: shared[path] for path in sorted(used_shared)}, external={label: external[label] for label in sorted(used)}, generated_files=generated, toolchain_deps=sorted(TOOLCHAIN), sdk_libraries=sorted(SDK_LIBS))
 
 
 def main():
@@ -1038,10 +1159,11 @@ def main():
     for name in ("graph", "chromium-root", "profiles", "output"):
         parser.add_argument("--" + name, type=Path, required=True)
     parser.add_argument("--source-root", action="append", default=[])
+    parser.add_argument("--extra-root", action="append", default=[])
     args = parser.parse_args()
     roots = dict(item.split("=", 1) for item in args.source_root)
     content = args.graph.read_bytes()
-    profile = capture(json.loads(gzip.decompress(content)), hashlib.sha256(content).hexdigest(), args.chromium_root, {name: Path(path) for name, path in roots.items()}, args.profiles)
+    profile = capture(json.loads(gzip.decompress(content)), hashlib.sha256(content).hexdigest(), args.chromium_root, {name: Path(path) for name, path in roots.items()}, args.profiles, extra_roots=args.extra_root)
     args.output.write_text(json.dumps(pack_profile(profile), separators=(",", ":")) + "\n")
 
 

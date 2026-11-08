@@ -1,12 +1,14 @@
 # SPDX-License-Identifier: MIT
-"""Check pinned SDK interfaces match executable printing/fence libraries."""
+"""Check pinned SDK interfaces match executable desktop libraries."""
 
 from pathlib import Path
 import struct
 import sys
 import unittest
 
-CUPS_SDK, CUPS_RUNTIME, FENCE_SDK, FENCE_RUNTIME, PIXBUF_SDK, PIXBUF_RUNTIME = map(Path, sys.argv[1:])
+INPUTS = list(map(Path, sys.argv[1:]))
+if len(INPUTS) != 14:
+    raise ValueError("Expected seven SDK/runtime library pairs")
 sys.argv[1:] = []
 
 
@@ -26,10 +28,8 @@ def sections(path):
 
 class RuntimeABI(unittest.TestCase):
     def test_sdk_interfaces_match_pinned_runtime_symbols_and_build_ids(self):
-        for name, sdk_path, runtime_path in [("cups", CUPS_SDK, CUPS_RUNTIME),
-                                              ("xshmfence", FENCE_SDK, FENCE_RUNTIME),
-                                              ("gdk-pixbuf", PIXBUF_SDK, PIXBUF_RUNTIME)]:
-            with self.subTest(library=name):
+        for sdk_path, runtime_path in zip(INPUTS[::2], INPUTS[1::2]):
+            with self.subTest(library=sdk_path.name):
                 sdk, runtime = sections(sdk_path), sections(runtime_path)
                 self.assertNotIn(".text", sdk)
                 self.assertTrue(runtime[".text"])
