@@ -114,6 +114,7 @@ py_test(
         ":python_plugin_fixture_output.json",
         ":python_plugin_launcher",
     ],
+    imports = ["."],
     target_compatible_with = ["@platforms//os:linux"],
 )
 

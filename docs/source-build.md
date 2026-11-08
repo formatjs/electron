@@ -1923,3 +1923,10 @@ real generator action, with zero CMake/foreign actions. Its two additional C++
 compile variants are target/execution configurations of that launcher; 737 other
 C++ keys already exist in the source-component graph. Runtime validation remains
 pending on BB.
+
+
+The `1e954b7` bootstrap built its plugin fixture, then the test failed before
+assertions because its sibling import directory was undeclared. The test now
+declares that import path. Original protoc canonicalizes plugin executables, so
+launchers are private executable copies with adjacent argument metadata; the
+fixture now canonicalizes its executable too. Hosted assertions remain pending.

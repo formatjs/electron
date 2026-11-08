@@ -10,7 +10,7 @@ import sys
 if sys.argv[1] == "generate":
     plugin = Path(__file__).parent / "plugin"
     result = subprocess.run(
-        [str(plugin), "probe", "two words", "", "caf\u00e9"],
+        [str(plugin.resolve()), "probe", "two words", "", "caf\u00e9"],
         input=b"request\0body\n",
         stdout=subprocess.PIPE,
         check=True,

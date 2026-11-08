@@ -49,7 +49,9 @@ def generate(manifest, repeat):
                 raise ValueError("Python plugin launcher conflicts with a declared input")
             arguments_file = logical_path(root, launcher + ".argv")
             destination.parent.mkdir(parents=True, exist_ok=True)
-            destination.symlink_to(execution_root / manifest["python_launcher"])
+            # Protoc canonicalizes plugin paths; keep the argument file beside it.
+            shutil.copyfile(execution_root / manifest["python_launcher"], destination)
+            destination.chmod(0o755)
             prefix = [sys.executable, "-s", "-P", "-B", "-c", bootstrap, str(logical_path(root, script))]
             arguments_file.write_bytes(b"\0".join(os.fsencode(arg) for arg in prefix) + b"\0")
             seen.update((launcher, launcher + ".argv"))
