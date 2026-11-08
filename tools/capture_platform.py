@@ -18,7 +18,8 @@ from native_graph import BUILD, capture_library, load_profiles, pack_profile
 
 BLINK_BINDINGS_ROOTS = ["//third_party/blink/renderer/bindings:web_idl_database", "//third_party/blink/renderer/bindings:generate_bindings_all", "//third_party/blink/renderer/core:core_event_interfaces", "//third_party/blink/renderer/modules:modules_event_interfaces"]
 BLINK_PLATFORM_GENERATORS = ['//third_party/blink/common:make_generated_document_policy_features', '//third_party/blink/common:make_generated_features', '//third_party/blink/common:make_generated_origin_trials', '//third_party/blink/common:make_runtime_feature_state_contexts_impl', '//third_party/blink/public/common:make_generated_permissions_policy_helper', '//third_party/blink/public/common:make_runtime_feature_state_contexts_headers', '//third_party/blink/public/mojom/origin_trials:generate_origin_trial_feature', '//third_party/blink/public/mojom/runtime_feature_state:generate_runtime_feature', '//third_party/blink/public:runtime_features_for_public', '//third_party/blink/renderer/core:make_core_generated_settings', '//third_party/blink/renderer/platform/loader:make_platform_loader_generated_delivery_type_names', '//third_party/blink/renderer/platform/loader:make_platform_loader_generated_fetch_initiator_type_names', '//third_party/blink/renderer/platform/network:http_names', '//third_party/blink/renderer/platform:color_data', '//third_party/blink/renderer/platform:font_family_names', '//third_party/blink/renderer/platform:runtime_enabled_features', '//third_party/blink/renderer/platform:runtime_feature_state_override_context']
-ROOTS = ["//ui/ozone:ozone", "//ui/gl:gl", "//gpu/command_buffer/client:gles2_implementation", "//gpu/command_buffer/service:gles2", "//components/viz/common:common", "//gpu/ipc/service:service", "//gpu/ipc/client:client", "//gpu/ipc/host:host", "//media:media", "//cc:cc", "//third_party/blink/renderer/platform:platform"] + BLINK_BINDINGS_ROOTS + BLINK_PLATFORM_GENERATORS
+PLATFORM_ROOTS = ["//ui/ozone:ozone", "//ui/gl:gl", "//gpu/command_buffer/client:gles2_implementation", "//gpu/command_buffer/service:gles2", "//components/viz/common:common", "//gpu/ipc/service:service", "//gpu/ipc/client:client", "//gpu/ipc/host:host", "//media:media", "//cc:cc", "//third_party/blink/renderer/platform:platform"] + BLINK_BINDINGS_ROOTS + BLINK_PLATFORM_GENERATORS
+ROOTS = PLATFORM_ROOTS + ["//third_party/blink/renderer/core:core"]
 SOURCE_PREFIXES = ["third_party/libyuv", "third_party/angle", "third_party/dawn", "third_party/swiftshader", "third_party/spirv-tools/src", "third_party/spirv-headers/src", "third_party/vulkan-loader/src", "third_party/vulkan-tools/src", "third_party/vulkan-utility-libraries/src", "third_party/vulkan-headers/src", "third_party/vulkan_memory_allocator", "third_party/wayland/src", "third_party/wayland-protocols/src", "third_party/wayland-protocols/kde"]
 MEDIA_SOURCE_PREFIXES = ["third_party/flac", "media/cdm/api", "third_party/libaom/source/libaom", "third_party/crc32c/src", "third_party/ffmpeg", "third_party/libvpx/source/libvpx", "third_party/openh264/src", "third_party/dav1d/libdav1d", "third_party/libgav1/src", "third_party/leveldatabase/src", "third_party/libwebm/source"]
 COMPOSITOR_SOURCE_PREFIXES = ["third_party/webrtc", "third_party/federated_compute/src", "third_party/libsrtp"]
@@ -189,13 +190,19 @@ def capture(graph, digest, chromium, source_roots, profiles):
             external[bridge["helper"]["gn_target"]] = owner + "_cpp"
     external["//third_party/crabbyavif:crabbyavif"] = "@electron//source/crabbyavif:crabbyavif"
     external["//third_party/crabbyavif:header_files"] = "@electron_rust_sources//:crabbyavif_headers"
-    targets, seen, pending = graph["targets"], set(), list(ROOTS)
-    while pending:
-        label = pending.pop()
-        if label in seen or label in external or label in TOOLCHAIN:
-            continue
-        seen.add(label)
-        pending.extend(targets[label].get("deps", []))
+    targets = graph["targets"]
+
+    def closure(roots):
+        seen, pending = set(), list(roots)
+        while pending:
+            label = pending.pop()
+            if label in seen or label in external or label in TOOLCHAIN:
+                continue
+            seen.add(label)
+            pending.extend(targets[label].get("deps", []))
+        return seen
+
+    platform_seen, seen = closure(PLATFORM_ROOTS), closure(ROOTS)
     names = {label: "target_" + hashlib.sha256(label.encode()).hexdigest()[:16] for label in sorted(seen)}
 
     def physical(path):
@@ -275,15 +282,22 @@ def capture(graph, digest, chromium, source_roots, profiles):
     directories.append("third_party/eigen3/src")
     directories += media_header_roots
     directories += [path for path in MEDIA_SOURCE_PREFIXES if path not in directories]
-    implicit_header_roots = set()
-    for label in sorted(seen):
-        if targets[label]["type"] not in ("source_set", "static_library", "shared_library", "executable"):
-            continue
-        directory = label[2:].rsplit(":", 1)[0]
-        if not directory or any(directory == root or directory.startswith(root + "/") for root in directories):
-            continue
-        directories.append(directory)
-        implicit_header_roots.add(directory)
+    def header_directories(labels):
+        selected, implicit = list(directories), set()
+        for label in sorted(labels):
+            if targets[label]["type"] not in ("source_set", "static_library", "shared_library", "executable"):
+                continue
+            directory = label[2:].rsplit(":", 1)[0]
+            if not directory or any(directory == root or directory.startswith(root + "/") for root in selected):
+                continue
+            selected.append(directory)
+            implicit.add(directory)
+        return selected, implicit
+
+    platform_directories, platform_implicit = header_directories(platform_seen)
+    all_directories, implicit_header_roots = header_directories(seen)
+    directories = platform_directories + [path for path in all_directories if path not in platform_directories]
+    implicit_header_roots.update(platform_implicit)
     assembly_inputs = {}
     for directory in directories:
         root = physical(directory)
@@ -572,18 +586,33 @@ def capture(graph, digest, chromium, source_roots, profiles):
     for path in sorted(files):
         if not physical(path).is_file():
             raise ValueError("Missing original platform input: " + path)
-    native_header_actions, visited, pending = set(), set(), [label for label, library in libraries.items() if library["kind"] != "group"]
-    while pending:
-        label = pending.pop()
-        if label in visited or label not in seen:
-            continue
-        visited.add(label)
-        if label in actions:
-            native_header_actions.add(label)
-        pending.extend(targets[label].get("deps", []))
-    native_header_actions.update(label for label in actions if label not in targets)
+    def native_actions(labels):
+        selected, visited = set(), set()
+        pending = [label for label in labels if label in libraries and libraries[label]["kind"] != "group"]
+        while pending:
+            label = pending.pop()
+            if label in visited or label not in seen:
+                continue
+            visited.add(label)
+            if label in actions:
+                selected.add(label)
+            pending.extend(targets[label].get("deps", []))
+        selected.update(label for label in actions if label not in targets)
+        return sorted(selected)
+
+    native_header_actions = native_actions(libraries)
+    platform_headers = list(dict.fromkeys(path for directory in platform_directories if directory != "third_party/wayland/include" for path in headers[directory]))
+    platform_header_set = set(platform_headers)
+    header_layers = dict(
+        platform=dict(headers=platform_headers, actions=native_actions(platform_seen)),
+        blink_core=dict(
+            libraries=sorted(label for label in libraries if label not in platform_seen),
+            headers=list(dict.fromkeys(path for directory in directories if directory != "third_party/wayland/include" for path in headers[directory] if path not in platform_header_set)),
+            actions=sorted(set(native_header_actions) - set(native_actions(platform_seen))),
+        ),
+    )
     used = {dep for label in seen for dep in targets[label].get("deps", []) if dep in external}
-    return dict(devtools_esbuild=devtools_esbuild, copies=copies, devtools_node_modules_files=devtools_packages, native_header_actions=sorted(native_header_actions), source_aliases=source_aliases, roots=ROOTS, graph_sha256=digest, source_revisions=revisions, names=names, libraries=libraries, actions=actions, metadata=metadata, literal_metadata=literal_metadata, execution_tools=sorted(set(tools.values())), execution_closure=sorted(execution_closure), producers=producers, headers=headers, files=sorted(files), external_files={path: shared[path] for path in sorted(used_shared)}, external={label: external[label] for label in sorted(used)}, generated_files=generated, toolchain_deps=sorted(TOOLCHAIN), sdk_libraries=sorted(SDK_LIBS))
+    return dict(header_layers=header_layers, devtools_esbuild=devtools_esbuild, copies=copies, devtools_node_modules_files=devtools_packages, native_header_actions=sorted(native_header_actions), source_aliases=source_aliases, roots=ROOTS, graph_sha256=digest, source_revisions=revisions, names=names, libraries=libraries, actions=actions, metadata=metadata, literal_metadata=literal_metadata, execution_tools=sorted(set(tools.values())), execution_closure=sorted(execution_closure), producers=producers, headers=headers, files=sorted(files), external_files={path: shared[path] for path in sorted(used_shared)}, external={label: external[label] for label in sorted(used)}, generated_files=generated, toolchain_deps=sorted(TOOLCHAIN), sdk_libraries=sorted(SDK_LIBS))
 
 
 def main():

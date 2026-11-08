@@ -1643,3 +1643,26 @@ The generated platform manifest pools repeated string lists. Bazel's exported
 and comparison of all 76,246 registered action keys verified that pooling alone
 preserves build behavior. The compact pooled file is about 26.6 MB instead of
 94.7 MB. This measures stored bytes, not build speed.
+
+### Blink core
+
+The Linux AMD64 profile now includes the complete original
+`//third_party/blink/renderer/core:core` closure: 36 additional library/group
+targets, 3,863 native source/object units and 72 original generators. Source pins
+and existing library/action records stay unchanged.
+
+Core-only compilation headers have a separate provider. The base layer retains
+its exact 34,134 raw headers and 1,632 generated owners; the core layer adds
+3,329 raw headers and 73 generated owners. Both layers derive from the pinned GN
+graph, without reading an earlier profile as configuration.
+
+The native core probe uses the original HTML tokenizer for tag case folding,
+quoted attributes, named/numeric entities, CRLF normalization, comments, EOF and
+incremental input. It uses the declared ICU/runtime closure. Hosted compilation
+and runtime validation are pending. Blink modules, content and the full Electron
+executable remain unfinished.
+
+Metadata analysis completed with zero build actions. The expanded dependency
+audit contains 80,436 actions and 34,342 CppCompile keys; all 30,478 baseline
+compile keys remain present. The baseline declared header lists also match
+exactly. No CMake/foreign action mnemonics matched this scope.
