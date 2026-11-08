@@ -64,7 +64,7 @@ ELECTRON_GENERATORS = {
 NPM_PREFLIGHT = "//electron:npm_pre_flight_electron_version_args"
 ELECTRON_PLATFORM_ROOTS = ["//electron:electron_gtk_stubs", "//electron:libnotify_loader"]
 ROOTS = CONTENT_ROOTS + ELECTRON_PLATFORM_ROOTS + list(ELECTRON_GENERATORS.values())
-SOURCE_PREFIXES = ["third_party/libyuv", "third_party/angle", "third_party/dawn", "third_party/swiftshader", "third_party/spirv-tools/src", "third_party/spirv-headers/src", "third_party/vulkan-loader/src", "third_party/vulkan-tools/src", "third_party/vulkan-utility-libraries/src", "third_party/vulkan-headers/src", "third_party/vulkan_memory_allocator", "third_party/wayland/src", "third_party/wayland-protocols/src", "third_party/wayland-protocols/kde"]
+SOURCE_PREFIXES = ["third_party/dom_distiller_js/dist", "third_party/readability/src", "third_party/libyuv", "third_party/angle", "third_party/dawn", "third_party/swiftshader", "third_party/spirv-tools/src", "third_party/spirv-headers/src", "third_party/vulkan-loader/src", "third_party/vulkan-tools/src", "third_party/vulkan-utility-libraries/src", "third_party/vulkan-headers/src", "third_party/vulkan_memory_allocator", "third_party/wayland/src", "third_party/wayland-protocols/src", "third_party/wayland-protocols/kde"]
 MEDIA_SOURCE_PREFIXES = ["third_party/flac", "media/cdm/api", "third_party/libaom/source/libaom", "third_party/crc32c/src", "third_party/ffmpeg", "third_party/libvpx/source/libvpx", "third_party/openh264/src", "third_party/dav1d/libdav1d", "third_party/libgav1/src", "third_party/leveldatabase/src", "third_party/libwebm/source"]
 COMPOSITOR_SOURCE_PREFIXES = ["third_party/webrtc", "third_party/federated_compute/src", "third_party/libsrtp"]
 BLINK_SOURCE_PREFIXES = ['third_party/cld_3/src', 'third_party/cpuinfo/src', 'third_party/devtools-frontend/src', 'third_party/eigen3/src', 'third_party/emoji-segmenter/src', 'third_party/farmhash/src', 'third_party/flatbuffers/src', 'third_party/fxdiv/src', 'third_party/gemmlowp/src', 'third_party/libphonenumber/dist', 'third_party/material_color_utilities/src', 'third_party/neon_2_sse/src', 'third_party/ots/src', 'third_party/pthreadpool/src', 'third_party/ruy/src', 'third_party/search_engines_data/resources', 'third_party/smhasher/src', 'third_party/tflite/src', 'third_party/xnnpack/src']
@@ -188,6 +188,21 @@ def grit_resource_inputs(inputs, physical):
                 directory = posixpath.dirname(path)
                 root = physical(directory)
                 resources.update("//" + directory + "/" + asset.relative_to(root).as_posix() for asset in source_files(root) if asset.is_file() and asset.suffix in asset_types)
+    pending = [path for path in resources if path.endswith((".html", ".js", ".css"))]
+    visited = set()
+    while pending:
+        source = pending.pop()
+        if source in visited:
+            continue
+        visited.add(source)
+        for include in re.findall(r'<include\b[^>]*\bsrc=["\']([^"\']+)["\']', physical(source[2:]).read_text(), re.I):
+            path = posixpath.normpath(posixpath.join(posixpath.dirname(source[2:]), include))
+            if path.startswith(("/", "../")) or not physical(path).is_file():
+                continue
+            original = "//" + path
+            resources.add(original)
+            if path.endswith((".html", ".js", ".css", ".svg")):
+                pending.append(original)
     return resources
 
 

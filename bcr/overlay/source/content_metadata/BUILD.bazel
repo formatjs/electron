@@ -131,6 +131,12 @@ _CONTENT_WEBUI_INPUTS = [
     "@electron_content_webui_sources//:gen/content/browser/tracing/tracing_resources.pak",
     "@electron_platform_sources//:gen/content/browser/tracing/about_tracing.html",
     "@electron_platform_sources//:gen/content/browser/tracing/about_tracing.js",
+    "@electron_chromium_node_tool//:node-linux-x64/bin/node",
+    "@electron_content_webui_sources//:gen/components/grit/components_resources.h",
+    "@electron_content_webui_sources//:gen/components/components_resources.pak",
+    "@electron_content_webui_sources//:third_party/dom_distiller_js/dist/js/domdistiller.js",
+    "@electron_content_webui_sources//:third_party/readability/src/Readability.js",
+    "@electron_content_webui_sources//:third_party/readability/src/Readability-readerable.js",
 ]
 
 py_test(

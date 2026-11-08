@@ -5,6 +5,10 @@ def _impl(ctx):
     for name, anchor in {"chromium": ctx.attr.chromium, "node_modules": ctx.attr.node_modules}.items():
         ctx.read(anchor)
         roots[name] = ctx.path(anchor).dirname.get_child("node_modules") if name == "node_modules" else ctx.path(anchor).dirname
+    source_roots = {}
+    for anchor, prefix in ctx.attr.source_roots.items():
+        ctx.read(anchor)
+        source_roots[prefix] = ctx.path(anchor).dirname
     contents = ctx.read(ctx.attr.profile)
     profile = json.decode(contents)
     for path in profile["files"]:
@@ -14,7 +18,13 @@ def _impl(ctx):
         for prefix, name in {"third_party/node/node_modules/": "node_modules"}.items():
             if path.startswith(prefix):
                 owner, relative = name, path[len(prefix):]
-        ctx.symlink(roots[owner].get_child(relative), path)
+        source = roots[owner].get_child(relative)
+        matched = 0
+        for prefix, root in source_roots.items():
+            if len(prefix) > matched and path.startswith(prefix + "/"):
+                source = root.get_child(path[len(prefix) + 1:])
+                matched = len(prefix)
+        ctx.symlink(source, path)
     for path, content in profile["generated_files"].items():
         if not path.startswith("//out/bazel-import/") or ".." in path.split("/"):
             fail("Invalid UI metadata path")
@@ -27,6 +37,7 @@ electron_ui_repository = repository_rule(
     attrs = {
         "chromium": attr.label(mandatory = True),
         "node_modules": attr.label(mandatory = True),
+        "source_roots": attr.label_keyed_string_dict(),
         "profile": attr.label(default = Label("//source/native:ui_inputs.json")),
         "build_file": attr.label(default = Label("//source:ui.BUILD.bazel")),
     },

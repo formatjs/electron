@@ -2336,3 +2336,36 @@ build-script keys remain present. Six Python actions are added, three for the
 captured producers and three for beta fixtures. Native libraries, header layers,
 source pins and existing producer records retain their exact values. Hosted
 execution remains required; full executable linkage is still open.
+
+
+### Notification SDK and nested GRIT inputs
+
+The `f5c3c64` components build exposed missing `libnotify/notify.h` and the
+nested DomDistiller include. Its consumer passed the original fuse/Node output
+comparison and the SDK ABI contract including GdkPixbuf; full execution remains
+pending.
+
+Libnotify 0.7.9-3 development and runtime packages are pinned by SHA-256 from
+Debian. Four public headers form a provider used only by Electron's loader.
+The original `libnotify.so.4` runtime joins the existing desktop runtime; its
+ELF dependencies are already covered. Bazel extracts both Debian payloads with
+built-in archive operations. No host dpkg, compiler wrapper or package manager
+runs. This does not establish desktop notification behavior.
+
+GRIT capture now follows nested `<include src>` references. The component pack
+gains three original JavaScript inputs. DomDistiller dist is pinned to Chromium
+DEPS commit `199de96b345ada7c6e7e6ba3d2fa7a6911b8767d`; Readability uses
+`1f0ec42686c89a4a1c71789849f7ffde349ab197`. WebUI repositories select those
+source roots explicitly. No generated JavaScript is fabricated.
+
+The resource contract reads the actual component DataPack, checks all three
+source payloads were inlined, rejects unresolved includes and parses the emitted
+JavaScript with pinned Node. It retains the existing tracing payload checks.
+Hosted execution remains required.
+
+
+The final 93,803-action graph analyzes with zero local processes and no
+CMake/foreign-cc mnemonics. Only the notification loader C++ key changes; the
+other 41,455 C++ keys and every Rust/Cargo/Python key remain present. Existing
+native library records and header layers remain unchanged. GRIT's declared
+inputs change, so matching Python action keys do not imply cache reuse.

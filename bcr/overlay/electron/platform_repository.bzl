@@ -64,7 +64,16 @@ def _runtime_impl(ctx):
     for soname, library in manifest["libraries"].items():
         ctx.symlink("packages/" + library["package"] + "/root/" + library["interface"], soname)
     ctx.file("profile.bzl", "LIBRARIES = " + repr(sorted(manifest["libraries"])) + "\n")
-    ctx.file("BUILD.bazel", "exports_files(" + repr(sorted(manifest["libraries"]) + ["profile.bzl"]) + ", visibility = [\"//visibility:public\"])\nfilegroup(name = \"libraries\", srcs = " + repr(sorted(manifest["libraries"])) + ", visibility = [\"//visibility:public\"])\n")
+    build = [
+        'load("@rules_cc//cc:cc_library.bzl", "cc_library")',
+        'package(default_visibility = ["//visibility:public"])',
+        "exports_files(" + repr(sorted(manifest["libraries"]) + ["profile.bzl"]) + ")",
+        "filegroup(name = \"libraries\", srcs = " + repr(sorted(manifest["libraries"])) + ")",
+    ]
+    for name, interface in manifest.get("header_interfaces", {}).items():
+        root = "packages/" + interface["package"] + "/root/"
+        build.append("cc_library(name = " + repr(name) + ", hdrs = " + repr([root + path for path in interface["headers"]]) + ", includes = " + repr([root + interface["include"]]) + ', deps = ["@electron_platform_sdk//:headers"])')
+    ctx.file("BUILD.bazel", "\n".join(build) + "\n")
 
 _platform_runtime = repository_rule(
     implementation = _runtime_impl,

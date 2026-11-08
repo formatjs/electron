@@ -5,10 +5,11 @@ import gzip
 from pathlib import Path
 import re
 import struct
+import subprocess
 import sys
 import unittest
 
-HEADER, PACK, HTML, JAVASCRIPT = [Path(value) for value in sys.argv[1:]]
+HEADER, PACK, HTML, JAVASCRIPT, NODE, COMPONENT_HEADER, COMPONENT_PACK, DISTILLER, READABILITY, READERABLE = [Path(value) for value in sys.argv[1:]]
 sys.argv[1:] = []
 
 
@@ -43,6 +44,25 @@ class ContentWebUI(unittest.TestCase):
                 if payload.startswith(b"\x1f\x8b"):
                     payload = gzip.decompress(payload)
                 self.assertEqual(payload, original.read_bytes())
+
+    def test_distiller_pack_inlines_pinned_javascript_and_preserves_valid_syntax(self):
+        identifiers = dict((name, int(value)) for name, value in re.findall(
+            r"^#define (IDR_\w+) (\d+)$", COMPONENT_HEADER.read_text(), re.MULTILINE))
+        payloads = resources(COMPONENT_PACK)
+        for name, original in [
+            ("IDR_DISTILLER_JS", DISTILLER),
+            ("IDR_READABILITY_DISTILLER_JS", READABILITY),
+            ("IDR_READABILITY_TRIGGERING_JS", READERABLE),
+        ]:
+            with self.subTest(resource=name):
+                payload = payloads[identifiers[name]]
+                if payload.startswith(b"\x1f\x8b"):
+                    payload = gzip.decompress(payload)
+                text = payload.decode("utf-8")
+                self.assertIn(original.read_text().strip(), text)
+                self.assertNotRegex(text, r'<include\b[^>]*\bsrc=')
+                subprocess.run([str(NODE.resolve()), "--check"], input=payload, check=True,
+                               env={"PATH": "", "LANG": "C", "LC_ALL": "C", "TZ": "UTC"})
 
 
 if __name__ == "__main__":

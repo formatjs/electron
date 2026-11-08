@@ -44,6 +44,8 @@ def _system_deps(original, library):
     deps += ["@electron_platform_sdk//:" + name for name in library["libs"] if name in PROFILE["sdk_libraries"] and name != "pci"]
     if original in ["//media/gpu/vaapi:libva_stubs", "//media/gpu/chromeos:fourcc"]:
         deps.append("@electron_platform_sdk//:va_headers")
+    if original == "//electron:libnotify_loader":
+        deps.append("@electron_platform_runtime//:notify_headers")
     return deps
 
 def _link_settings(library):
