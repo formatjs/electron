@@ -1686,3 +1686,9 @@ The integrity check, module version and BCR patch remain unchanged. This avoids
 the failing release endpoint without substituting dependency contents.
 The same byte-identical rewrite covers the pinned `bazel_features` 1.50.0
 archive after its release endpoint also returned HTTP 504.
+
+The [22ce9da rerun](https://formatjs.buildbuddy.io/invocation/b843727d-5457-4c21-b84b-233a1c1e5829)
+passed cross probes but stopped before compilation on a `bazel_skylib` release
+HTTP 504. CI now routes its exact 1.9.0 URL to the official Bazel mirror.
+The downloaded 44,790-byte archive matches BCR integrity
+`sha256-O1tJAGGB9fj/Ym743c6qlem7itKU97XXsR6p992vjFk=`.
