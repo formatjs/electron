@@ -1,4 +1,5 @@
 load("@rules_python//python:defs.bzl", "py_test")
+load("//electron:source_action.bzl", "electron_source_action")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -17,6 +18,49 @@ py_test(
     srcs = ["metadata_test.py"],
     args = ["$(rootpath " + label + ")" for label in _INPUTS],
     data = _INPUTS,
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)
+
+electron_source_action(
+    name = "bundle_tracing_proto",
+    srcs = {
+        "@electron_platform_sources//:gen/tsproto/third_party/perfetto/protos/perfetto/config/perfetto_config.ts": "third_party/node/generated/perfetto_config.ts",
+        "bundle_tracing_proto.py": "electron/source/content_metadata/bundle_tracing_proto.py",
+    },
+    args = [
+        "../../tools/esbuild",
+        "../../third_party/node/generated/perfetto_config.ts",
+        "tracing_config.mjs",
+    ],
+    exec_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    logical_outputs = ["tracing_config.mjs"],
+    out_files = ["tracing_config.mjs"],
+    script = "electron/source/content_metadata/bundle_tracing_proto.py",
+    source_groups = ["@electron_ui_sources//:node_modules"],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    tools = {"@electron_platform_esbuild//:esbuild": "tools/esbuild"},
+)
+
+py_test(
+    name = "tracing_proto_test",
+    srcs = ["tracing_proto_test.py"],
+    args = [
+        "$(rootpath @electron_chromium_node_tool//:node-linux-x64/bin/node)",
+        "$(rootpath :tracing_config.mjs)",
+    ],
+    data = [
+        ":tracing_config.mjs",
+        "@electron_chromium_node_tool//:node-linux-x64/bin/node",
+    ],
     target_compatible_with = [
         "@platforms//os:linux",
         "@platforms//cpu:x86_64",

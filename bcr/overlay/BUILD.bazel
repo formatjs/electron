@@ -114,6 +114,7 @@ test_suite(
         "//source/blink_rust:font_format_test",
         "//source/compositor:compositor_test",
         "//source/content_metadata:metadata_test",
+        "//source/content_metadata:tracing_proto_test",
         "//source/content_rust:llguidance_test",
         "//source/crabbyavif:decode_test",
         "//source/devtools:resources_test",

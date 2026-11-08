@@ -1930,3 +1930,31 @@ assertions because its sibling import directory was undeclared. The test now
 declares that import path. Original protoc canonicalizes plugin executables, so
 launchers are private executable copies with adjacent argument metadata; the
 fixture now canonicalizes its executable too. Hosted assertions remain pending.
+
+
+### Content tracing protobuf bindings
+
+The profile now captures original
+`//content/browser/resources/traces_internals:config_proto_gen`. Its protoc and
+Node inputs retain existing execution providers. The Python plugin uses the
+native launcher; original GN arguments remain recorded separately. The compiler
+receives Chromium's original ts-proto options and pinned npm inventory.
+
+Perfetto's flattened schema comes from the existing patched Electron source
+repository. Its DEPS revision is checked against that repository's upstream pin;
+no new source revision or archive is introduced. Existing library/generator
+records and shared header-layer inputs match the previous capture.
+
+A declared esbuild action bundles the generated TypeScript with pinned packages.
+The Node test checks exact duration-field wire bytes, nested buffer round trips
+and malformed input rejection through the actual generated TraceConfig API.
+Generation, bundling and runtime validation run on BB; full content resource
+closure and the Electron executable remain unfinished.
+
+
+Metadata analysis completed with zero actions. Against exact `b9b30d8`, the
+86,815-action component/plugin/tracing audit preserves all 37,382 CppCompile,
+254 Rustc, 26 CargoBuildScriptRun and 6,330 ElectronPython baseline keys. Two
+Python producer actions are added; no CMake/foreign actions appear. This checks
+cache-key preservation, not a measured runtime speedup. The repaired native
+plugin bootstrap passed on BB; tracing generation and runtime checks remain pending.

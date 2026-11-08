@@ -76,7 +76,7 @@ def electron_platform_repositories(ctx):
     anchors, names = {"@electron//:DEPS": "electron"}, []
     for prefix, pin in profile["source_revisions"].items():
         group = pin.get("patch_group")
-        if group in ["ffmpeg", "webrtc", "devtools_frontend"]:
+        if group in ["ffmpeg", "webrtc", "devtools_frontend", "perfetto"]:
             original = [entry for entry in json.decode(ctx.read(Label("//source:upstream_pins.json"))) if entry["group"] == group][0]
             if original["url"] != pin["remote"] + "@" + pin["commit"]:
                 fail("Platform revision differs from Electron's patched source: " + group)

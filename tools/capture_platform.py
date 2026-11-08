@@ -21,14 +21,14 @@ BLINK_PLATFORM_GENERATORS = ['//third_party/blink/common:make_generated_document
 PLATFORM_ROOTS = ["//ui/ozone:ozone", "//ui/gl:gl", "//gpu/command_buffer/client:gles2_implementation", "//gpu/command_buffer/service:gles2", "//components/viz/common:common", "//gpu/ipc/service:service", "//gpu/ipc/client:client", "//gpu/ipc/host:host", "//media:media", "//cc:cc", "//third_party/blink/renderer/platform:platform"] + BLINK_BINDINGS_ROOTS + BLINK_PLATFORM_GENERATORS
 CORE_ROOTS = PLATFORM_ROOTS + ["//third_party/blink/renderer/core:core"]
 DEVTOOLS_ROOT = "//third_party/devtools-frontend/src:devtools_frontend_resources"
-CONTENT_METADATA = {"chromium_git_revision": "//build/util:chromium_git_revision"}
+CONTENT_METADATA = {"chromium_git_revision": "//build/util:chromium_git_revision", "tracing_config_proto": "//content/browser/resources/traces_internals:config_proto_gen"}
 ROOTS = CORE_ROOTS + ["//third_party/blink/renderer/modules:modules", DEVTOOLS_ROOT] + list(CONTENT_METADATA.values())
 SOURCE_PREFIXES = ["third_party/libyuv", "third_party/angle", "third_party/dawn", "third_party/swiftshader", "third_party/spirv-tools/src", "third_party/spirv-headers/src", "third_party/vulkan-loader/src", "third_party/vulkan-tools/src", "third_party/vulkan-utility-libraries/src", "third_party/vulkan-headers/src", "third_party/vulkan_memory_allocator", "third_party/wayland/src", "third_party/wayland-protocols/src", "third_party/wayland-protocols/kde"]
 MEDIA_SOURCE_PREFIXES = ["third_party/flac", "media/cdm/api", "third_party/libaom/source/libaom", "third_party/crc32c/src", "third_party/ffmpeg", "third_party/libvpx/source/libvpx", "third_party/openh264/src", "third_party/dav1d/libdav1d", "third_party/libgav1/src", "third_party/leveldatabase/src", "third_party/libwebm/source"]
 COMPOSITOR_SOURCE_PREFIXES = ["third_party/webrtc", "third_party/federated_compute/src", "third_party/libsrtp"]
 BLINK_SOURCE_PREFIXES = ['third_party/cld_3/src', 'third_party/cpuinfo/src', 'third_party/devtools-frontend/src', 'third_party/eigen3/src', 'third_party/emoji-segmenter/src', 'third_party/farmhash/src', 'third_party/flatbuffers/src', 'third_party/fxdiv/src', 'third_party/gemmlowp/src', 'third_party/libphonenumber/dist', 'third_party/material_color_utilities/src', 'third_party/neon_2_sse/src', 'third_party/ots/src', 'third_party/pthreadpool/src', 'third_party/ruy/src', 'third_party/search_engines_data/resources', 'third_party/smhasher/src', 'third_party/tflite/src', 'third_party/xnnpack/src']
 SOURCE_PREFIXES += MEDIA_SOURCE_PREFIXES + COMPOSITOR_SOURCE_PREFIXES + BLINK_SOURCE_PREFIXES
-SOURCE_PREFIXES += ["third_party/cros_system_api"]
+SOURCE_PREFIXES += ["third_party/cros_system_api", "third_party/perfetto"]
 TOOLCHAIN = {"//buildtools/third_party/libc++:" + name for name in ("all_modules", "custom_headers", "libcxx_headers", "libc++")}
 EXTRA_NATIVE_HEADERS = {
     "//components/viz/host:host": ["//skia/ext/skia_commit_hash.h"],
@@ -182,7 +182,7 @@ def source_revisions(chromium):
     variables, entries = read_deps(chromium / "third_party/dawn/DEPS")
     for prefix in ["third_party/khronos/EGL-Registry", "third_party/khronos/OpenGL-Registry"]:
         record("third_party/dawn/" + prefix, entries[prefix])
-    for group, prefix in [("ffmpeg", "third_party/ffmpeg"), ("webrtc", "third_party/webrtc"), ("devtools_frontend", "third_party/devtools-frontend/src")]:
+    for group, prefix in [("ffmpeg", "third_party/ffmpeg"), ("webrtc", "third_party/webrtc"), ("devtools_frontend", "third_party/devtools-frontend/src"), ("perfetto", "third_party/perfetto")]:
         records[prefix]["patch_group"] = group
     return records
 
@@ -433,6 +433,19 @@ def capture(graph, digest, chromium, source_roots, profiles):
                     inputs.add(esbuild)
                 record["devtools_node_modules"] = True
             args = [arg.replace("$SOURCE_ROOT/out/bazel-import/", "") for arg in target.get("args", [])]
+            if "--protoc-gen-ts" in args:
+                if target["script"] != "//tools/protoc_wrapper/protoc_wrapper.py":
+                    raise ValueError("Unexpected TypeScript protobuf plugin producer")
+                position = args.index("--protoc-gen-ts") + 1
+                plugin = "tools/protoc_wrapper/protoc-gen-ts_proto.py"
+                if args[position] not in ("./../../" + plugin, "../../" + plugin):
+                    raise ValueError("Original TypeScript protobuf plugin changed")
+                record["gn_args"] = list(args)
+                launcher = plugin.removesuffix(".py") + ".launcher"
+                args[position] = "../../" + launcher
+                record["python_tools"] = {launcher: plugin}
+                record["webui_node_modules"] = True
+                inputs.update(["//" + plugin, "//third_party/node/node.py", "//third_party/node/node_modules.py", node])
             if label == devtools_workspace["target"]:
                 record["gn_args"] = list(args)
                 args.append(devtools_workspace["root"])
