@@ -1472,7 +1472,7 @@ Analysis of the expanded library graph found no CMake or foreign-cc actions.
 This profile remains Linux AMD64. Audio server/device integration, compositor
 and full Electron remain unfinished.
 
-## Compositor source closure (validation pending)
+## Compositor source closure
 
 The platform profile now includes the original `//cc:cc` closure: 2,017 additional
 C/C++ units, including Electron-patched WebRTC and pinned federated-compute/SRTP
@@ -1491,5 +1491,24 @@ the full library closure and runtime probe passes with zero build actions.
 The runtime probe exercises layer ownership, replacement, reparenting, geometry
 and opacity, then replays an actual paint record through Skia. It checks every
 pixel after clipping, translation and alpha blending, plus restored canvas state.
-Hosted compilation and runtime results remain pending. This profile remains
-Linux AMD64; full Electron remains unfinished.
+[4a2bf7d source components](https://formatjs.buildbuddy.io/invocation/76fcec92-d070-4111-bb69-9409ad3645a0),
+[BCR consumer](https://formatjs.buildbuddy.io/invocation/e094d365-9ce7-4b46-a66b-d7eb2df6f6ef)
+and [cross probes](https://formatjs.buildbuddy.io/invocation/462db483-9fb6-4093-9889-cecbb0577540)
+passed. Structured results report compositor, media runtime, ALSA ABI, Symphonia,
+GPU transport and SwiftShader as PASSED. Existing 493 library records and 203
+generator records remain unchanged. Capture declares file-valued options such as
+the field-trial schema; its supported `--year=2025` option fixes the copyright
+year without reading the clock. WebRTC uses declared SDK PipeWire/SPA headers.
+Audio/display server integration remains untested.
+
+The warm source aggregate took 164.160 seconds with zero tracked remote actions;
+the following full source suite took 100.692 seconds, also with zero remote
+actions. The BCR source suite took 301.185 seconds with two tracked actions,
+4.065 CPU seconds, 356,081,664 bytes maximum action peak memory, 437,200,229 input
+bytes and 9,228,165 output bytes. These are incremental CI observations, not
+cold-build benchmarks; warm orchestration/cache/download time needs profiling.
+
+This profile remains Linux AMD64; full Electron remains unfinished. The next
+Blink platform closure adds 5,989 C/C++ units plus Rust crash/font-format and
+CrabbyAVIF prerequisites. Its graph also requires original IDL, USB identifiers,
+DevTools overlay and additional Blink generators.
