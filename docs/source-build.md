@@ -1565,3 +1565,23 @@ A full source-aggregate/decoder dependency audit found zero CMake/foreign-cc
 actions, with 24,493 CppCompile actions as a positive control. Hosted compilation
 and runtime validation remain pending. Full source profiles remain Linux AMD64;
 Blink and full Electron remain unfinished.
+
+## CrabbyAVIF decoder
+
+`@electron//source/crabbyavif:crabbyavif` links the original Chromium DEPS
+revision through native Bazel Rust, bindgen, dav1d and libyuv targets. The
+122-target Rust capture preserves all previous 119 records and 89 package
+inventories. Bindgen keeps the original generated filenames and public native
+configuration; no Cargo build script replaces GN metadata.
+
+`@electron//source/crabbyavif:decode_test` decodes the pinned lossless AVIF and
+compares every RGB byte against its independent upstream PNG. It also checks
+malformed input, codec versions, owned RGB allocation/free and RGB-to-YUV
+conversion. Like Blink, the probe parses and selects frames while the decoder
+owns image planes and metadata. The pinned convenience ReadMemory API shallow
+copies metadata; destroying its copied image is unsafe and is not validated.
+
+Implementation `4cc896e` passed hosted components, BCR consumer and cross probes.
+The BCR source child reports the decode probe PASSED through cleanup and
+conversion. These source profiles cover Linux AMD64; this is not a complete
+Electron executable or renderer integration.
