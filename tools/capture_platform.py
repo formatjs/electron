@@ -327,6 +327,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
         raise ValueError("Missing original DevTools npm inventory")
     files.update(devtools_packages)
     actions, libraries, metadata, copies = {}, {}, {}, {}
+    ml_dtypes_headers = []
     for label in sorted(seen):
         target = targets[label]
         if target["toolchain"] != "//build/toolchain/linux:clang_x64":
@@ -461,6 +462,16 @@ def capture(graph, digest, chromium, source_roots, profiles):
             metadata[label] = record
         elif kind in ("group", "static_library", "source_set", "executable", "shared_library"):
             libraries[label] = capture_library(graph, target, record, input_file, label, SDK_LIBS | {"z"})
+            if "third_party/ml_dtypes/src" in record["includes"]:
+                # GN exposes these vendored headers through a config.
+                if not ml_dtypes_headers:
+                    root = physical("third_party/ml_dtypes/src")
+                    ml_dtypes_headers = sorted("//third_party/ml_dtypes/src/" + path.relative_to(root).as_posix() for path in source_files(root) if path.suffix == ".h")
+                    if not ml_dtypes_headers:
+                        raise ValueError("Missing original ml_dtypes headers")
+                for header in ml_dtypes_headers:
+                    input_file(header)
+                record["source_headers"] = sorted(set(record["source_headers"] + ml_dtypes_headers))
             if label == "//printing/mojom:mojom":
                 # GN omits the header included by printing's Mojo traits.
                 header = "//printing/page_range.h"
