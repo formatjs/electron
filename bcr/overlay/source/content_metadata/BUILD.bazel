@@ -1,3 +1,4 @@
+load("@electron_platform_sources//:profile.bzl", PLATFORM_PROFILE = "PROFILE")
 load("@rules_python//python:defs.bzl", "py_test")
 load("//electron:source_action.bzl", "electron_source_action")
 
@@ -198,6 +199,86 @@ py_test(
     srcs = ["native_generators_test.py"],
     args = ["$(rootpath " + label + ")" for label in _NATIVE_GENERATOR_INPUTS],
     data = _NATIVE_GENERATOR_INPUTS,
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)
+
+_VERSION_ACTION = PLATFORM_PROFILE["actions"]["//electron:electron_version_args"]
+
+electron_source_action(
+    name = "beta_version_args",
+    srcs = {
+        "@electron//:script/generate-version-json.js": "electron/script/generate-version-json.js",
+        "@electron//:package.json": "electron/package.json",
+        "@electron//:yarn.lock": "electron/yarn.lock",
+        "@electron_chromium_sources//:third_party/node/node.py": "third_party/node/node.py",
+    },
+    args = [
+        "../../electron/script/generate-version-json.js",
+        "beta/electron_version.args",
+        "40.2.1-beta.3",
+    ],
+    exec_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    logical_outputs = ["beta/electron_version.args"],
+    mapped_source_groups = _VERSION_ACTION["mapped_source_groups"],
+    out_files = ["beta/electron_version.args"],
+    script = "third_party/node/node.py",
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    tools = {"@electron_chromium_node_tool//:node-linux-x64/bin/node": "third_party/node/linux/node-linux-x64/bin/node"},
+)
+
+[electron_source_action(
+    name = "beta_version_" + name,
+    srcs = {
+        "@electron//:build/generate-template.py": "electron/build/generate-template.py",
+        "@electron//:build/templates/" + template: "electron/build/templates/" + template,
+        ":beta_version_args": "out/bazel-import/beta/electron_version.args",
+    },
+    args = [
+        "../../electron/build/templates/" + template,
+        "beta/" + output,
+        "beta/electron_version.args",
+    ],
+    exec_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    logical_outputs = ["beta/" + output],
+    out_files = ["beta/" + output],
+    script = "electron/build/generate-template.py",
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+) for name, template, output in [
+    ("header", "electron_version.tmpl", "electron_version.h"),
+    ("resource", "electron_rc.tmpl", "electron.rc"),
+]]
+
+_VERSION_INPUTS = [
+    "@electron_platform_sources//:gen/electron/electron_version.args",
+    "@electron_platform_sources//:gen/electron/electron_version.h",
+    "@electron_platform_sources//:gen/electron/win-resources/electron.rc",
+    ":beta_version_args",
+    ":beta_version_header",
+    ":beta_version_resource",
+    "@electron//:yarn.lock",
+    "//source/native:node_tools_lock.json",
+]
+
+py_test(
+    name = "electron_version_test",
+    srcs = ["electron_version_test.py"],
+    args = ["$(rootpath " + label + ")" for label in _VERSION_INPUTS],
+    data = _VERSION_INPUTS,
     target_compatible_with = [
         "@platforms//os:linux",
         "@platforms//cpu:x86_64",

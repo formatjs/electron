@@ -2307,3 +2307,32 @@ change replaces 4,072 C++ action keys; the other 37,384 remain present.
 Rust and Python keys stay unchanged, though the four bundle actions now declare
 additional inputs. Matching action keys alone do not prove cache reuse when
 input sets change.
+
+
+### Original Electron version producers
+
+The native profile captures `electron_version_args`, `electron_version_header`
+and `electron_win_rc`. The first invokes the original
+`script/generate-version-json.js` through pinned Chromium Node. Its GN version
+argument remains `39.0.0`. The other two invoke the original Python template
+generator and templates. Output paths match the native Electron consumers.
+
+`capture_node_tools.py` derives the exact semver 7.6.3 archive and SHA-512
+integrity from Electron's original package.json/yarn.lock. Capture checks that
+closure against the committed inventory. Bazel stages those declared package
+files under `electron/node_modules/semver`; npm and install hooks never run.
+The npm preflight stamp is not produced: pinned Bazel dependencies and lock
+validation replace that installation guard. Original arguments and preflight
+label remain in capture provenance. No application generator is replaced.
+
+A hosted artifact contract checks release and beta JSON, C++ version macros and
+Windows FILEVERSION/PRODUCTVERSION fields. Its beta fixtures execute the same
+original generators with `40.2.1-beta.3`. Both production and fixture actions
+retain empty PATH and two-run path/mtime reproducibility checks.
+
+The 93,802-action dependency graph analyzes with zero local processes and no
+CMake/foreign-cc mnemonics. All 41,456 C++ compile, 254 Rust and 26 Cargo
+build-script keys remain present. Six Python actions are added, three for the
+captured producers and three for beta fixtures. Native libraries, header layers,
+source pins and existing producer records retain their exact values. Hosted
+execution remains required; full executable linkage is still open.

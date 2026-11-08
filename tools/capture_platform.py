@@ -14,6 +14,7 @@ from functools import cache
 from pathlib import Path
 
 from capture_mojo import SCRIPTS as MOJO_SCRIPTS
+from capture_node_tools import capture as capture_node_tools
 from native_graph import BUILD, capture_library, load_profiles, pack_profile
 
 BLINK_BINDINGS_ROOTS = ["//third_party/blink/renderer/bindings:web_idl_database", "//third_party/blink/renderer/bindings:generate_bindings_all", "//third_party/blink/renderer/core:core_event_interfaces", "//third_party/blink/renderer/modules:modules_event_interfaces"]
@@ -56,7 +57,11 @@ CONTENT_ROOTS = MODULE_ROOTS + ["//content:content"]
 ELECTRON_GENERATORS = {
     "fuses": "//electron:electron_fuses",
     "node_defines": "//electron:electron_generate_node_defines",
+    "version_args": "//electron:electron_version_args",
+    "version_header": "//electron:electron_version_header",
+    "windows_version_resource": "//electron:electron_win_rc",
 }
+NPM_PREFLIGHT = "//electron:npm_pre_flight_electron_version_args"
 ELECTRON_PLATFORM_ROOTS = ["//electron:electron_gtk_stubs", "//electron:libnotify_loader"]
 ROOTS = CONTENT_ROOTS + ELECTRON_PLATFORM_ROOTS + list(ELECTRON_GENERATORS.values())
 SOURCE_PREFIXES = ["third_party/libyuv", "third_party/angle", "third_party/dawn", "third_party/swiftshader", "third_party/spirv-tools/src", "third_party/spirv-headers/src", "third_party/vulkan-loader/src", "third_party/vulkan-tools/src", "third_party/vulkan-utility-libraries/src", "third_party/vulkan-headers/src", "third_party/vulkan_memory_allocator", "third_party/wayland/src", "third_party/wayland-protocols/src", "third_party/wayland-protocols/kde"]
@@ -86,6 +91,7 @@ SCRIPTS = MOJO_SCRIPTS | {"//" + name for name in (
     "components/resources/ssl/ssl_error_assistant/gen_ssl_error_assistant_proto.py",
     "electron/build/fuses/build.py",
     "electron/build/generate_node_defines.py",
+    "electron/build/generate-template.py",
     "components/certificate_transparency/tools/make_ct_known_logs_list.py",
     "components/domain_reliability/bake_in_configs.py",
     "components/optimization_guide/tools/gen_on_device_proto_descriptors.py",
@@ -278,12 +284,20 @@ def capture(graph, digest, chromium, source_roots, profiles):
     external["//third_party/crabbyavif:crabbyavif"] = "@electron//source/crabbyavif:crabbyavif"
     external["//third_party/crabbyavif:header_files"] = "@electron_rust_sources//:crabbyavif_headers"
     targets = graph["targets"]
+    node_lock = json.loads((profiles / "node_tools_lock.json").read_text())
+    if capture_node_tools(source_roots.get("electron", chromium / "electron")) != node_lock:
+        raise ValueError("Electron Node tool closure differs from original Yarn metadata")
+    package = json.loads((source_roots.get("electron", chromium / "electron") / "package.json").read_text())
+    if package["scripts"]["generate-version-json"] != "node script/generate-version-json.js":
+        raise ValueError("Original Electron version entry point changed")
+    if targets[NPM_PREFLIGHT]["inputs"] != ["//electron/package.json", "//electron/yarn.lock"]:
+        raise ValueError("Original Electron npm preflight inputs changed")
 
     def closure(roots):
         seen, pending = set(), list(roots)
         while pending:
             label = pending.pop()
-            if label in seen or label in external or label in TOOLCHAIN:
+            if label in seen or label in external or label in TOOLCHAIN or label == NPM_PREFLIGHT:
                 continue
             seen.add(label)
             pending.extend(targets[label].get("deps", []))
@@ -445,7 +459,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
         paths, visited, pending = set(), set(), list(targets[label].get("deps", []))
         while pending:
             dependency = pending.pop()
-            if dependency in visited:
+            if dependency in visited or dependency == NPM_PREFLIGHT:
                 continue
             visited.add(dependency)
             target = targets[dependency]
@@ -489,7 +503,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
         kind = target["type"]
         record = dict(name=names[label], kind=kind, gn_deps=target.get("deps", []))
         if kind in ("action", "action_foreach"):
-            if target["script"] not in SCRIPTS:
+            if target["script"] not in SCRIPTS and label != ELECTRON_GENERATORS["version_args"]:
                 raise ValueError("Untranslated platform generator: " + target["script"])
             if label in CONTENT_PROTO_HEADER_ACTIONS or label in CONTENT_GENERATORS.values():
                 record["scoped_native_headers"] = True
@@ -570,6 +584,14 @@ def capture(graph, digest, chromium, source_roots, profiles):
             if label in ELECTRON_GENERATORS.values():
                 record["gn_args"] = target.get("args", [])
                 args = [arg.replace("$SOURCE_ROOT/", "../../") for arg in args]
+            if label == ELECTRON_GENERATORS["version_args"]:
+                if target["script"] != "//electron/build/npm-run.py" or args[:3] != ["--silent", "generate-version-json", "--"] or len(args) != 5:
+                    raise ValueError("Original Electron version command changed")
+                record["npm_replacement"] = dict(script=target["script"], args=target["args"], preflight=NPM_PREFLIGHT, lock="node_tools_lock.json")
+                inputs.discard(target["script"])
+                inputs.update(["//electron/package.json", "//electron/yarn.lock", "//third_party/node/node.py", node])
+                record["mapped_source_groups"] = {"@electron_npm//:pkg_" + identity: "electron/node_modules/" + name for name, identity in node_lock["roots"].items()}
+                args = ["../../electron/script/generate-version-json.js"] + args[3:]
             if "--protoc-gen-ts" in args:
                 if target["script"] != "//tools/protoc_wrapper/protoc_wrapper.py":
                     raise ValueError("Unexpected TypeScript protobuf plugin producer")
@@ -707,7 +729,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
                 raise ValueError("Untranslated platform generator placeholder")
             for path in sorted(inputs):
                 input_file(path)
-            record.update(script=target["script"][2:], inputs=sorted(inputs - tools.keys()), tools={path: tools[path] for path in sorted(inputs) if path in tools}, outputs=target["outputs"], runs=runs, response=target.get("response_file_contents", []))
+            record.update(script="third_party/node/node.py" if label == ELECTRON_GENERATORS["version_args"] else target["script"][2:], inputs=sorted(inputs - tools.keys()), tools={path: tools[path] for path in sorted(inputs) if path in tools}, outputs=target["outputs"], runs=runs, response=target.get("response_file_contents", []))
             record["environment"] = {"ANGLE_UPSTREAM_HASH": revisions["third_party/angle"]["commit"][:12]} if target["script"] == "//third_party/angle/src/commit_id.py" else {}
             if label in CONTENT_RESOURCES.values() or label == CONTENT_GENERATORS["model_descriptors"]:
                 record["environment"]["PROTOBUF_PYTHON_IMPLEMENTATION"] = "python"

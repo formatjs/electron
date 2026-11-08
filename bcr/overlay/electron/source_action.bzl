@@ -7,13 +7,17 @@ def _impl(ctx):
         if len(files) != 1:
             fail("Each logical generator input must identify one file")
         mappings[logical] = files[0]
-    for target in ctx.attr.source_groups:
+    source_groups = {target: "" for target in ctx.attr.source_groups}
+    source_groups.update(ctx.attr.mapped_source_groups)
+    for target, logical_root in source_groups.items():
+        if logical_root and ("\\" in logical_root or ":" in logical_root or any([part in ["", ".", ".."] for part in logical_root.split("/")])):
+            fail("Generator source-group prefix must be a canonical relative path")
         root = target.label.workspace_root
         prefix = root + "/" if root else ""
         for file in target[DefaultInfo].files.to_list():
             if not file.is_source or not file.path.startswith(prefix):
                 fail("Generator source groups must contain repository source files")
-            logical = file.path[len(prefix):]
+            logical = (logical_root + "/" if logical_root else "") + file.path[len(prefix):]
             if logical in mappings and mappings[logical] != file:
                 fail("Conflicting generator source-group path")
             mappings[logical] = file
@@ -68,6 +72,7 @@ _electron_source_action = rule(
         "srcs": attr.label_keyed_string_dict(allow_files = True),
         "tools": attr.label_keyed_string_dict(cfg = "exec", allow_files = True),
         "source_groups": attr.label_list(cfg = "exec"),
+        "mapped_source_groups": attr.label_keyed_string_dict(cfg = "exec"),
         "tool_inputs": attr.label_list(cfg = "exec"),
         "deps": attr.label_list(),
         "out_files": attr.output_list(mandatory = True),

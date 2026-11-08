@@ -12,6 +12,11 @@ _hub = repository_rule(implementation = _hub_impl, attrs = {"packages": attr.str
 
 def _impl(ctx):
     packages = json.decode(ctx.read(Label("//source/native:webpack_lock.json")))["packages"]
+    node_tools = json.decode(ctx.read(Label("//source/native:node_tools_lock.json")))
+    for identity, entry in node_tools["packages"].items():
+        if identity in packages and packages[identity] != entry:
+            fail("Conflicting locked Node tool package")
+        packages[identity] = entry
     for identity, entry in packages.items():
         prefix = entry["name"].removeprefix("@types/") if entry["name"].startswith("@types/") else "package"
         http_archive(name = "electron_npm_" + identity, urls = [entry["url"]], integrity = entry["integrity"], strip_prefix = prefix, type = "tgz", build_file_content = "package(default_visibility = [\"//visibility:public\"])\nfilegroup(name = \"files\", srcs = glob([\"**\"], exclude = [\"BUILD.bazel\"]))")

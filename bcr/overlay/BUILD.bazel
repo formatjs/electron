@@ -121,6 +121,7 @@ test_suite(
         "//source/content_metadata:binary_proto_test",
         "//source/content_metadata:catapult_test",
         "//source/content_metadata:content_webui_test",
+        "//source/content_metadata:electron_version_test",
         "//source/content_metadata:metadata_test",
         "//source/content_metadata:native_generators_test",
         "//source/content_metadata:policy_test",
