@@ -24,10 +24,11 @@ MEDIA_SOURCE_PREFIXES = ["third_party/flac", "media/cdm/api", "third_party/libao
 COMPOSITOR_SOURCE_PREFIXES = ["third_party/webrtc", "third_party/federated_compute/src", "third_party/libsrtp"]
 BLINK_SOURCE_PREFIXES = ['third_party/cld_3/src', 'third_party/cpuinfo/src', 'third_party/devtools-frontend/src', 'third_party/eigen3/src', 'third_party/emoji-segmenter/src', 'third_party/farmhash/src', 'third_party/flatbuffers/src', 'third_party/fxdiv/src', 'third_party/gemmlowp/src', 'third_party/libphonenumber/dist', 'third_party/material_color_utilities/src', 'third_party/neon_2_sse/src', 'third_party/ots/src', 'third_party/pthreadpool/src', 'third_party/ruy/src', 'third_party/search_engines_data/resources', 'third_party/smhasher/src', 'third_party/tflite/src', 'third_party/xnnpack/src']
 SOURCE_PREFIXES += MEDIA_SOURCE_PREFIXES + COMPOSITOR_SOURCE_PREFIXES + BLINK_SOURCE_PREFIXES
+SOURCE_PREFIXES += ["third_party/cros_system_api"]
 TOOLCHAIN = {"//buildtools/third_party/libc++:" + name for name in ("all_modules", "custom_headers", "libcxx_headers", "libc++")}
 EXTRA_NATIVE_HEADERS = {
     "//printing/mojom:mojom": ["//printing/page_range.h"],
-    "//device/bluetooth:bluetooth": ["//chromeos/constants/chromeos_features.h"],
+    "//device/bluetooth:bluetooth": ["//chromeos/constants/chromeos_features.h", "//third_party/cros_system_api/dbus/service_constants.h"],
 }
 SDK_LIBS = {"atspi", "Xcomposite", "Xdamage", "Xfixes", "Xrandr", "Xrender", "Xtst", "drm", "asound", "ffi_pic", "X11", "Xi", "Xext", "pci", "gbm", "dbus-1", "udev", "cairo", "harfbuzz", "pango-1.0", "pangocairo-1.0", "atk-1.0", "atk-bridge-2.0"}
 SCRIPTS = MOJO_SCRIPTS | {"//" + name for name in (
@@ -478,9 +479,20 @@ def capture(graph, digest, chromium, source_roots, profiles):
                 record["source_headers"] = sorted(set(record["source_headers"] + ml_dtypes_headers))
             if label in EXTRA_NATIVE_HEADERS:
                 # These source-root includes are omitted from GN's file lists.
-                for header in EXTRA_NATIVE_HEADERS[label]:
+                extra_headers = set(EXTRA_NATIVE_HEADERS[label])
+                pending_headers = [path for path in extra_headers if path.startswith("//third_party/cros_system_api/")]
+                while pending_headers:
+                    header = pending_headers.pop()
+                    for included in source_includes(header[2:])[1]:
+                        path = "//" + posixpath.normpath(posixpath.join(posixpath.dirname(header[2:]), included))
+                        if not path.startswith("//third_party/cros_system_api/") or not physical(path[2:]).is_file():
+                            raise ValueError("Missing relative system_api header: " + path)
+                        if path not in extra_headers:
+                            extra_headers.add(path)
+                            pending_headers.append(path)
+                for header in sorted(extra_headers):
                     input_file(header)
-                record["source_headers"] = sorted(set(record["source_headers"] + EXTRA_NATIVE_HEADERS[label]))
+                record["source_headers"] = sorted(set(record["source_headers"]) | extra_headers)
             record["outputs"] = target.get("outputs", [])
             replaced_rust_flags = [flag for flag in record["gn_ldflags"] if flag.startswith("prebuilt_rustc_sysroot/lib/rustlib/x86_64-unknown-linux-gnu/lib/lib") and flag.endswith(".rlib")]
             if replaced_rust_flags:
