@@ -126,7 +126,9 @@ int main(int argc, char** argv) {
             "every decoded RGB byte matches independent lossless PNG");
   Stage("pixels");
   crabby_avifRGBImageFreePixels(&rgb);
+  Stage("rgb_freed");
   crabby_avifImageDestroy(image);
+  Stage("image_freed");
   crabby_avifDecoderDestroy(decoder);
   Stage("conversion");
   CheckConversion();
