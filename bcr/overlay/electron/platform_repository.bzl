@@ -84,7 +84,12 @@ def electron_platform_repositories(ctx):
             continue
         suffix = prefix[len("third_party/"):] if prefix.startswith("third_party/") else prefix
         name = "electron_platform_" + suffix.replace("-", "_").replace("/", "_").lower()
-        new_git_repository(name = name, remote = pin["remote"], commit = pin["commit"], build_file_content = "exports_files([\"BUILD.bazel\"], visibility = [\"//visibility:public\"])\n")
+        build_file_content = "exports_files([\"BUILD.bazel\"], visibility = [\"//visibility:public\"])\n"
+        if pin.get("archive"):
+            archive = pin["archive"]
+            http_archive(name = name, urls = [archive["url"]], sha256 = archive["sha256"], strip_prefix = archive["strip_prefix"], type = "tar.gz", build_file_content = build_file_content)
+        else:
+            new_git_repository(name = name, remote = pin["remote"], commit = pin["commit"], build_file_content = build_file_content)
         anchors["@" + name + "//:BUILD.bazel"] = prefix
         names.append(name)
     esbuild = profile["devtools_esbuild"]

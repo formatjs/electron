@@ -107,3 +107,20 @@ py_test(
         "@platforms//cpu:x86_64",
     ],
 )
+
+_CATAPULT_INPUTS = [
+    "@electron_chromium_node_tool//:node-linux-x64/bin/node",
+    "@electron_platform_sources//:gen/content/browser/tracing/about_tracing.html",
+    "@electron_platform_sources//:gen/content/browser/tracing/about_tracing.js",
+]
+
+py_test(
+    name = "catapult_test",
+    srcs = ["catapult_test.py"],
+    args = ["$(rootpath " + label + ")" for label in _CATAPULT_INPUTS],
+    data = _CATAPULT_INPUTS,
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)

@@ -2033,3 +2033,18 @@ Chromium's rewritten `/@bufbuild/protobuf/wire/index.js` browser import. The
 fixture now maps that one import to the pinned npm runtime in a scratch copy.
 The original generated product retains its browser URL. The real wire runtime
 test remains required; this fixture correction still needs hosted validation.
+
+### Catapult standalone tracing resources
+
+The content closure now declares Catapult's original standalone tracing
+HTML/JavaScript producer, all 679 GN-listed inputs and original minification.
+The archive follows Chromium's exact DEPS commit and adds SHA-256 verification;
+existing source revisions and native library/header layers remain unchanged.
+Metadata analysis passed. The 86,900-action audit adds one Python generator,
+preserves all previous C++/Rust/Python action keys and finds zero CMake or
+foreign-cc actions.
+
+The resource contract check verifies the Chromium `tracing.js` route, flattened
+HTML imports, retained viewer entrypoint and JavaScript syntax with pinned Node.
+It does not establish browser UI execution. Generation, reproducibility and
+contract assertions remain pending on BB; full Electron integration is unfinished.

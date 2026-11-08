@@ -32,6 +32,7 @@ CONTENT_PROTO_HEADER_ACTIONS = {
 }
 CONTENT_PROTO_RUNTIME_COPIES = ["//third_party/protobuf:copy_google_protobuf", "//third_party/protobuf:copy_google_protobuf_internal"]
 CONTENT_WEB_ASSETS = {
+    "about_tracing": "//third_party/catapult/tracing:generate_about_tracing",
     "mojo_bindings_lite": "//mojo/public/js:bindings_lite",
     "devtools_resource_manifest": "//third_party/devtools-frontend/src:generate_devtools_grd",
 }
@@ -41,7 +42,7 @@ MEDIA_SOURCE_PREFIXES = ["third_party/flac", "media/cdm/api", "third_party/libao
 COMPOSITOR_SOURCE_PREFIXES = ["third_party/webrtc", "third_party/federated_compute/src", "third_party/libsrtp"]
 BLINK_SOURCE_PREFIXES = ['third_party/cld_3/src', 'third_party/cpuinfo/src', 'third_party/devtools-frontend/src', 'third_party/eigen3/src', 'third_party/emoji-segmenter/src', 'third_party/farmhash/src', 'third_party/flatbuffers/src', 'third_party/fxdiv/src', 'third_party/gemmlowp/src', 'third_party/libphonenumber/dist', 'third_party/material_color_utilities/src', 'third_party/neon_2_sse/src', 'third_party/ots/src', 'third_party/pthreadpool/src', 'third_party/ruy/src', 'third_party/search_engines_data/resources', 'third_party/smhasher/src', 'third_party/tflite/src', 'third_party/xnnpack/src']
 SOURCE_PREFIXES += MEDIA_SOURCE_PREFIXES + COMPOSITOR_SOURCE_PREFIXES + BLINK_SOURCE_PREFIXES
-SOURCE_PREFIXES += ["third_party/cros_system_api", "third_party/perfetto"]
+SOURCE_PREFIXES += ["third_party/cros_system_api", "third_party/perfetto", "third_party/catapult"]
 TOOLCHAIN = {"//buildtools/third_party/libc++:" + name for name in ("all_modules", "custom_headers", "libcxx_headers", "libc++")}
 EXTRA_NATIVE_HEADERS = {
     "//components/viz/host:host": ["//skia/ext/skia_commit_hash.h"],
@@ -64,6 +65,7 @@ SCRIPTS = MOJO_SCRIPTS | {"//" + name for name in (
     "mojo/public/tools/bindings/concatenate-files.py",
     "mojo/public/tools/bindings/concatenate_and_replace_closure_exports.py",
     "third_party/devtools-frontend/src/scripts/build/generate_devtools_grd.py",
+    "third_party/catapult/tracing/bin/generate_about_tracing_contents",
     "third_party/node/node.py",
     "third_party/devtools-frontend/src/scripts/build/assert_grd.py",
     "third_party/devtools-frontend/src/scripts/build/assert_third_party_readmes.py",
@@ -195,6 +197,15 @@ def source_revisions(chromium):
         if not remote.startswith("https://") or not re.fullmatch("[0-9a-f]{40}", commit):
             raise ValueError("Invalid exact platform source revision")
         records[prefix] = dict(remote=remote, commit=commit)
+        if prefix == "third_party/catapult":
+            if commit != "04c85a1d0e324464c6be4b3d193b47cb6177d03a":
+                raise ValueError("Update exact Catapult archive metadata")
+            records[prefix]["archive"] = {
+                "url": "https://codeload.github.com/catapult-project/catapult/tar.gz/" + commit,
+                "sha256": "5a57259f90c4cba3636b25989dd8e513fc13fa7f12364dc156e0c62cd873cee0",
+                "strip_prefix": "catapult-" + commit,
+            }
+
     for prefix in SOURCE_PREFIXES:
         record(prefix, entries["src/" + prefix])
     variables, entries = read_deps(chromium / "third_party/dawn/DEPS")
