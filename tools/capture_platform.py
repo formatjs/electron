@@ -363,10 +363,12 @@ def capture(graph, digest, chromium, source_roots, profiles):
             for path in script_parent.glob("*.py"):
                 inputs.add(target["script"].rsplit("/", 1)[0] + "/" + path.name)
             helper_directories = []
-            if target["script"].startswith("//tools/grit/"):
+            if target["script"].startswith("//tools/grit/") or target["script"] == "//third_party/blink/renderer/build/scripts/generate_permission_element_grd.py":
                 helper_directories.append("tools/grit")
             if target["script"].startswith("//tools/metrics/"):
                 helper_directories += ["tools/metrics/common", "tools/metrics/ukm", "tools/metrics/private_metrics"]
+            if target["script"] == "//third_party/blink/renderer/build/scripts/make_instrumenting_probes.py":
+                helper_directories += ["third_party/jinja2", "third_party/markupsafe", "third_party/blink/renderer/build/scripts/blinkbuild"]
             if target["script"] in ("//tools/variations/fieldtrial_to_struct.py", "//tools/json_to_struct/json_to_struct.py"):
                 helper_directories += ["tools/json_comment_eater", "tools/json_to_struct"]
             if target["script"] == "//tools/variations/fieldtrial_to_struct.py":
@@ -382,6 +384,15 @@ def capture(graph, digest, chromium, source_roots, profiles):
                     inputs.add(esbuild)
                 record["devtools_node_modules"] = True
             args = [arg.replace("$SOURCE_ROOT/out/bazel-import/", "") for arg in target.get("args", [])]
+            if target["script"] == "//third_party/blink/renderer/build/scripts/generate_permission_element_grd.py":
+                directory = args[args.index("--input_base_dir") + 1]
+                if directory != "../../third_party/blink/public/strings/":
+                    raise ValueError("Untranslated permission string input root")
+                inputs.add("//third_party/blink/public/strings/permission_element_strings.grd")
+                translations = sorted(physical("third_party/blink/public/strings/translations").glob("permission_element_strings_*"))
+                if not translations:
+                    raise ValueError("Missing original permission string translations")
+                inputs.update("//third_party/blink/public/strings/translations/" + path.name for path in translations if path.is_file())
             if target["script"] in ("//tools/variations/fieldtrial_to_struct.py", "//tools/json_to_struct/json_to_struct.py"):
                 # Pin generated copyright to the captured release year.
                 record["reproducibility_options"] = {"year": "2025", "basis": "Chromium 142 source release"}
