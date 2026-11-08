@@ -30,6 +30,7 @@ SOURCE_PREFIXES += MEDIA_SOURCE_PREFIXES + COMPOSITOR_SOURCE_PREFIXES + BLINK_SO
 SOURCE_PREFIXES += ["third_party/cros_system_api"]
 TOOLCHAIN = {"//buildtools/third_party/libc++:" + name for name in ("all_modules", "custom_headers", "libcxx_headers", "libc++")}
 EXTRA_NATIVE_HEADERS = {
+    "//services/network/public/mojom:mojom_shared_storage_blink": ["//third_party/blink/renderer/modules/shared_storage/shared_storage_blink_mojom_traits.h"],
     "//media/gpu/vaapi:common": ["//third_party/libva_protected_content/va_protected_content.h"],
     "//components/signin/public/identity_manager:identity_manager": ["//components/account_manager_core/account.h"],
     "//printing/mojom:mojom": ["//printing/page_range.h"],

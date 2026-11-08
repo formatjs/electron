@@ -1816,3 +1816,12 @@ CargoBuildScriptRun baseline keys from the VAAPI-fixed graph. Additions include
 one C++ probe, 26 Rust compile variants and six build-script run variants. No
 CMake/foreign action mnemonics matched. These counts do not prove runtime
 correctness or a performance improvement.
+
+The running `c5da231` aggregate exposed a missing shared-storage typemap header.
+GN names it in `services/network/public/mojom/BUILD.gn` as `traits_headers`, with
+its implementation already owned by
+`//services/network/public/mojom:mojom_shared_storage_blink`. The profile now
+exports that original header on the same library. Consumers receive it through
+their existing native dependencies. Global platform/core/modules header lists
+remain unchanged; a fresh capture verified that only the owner's header list
+changed. Hosted compilation remains pending.
