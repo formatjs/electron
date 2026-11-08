@@ -24,7 +24,7 @@ def _file(original):
         return "//:" + original[2:]
     return ":" + original[len(_BUILD):] if original.startswith(_BUILD) else "//:" + original[2:]
 
-def _system_deps(library):
+def _system_deps(original, library):
     libs = library["libs"]
     deps = []
     for names, target in [
@@ -41,6 +41,8 @@ def _system_deps(library):
         if any([name in libs for name in names]):
             deps.append(target)
     deps += ["@electron_platform_sdk//:" + name for name in library["libs"] if name in PROFILE["sdk_libraries"] and name != "pci"]
+    if original == "//media/gpu/vaapi:libva_stubs":
+        deps.append("@electron_platform_sdk//:va_headers")
     return deps
 
 def _link_settings(library):
@@ -129,7 +131,7 @@ def electron_platform():
             linkopts = ["-l" + name for name in library["libs"] if name in ["m", "dl", "rt", "pthread", "resolv"]],
             linkstatic = True,
             target_compatible_with = _COMPATIBLE,
-            deps = {dep: True for dep in [":tool_headers" if original in PROFILE["execution_closure"] else ":source_headers"] + _system_deps(library) + [_label(dep) for dep in library["gn_deps"] if dep not in PROFILE["toolchain_deps"] and dep not in PROFILE["execution_tools"]]}.keys(),
+            deps = {dep: True for dep in [":tool_headers" if original in PROFILE["execution_closure"] else ":source_headers"] + _system_deps(original, library) + [_label(dep) for dep in library["gn_deps"] if dep not in PROFILE["toolchain_deps"] and dep not in PROFILE["execution_tools"]]}.keys(),
         )
         if library.get("resource_sources"):
             settings["data"] = [_file(path) for path in library["resource_sources"]]
