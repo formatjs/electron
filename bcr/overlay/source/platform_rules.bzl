@@ -5,6 +5,7 @@ load("@electron_platform_sources//:profile.bzl", "PROFILE")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_import.bzl", "cc_import")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("//electron:artifact_file.bzl", "electron_artifact_file")
 load("//electron:source_action.bzl", "electron_source_action")
 load("//electron:source_headers.bzl", "electron_source_headers")
 load("//electron:source_tool.bzl", "electron_source_tool")
@@ -269,7 +270,16 @@ def electron_platform():
         native.alias(name = name, actual = _label(original))
     if "//electron:electron_app" in PROFILE["libraries"]:
         native.alias(name = "electron_binary", actual = _label("//electron:electron_app"))
-        native.filegroup(name = "electron_programs", srcs = [_label(label) for label in ["//electron:electron_app", "//sandbox/linux:chrome_sandbox", "//components/crash/core/app:chrome_crashpad_handler"]])
+        programs = []
+        for label, filename in [
+            ("//electron:electron_app", "electron"),
+            ("//sandbox/linux:chrome_sandbox", "chrome-sandbox"),
+            ("//components/crash/core/app:chrome_crashpad_handler", "chrome_crashpad_handler"),
+        ]:
+            name = "program_" + filename
+            electron_artifact_file(name = name, src = _label(label), out = "programs/" + filename, executable = True, target_compatible_with = _COMPATIBLE)
+            programs.append(":" + name)
+        native.filegroup(name = "electron_programs", srcs = programs)
     if "//electron:electron_lib" in PROFILE["libraries"]:
         native.alias(name = "electron_lib", actual = _label("//electron:electron_lib"))
     if "//content:content" in PROFILE["libraries"]:

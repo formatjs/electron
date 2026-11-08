@@ -90,6 +90,7 @@ py_binary(
 )
 
 exports_files([
+    "artifact_file.py",
     "copy_files.py",
     "source_tool.py",
 ])
