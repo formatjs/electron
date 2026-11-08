@@ -14,6 +14,7 @@
 #include "gpu/command_buffer/service/command_buffer_service.h"
 #include "gpu/command_buffer/service/common_decoder.h"
 #include "gpu/command_buffer/service/disk_cache_proto.pb.h"
+#include "gpu/command_buffer/service/memory_tracking.h"
 #include "gpu/config/gpu_preferences.h"
 #include "gpu/webgpu/dawn_commit_hash.h"
 #include "libyuv/convert_from_argb.h"
