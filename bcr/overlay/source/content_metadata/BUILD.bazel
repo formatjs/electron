@@ -1,0 +1,22 @@
+load("@rules_python//python:defs.bzl", "py_test")
+
+package(default_visibility = ["//visibility:public"])
+
+_INPUTS = [
+    "@electron_network_sources//:gen/base/version_info/version_info_values.h",
+    "@electron_platform_sources//:gen/build/util/chromium_git_revision.h",
+    "@electron_base_sources//:chrome/VERSION",
+    "@electron_network_sources//:chrome/app/theme/chromium/BRANDING",
+    "@electron_base_sources//:build/util/LASTCHANGE.dummy",
+]
+
+py_test(
+    name = "metadata_test",
+    srcs = ["metadata_test.py"],
+    args = ["$(rootpath " + label + ")" for label in _INPUTS],
+    data = _INPUTS,
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)

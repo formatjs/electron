@@ -1860,3 +1860,25 @@ configured actions, including 37,380 CppCompile and 254 Rustc actions, with zero
 CMake/foreign action mnemonics. Analysis executed zero actions. The captured
 profile comparison limits changes to five libraries' header lists, five added
 raw files and the workspace producer; all other previous sections match.
+
+
+### Content version metadata
+
+Content needs Chromium's original Git revision header. The profile now captures
+`//build/util:chromium_git_revision` and runs its original `build/util/version.py`
+with the captured GN arguments and checked-in `LASTCHANGE.dummy`. This preserves
+the non-official profile; no host Git metadata, date or environment is consulted.
+The existing native network provider still owns version-info generation.
+
+The source aggregate requests the new producer. A source integration test checks
+both generated headers against the pinned VERSION, BRANDING and revision inputs,
+including GN's revision truncation and non-official build flag. Existing native
+libraries, generator records and shared header layers remain unchanged. Hosted
+execution is pending; full content and the Electron executable remain unfinished.
+
+
+Metadata analysis passed with zero build actions. The 86,750-action aggregate
+and source-test audit preserves all 37,380 CppCompile, 254 Rustc and 26
+CargoBuildScriptRun baseline keys exactly. Two actions are added; no CMake or
+foreign action mnemonics appear. These are action-graph checks, not a measured
+runtime speedup or successful hosted generator execution.
