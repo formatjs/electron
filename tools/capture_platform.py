@@ -164,11 +164,20 @@ def capture(graph, digest, chromium, source_roots, profiles):
     media_header_roots = ["media", "third_party/libaom", "third_party/crc32c", "third_party/ffmpeg", "third_party/flac", "third_party/opus", "third_party/libvpx", "third_party/openh264", "third_party/dav1d", "third_party/libgav1", "third_party/leveldatabase", "third_party/libwebm"]
     directories += media_header_roots
     directories += [path for path in MEDIA_SOURCE_PREFIXES if path not in directories]
+    implicit_header_roots = set()
+    for label in sorted(seen):
+        if targets[label]["type"] not in ("source_set", "static_library", "shared_library", "executable"):
+            continue
+        directory = label[2:].rsplit(":", 1)[0]
+        if not directory or any(directory == root or directory.startswith(root + "/") for root in directories):
+            continue
+        directories.append(directory)
+        implicit_header_roots.add(directory)
     assembly_inputs = {}
     for directory in directories:
         root = physical(directory)
         inventory = sorted(directory + "/" + path.relative_to(root).as_posix() for path in source_files(root) if path.is_file() and path.suffix in (".h", ".hh", ".hpp", ".hpp11", ".inc", ".inl", ".def", ".gen"))
-        if not inventory and directory not in media_header_roots:
+        if not inventory and directory not in media_header_roots and directory not in implicit_header_roots:
             raise ValueError("Missing original platform header inventory: " + directory)
         headers[directory] = inventory
         if directory.startswith(tuple("third_party/" + name for name in ["libaom", "ffmpeg", "libvpx", "openh264", "dav1d"])):
