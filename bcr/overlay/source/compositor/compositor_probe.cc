@@ -62,7 +62,7 @@ void CheckRaster() {
   buffer.push<cc::SaveOp>();
   buffer.push<cc::ClipRectOp>(SkRect::MakeXYWH(1, 1, 4, 4),
                               SkClipOp::kIntersect, false);
-  buffer.push<cc::TranslateOp>(2, 2);
+  buffer.push<cc::TranslateOp>(2.f, 2.f);
   cc::PaintFlags flags;
   flags.setAntiAlias(false);
   flags.setColor(SkColors::kRed);
