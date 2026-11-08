@@ -2,6 +2,7 @@
 """Check original Chromium/Electron payloads and final resource routing."""
 
 import gzip
+import base64
 from pathlib import Path
 import re
 import struct
@@ -11,7 +12,7 @@ import unittest
 
 (HEADER, PACK, HTML, JAVASCRIPT, NODE, COMPONENT_HEADER, COMPONENT_PACK,
  DISTILLER, READABILITY, READERABLE, FINAL_PACK, ELECTRON_HEADER,
- DISCOVERY_HTML) = [Path(value) for value in sys.argv[1:]]
+ DISCOVERY_HTML, ERROR_IMAGE_1X, ERROR_IMAGE_2X) = [Path(value) for value in sys.argv[1:]]
 sys.argv[1:] = []
 
 
@@ -78,6 +79,16 @@ class ContentWebUI(unittest.TestCase):
             with self.subTest(resource=name):
                 identifier = component_ids[name]
                 self.assertEqual(final[identifier], components[identifier])
+
+    def test_neterror_pack_inlines_both_original_image_scales(self):
+        identifiers = dict((name, int(value)) for name, value in re.findall(
+            r"^#define (IDR_\w+) (\d+)$", COMPONENT_HEADER.read_text(), re.MULTILINE))
+        payload = resources(COMPONENT_PACK)[identifiers["IDR_NET_ERROR_HTML"]]
+        if payload.startswith(b"\x1f\x8b"):
+            payload = gzip.decompress(payload)
+        for image in (ERROR_IMAGE_1X, ERROR_IMAGE_2X):
+            with self.subTest(image=str(image)):
+                self.assertIn(base64.b64encode(image.read_bytes()), payload)
 
 
 if __name__ == "__main__":

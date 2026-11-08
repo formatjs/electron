@@ -140,6 +140,8 @@ _CONTENT_WEBUI_INPUTS = [
     "@electron_platform_sources//:resources.pak",
     "@electron_content_webui_sources//:gen/electron/grit/electron_resources.h",
     "@electron_chromium_sources//:content/shell/resources/shell_devtools_discovery_page.html",
+    "@electron_chromium_sources//:components/resources/default_100_percent/neterror/error_network_generic.png",
+    "@electron_chromium_sources//:components/resources/default_200_percent/neterror/error_network_generic.png",
 ]
 
 py_test(

@@ -2425,3 +2425,24 @@ CMake/foreign-cc mnemonics. All 41,474 C++, 254 Rust, 26 Cargo and 7,535
 previous Python action keys remain present; exactly 155 Python actions are added.
 Native libraries, header layers, source pins and existing producer records retain
 their exact values. Full executable integration remains open.
+
+
+### GRIT cross-directory assets and Windows-style paths
+
+The `b1c1300` hosted consumer passed release/beta version metadata, original
+Electron bundles and native runtime probes. Resource execution exposed missing
+neterror images, an extension select image and Chrome/extension feature JSON.
+The latter use Windows separators in GRIT file attributes; capture now
+normalizes them as GRIT does.
+
+Asset discovery follows HTML source/stylesheet references, CSS URLs/imports and
+srcset candidates across source directories. External/runtime URLs are skipped;
+only files in pinned source roots enter the action inputs. Eight WebUI actions
+gain inputs. Generator records otherwise keep their original bodies and options.
+The resource contract checks both original neterror PNG scales survive inlining
+into the actual component DataPack.
+
+The 95,526-action graph passes metadata analysis with zero local processes and
+no CMake/foreign-cc mnemonics. All 41,474 C++, 254 Rust, 26 Cargo and 7,690
+Python action keys remain present. Input sets change, so this does not prove
+cache reuse. Hosted resource validation and full Electron linkage remain open.

@@ -168,11 +168,12 @@ def grit_resource_inputs(inputs, physical):
         seen.add((source, base))
         tree = ElementTree.parse(physical(source))
         if base is None:
-            base = posixpath.normpath(posixpath.join(posixpath.dirname(source), tree.getroot().attrib.get("base_dir", ".")))
+            base = posixpath.normpath(posixpath.join(posixpath.dirname(source), tree.getroot().attrib.get("base_dir", ".").replace("\\", "/")))
         for node in tree.iter():
             name = node.attrib.get("file") or (node.attrib.get("path") if node.tag == "file" else None)
             if not name or any(marker in name for marker in ("$", "<(", "%(")):
                 continue
+            name = name.replace("\\", "/")
             if node.attrib.get("type") == "chrome_scaled_image":
                 for layout in physical(base).iterdir():
                     if layout.is_dir() and re.search(r"_\d+_percent$", layout.name):
@@ -197,7 +198,18 @@ def grit_resource_inputs(inputs, physical):
         if source in visited:
             continue
         visited.add(source)
-        for include in re.findall(r'<include\b[^>]*\bsrc=["\']([^"\']+)["\']', physical(source[2:]).read_text(), re.I):
+        text = physical(source[2:]).read_text()
+        references = re.findall(r'\b(?:src|href)\s*=\s*["\']([^"\']+)["\']', text, re.I)
+        references += re.findall(r'url\(\s*["\']?([^"\'()\s]+)', text, re.I)
+        references += re.findall(r'@import\s+["\']([^"\']+)["\']', text, re.I)
+        for srcset in re.findall(r'\bsrcset=["\']([^"\']+)["\']', text, re.I):
+            references.extend(part.strip().split()[0] for part in srcset.split(",") if part.strip())
+        for include in references:
+            if include.startswith(("/", "#", "$", "{{", "[[")) or re.match(r"^[A-Za-z][A-Za-z0-9+.-]*:", include):
+                continue
+            include = include.split("#", 1)[0].split("?", 1)[0]
+            if any(len(part.encode("utf-8")) > 255 for part in include.split("/")):
+                continue
             path = posixpath.normpath(posixpath.join(posixpath.dirname(source[2:]), include))
             if path.startswith(("/", "../")) or not physical(path).is_file():
                 continue
