@@ -41,7 +41,7 @@ def _system_deps(original, library):
         if any([name in libs for name in names]):
             deps.append(target)
     deps += ["@electron_platform_sdk//:" + name for name in library["libs"] if name in PROFILE["sdk_libraries"] and name != "pci"]
-    if original == "//media/gpu/vaapi:libva_stubs":
+    if original in ["//media/gpu/vaapi:libva_stubs", "//media/gpu/chromeos:fourcc"]:
         deps.append("@electron_platform_sdk//:va_headers")
     return deps
 
