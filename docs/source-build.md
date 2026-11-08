@@ -2133,3 +2133,20 @@ between each SDK interface and its executable Debian runtime. It also requires
 code in the runtime and no code in the SDK interface. This artifact check does
 not establish native CUPS/fence execution or a linked Electron. The 87,475-action audit preserves all previous C++/Rust/Python action keys
 and finds zero CMake/foreign-cc actions. Hosted ABI execution remains required.
+
+
+### Catapult Web Components resource
+
+The 75b2b3b consumer gets past Python imports but fails while loading a tracing
+HTML script reference. Sanitized diagnostics identify `webcomponents.js`;
+`tracing/ui/base/webcomponentsjs_polyfill.html` references the pinned archive's
+`third_party/polymer/components/webcomponentsjs/webcomponents.js`. That resource
+is now declared explicitly. Original minification and HTML imports stay enabled.
+Hosted generation and resource contracts still need validation.
+
+
+The same hosted consumer reports `policy_test`, `web_assets_test`,
+`tracing_proto_test` and `binary_proto_test` passed. This verifies the original
+policy template/depfile contract and corrected DevTools manifest fixture. The
+Catapult asset and PAK targets still failed to build before this resource fix.
+Combined SDK/resource metadata analysis passed with zero executed actions.

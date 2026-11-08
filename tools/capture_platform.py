@@ -487,6 +487,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
                 inputs.add(target["script"].rsplit("/", 1)[0] + "/" + path.name)
             helper_directories = []
             if label == CONTENT_WEB_ASSETS["about_tracing"]:
+                inputs.add("//third_party/catapult/third_party/polymer/components/webcomponentsjs/webcomponents.js")
                 helper_directories += ["third_party/catapult/" + path for path in (
                     "tracing/tracing_build",
                     "third_party/beautifulsoup4-4.9.3/py3k/bs4",
