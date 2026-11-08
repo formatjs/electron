@@ -326,10 +326,13 @@ def capture(graph, digest, chromium, source_roots, profiles):
                 pending.extend(targets[dependency].get("deps", []))
         action["ordering_deps"] = sorted(ordering)
     for library in libraries.values():
-        textual = set()
-        for source in library["srcs"] + library["c_srcs"]:
-            if source.startswith(BUILD):
+        textual, visited = set(), set()
+        pending = list(library["srcs"] + library["c_srcs"])
+        while pending:
+            source = pending.pop()
+            if source.startswith(BUILD) or source in visited:
                 continue
+            visited.add(source)
             for include in re.findall(r'^\s*#\s*include\s*["<]([^"\n>]+\.(?:c|cc|cpp))[">]', physical(source[2:]).read_text(), re.M):
                 candidates = [posixpath.normpath(posixpath.join(posixpath.dirname(source[2:]), include))]
                 candidates += [posixpath.normpath(posixpath.join(directory, include)) for directory in library["includes"]]
@@ -340,6 +343,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
                 original = "//" + candidate if physical(candidate).is_file() else BUILD + candidate
                 textual.add(original)
                 input_file(original)
+                pending.append(original)
         if textual:
             library["textual_headers"] = sorted(textual)
     # Quoted sibling includes must remain beside sources across profile boundaries.
