@@ -16,7 +16,7 @@ from pathlib import Path
 from capture_mojo import SCRIPTS as MOJO_SCRIPTS
 from native_graph import BUILD, capture_library, load_profiles, pack_profile
 
-BLINK_BINDINGS_ROOTS = ["//third_party/blink/renderer/bindings:web_idl_database", "//third_party/blink/renderer/core:core_event_interfaces", "//third_party/blink/renderer/modules:modules_event_interfaces"]
+BLINK_BINDINGS_ROOTS = ["//third_party/blink/renderer/bindings:web_idl_database", "//third_party/blink/renderer/bindings:generate_bindings_all", "//third_party/blink/renderer/core:core_event_interfaces", "//third_party/blink/renderer/modules:modules_event_interfaces"]
 BLINK_PLATFORM_GENERATORS = ['//third_party/blink/common:make_generated_document_policy_features', '//third_party/blink/common:make_generated_features', '//third_party/blink/common:make_generated_origin_trials', '//third_party/blink/common:make_runtime_feature_state_contexts_impl', '//third_party/blink/public/common:make_generated_permissions_policy_helper', '//third_party/blink/public/common:make_runtime_feature_state_contexts_headers', '//third_party/blink/public/mojom/origin_trials:generate_origin_trial_feature', '//third_party/blink/public/mojom/runtime_feature_state:generate_runtime_feature', '//third_party/blink/public:runtime_features_for_public', '//third_party/blink/renderer/core:make_core_generated_settings', '//third_party/blink/renderer/platform/loader:make_platform_loader_generated_delivery_type_names', '//third_party/blink/renderer/platform/loader:make_platform_loader_generated_fetch_initiator_type_names', '//third_party/blink/renderer/platform/network:http_names', '//third_party/blink/renderer/platform:color_data', '//third_party/blink/renderer/platform:font_family_names', '//third_party/blink/renderer/platform:runtime_enabled_features', '//third_party/blink/renderer/platform:runtime_feature_state_override_context']
 ROOTS = ["//ui/ozone:ozone", "//ui/gl:gl", "//gpu/command_buffer/client:gles2_implementation", "//gpu/command_buffer/service:gles2", "//components/viz/common:common", "//gpu/ipc/service:service", "//gpu/ipc/client:client", "//gpu/ipc/host:host", "//media:media", "//cc:cc", "//third_party/blink/renderer/platform:platform"] + BLINK_BINDINGS_ROOTS + BLINK_PLATFORM_GENERATORS
 SOURCE_PREFIXES = ["third_party/libyuv", "third_party/angle", "third_party/dawn", "third_party/swiftshader", "third_party/spirv-tools/src", "third_party/spirv-headers/src", "third_party/vulkan-loader/src", "third_party/vulkan-tools/src", "third_party/vulkan-utility-libraries/src", "third_party/vulkan-headers/src", "third_party/vulkan_memory_allocator", "third_party/wayland/src", "third_party/wayland-protocols/src", "third_party/wayland-protocols/kde"]
@@ -34,6 +34,7 @@ SCRIPTS = MOJO_SCRIPTS | {"//" + name for name in (
     "third_party/devtools-frontend/src/scripts/build/build_inspector_overlay.py",
     "third_party/blink/renderer/bindings/scripts/collect_idl_files.py",
     "third_party/blink/renderer/bindings/scripts/build_web_idl_database.py",
+    "third_party/blink/renderer/bindings/scripts/generate_bindings.py",
     "third_party/blink/renderer/bindings/scripts/generate_event_interface_names.py",
     "tools/grit/grit.py", "tools/variations/fieldtrial_to_struct.py",
     "tools/metrics/private_metrics/gen_builders.py", "tools/metrics/ukm/gen_builders.py",
@@ -144,6 +145,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
     revisions = source_revisions(chromium)
     previous = [("base", "base"), ("embedder", "embedder"), ("ipcz", "ipcz"), ("libnode", "libnode"), ("perfetto", "perfetto_native"), ("protobuf", "protobuf"), ("v8_engine", "v8_engine"), ("v8_support", "v8_support"), ("network", "network"), ("mojo", "mojo"), ("fonts", "fonts"), ("codecs", "codecs"), ("skia", "skia"), ("gfx", "gfx"), ("display", "display"), ("events", "events"), ("ui", "ui")]
     external, shared = load_profiles(profiles, previous)
+    shared[BUILD + "icudtl.dat"] = "@electron_icu_sources//:common/icudtl.dat"
     external["//media/filters:symphonia_glue"] = "@electron//source/media:symphonia"
     external["//media/filters:symphonia_glue_cxx_generated"] = "@electron//source/media:symphonia_bridge"
     temporal = json.loads((profiles / "temporal_inputs.json").read_text())
@@ -349,6 +351,9 @@ def capture(graph, digest, chromium, source_roots, profiles):
                 if executable not in tools:
                     raise ValueError("Untranslated original generator executable: " + executable)
                 inputs.add(executable)
+                if args[0] == "character_data_generator":
+                    # This generator reads data beside argv[0].
+                    inputs.add(BUILD + "icudtl.dat")
             if target["script"] == "//build/gn_run_binary.py" and args and args[0] == "nasm":
                 if "--reproducible" not in args:
                     raise ValueError("Original NASM action lacks reproducible output mode")
