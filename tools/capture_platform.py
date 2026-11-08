@@ -369,6 +369,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
                 helper_directories += ["tools/metrics/common", "tools/metrics/ukm", "tools/metrics/private_metrics"]
             if target["script"] == "//third_party/blink/renderer/build/scripts/make_instrumenting_probes.py":
                 helper_directories += ["third_party/jinja2", "third_party/markupsafe", "third_party/blink/renderer/build/scripts/blinkbuild"]
+                inputs.add("//third_party/blink/renderer/build/scripts/templates/macros.tmpl")
             if target["script"] in ("//tools/variations/fieldtrial_to_struct.py", "//tools/json_to_struct/json_to_struct.py"):
                 helper_directories += ["tools/json_comment_eater", "tools/json_to_struct"]
             if target["script"] == "//tools/variations/fieldtrial_to_struct.py":

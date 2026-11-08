@@ -101,6 +101,7 @@ use_repo(
     "electron_platform_cld_3_src",
     "electron_platform_cpuinfo_src",
     "electron_platform_crc32c_src",
+    "electron_platform_cros_system_api",
     "electron_platform_dav1d_libdav1d",
     "electron_platform_dawn",
     "electron_platform_dawn_third_party_khronos_egl_registry",
