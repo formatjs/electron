@@ -214,6 +214,11 @@ def capture(graph, digest, chromium, source_roots, profiles):
             for path in script_parent.glob("*.py"):
                 inputs.add(target["script"].rsplit("/", 1)[0] + "/" + path.name)
             args = [arg.replace("$SOURCE_ROOT/out/bazel-import/", "") for arg in target.get("args", [])]
+            if target["script"] == "//build/gn_run_binary.py":
+                executable = BUILD + args[0] if args else ""
+                if executable not in tools:
+                    raise ValueError("Untranslated original generator executable: " + executable)
+                inputs.add(executable)
             if target["script"] == "//build/gn_run_binary.py" and args and args[0] == "nasm":
                 if "--reproducible" not in args:
                     raise ValueError("Original NASM action lacks reproducible output mode")

@@ -194761,7 +194761,9 @@
         "//third_party/dav1d/libdav1d/tools/output/output.h",
         "//third_party/dav1d/version/vcs_version.h"
       ],
-      "tools": {},
+      "tools": {
+        "//out/bazel-import/nasm": "//third_party/nasm:nasm"
+      },
       "outputs": [
         "//out/bazel-import/obj/third_party/dav1d/dav1d_asm/cdef16_avx2.o",
         "//out/bazel-import/obj/third_party/dav1d/dav1d_asm/cdef16_avx512.o",
@@ -198187,7 +198189,9 @@
         "//third_party/ffmpeg/tests/checkasm/x86/checkasm.asm",
         "//third_party/ffmpeg/tools/decode_simple.h"
       ],
-      "tools": {},
+      "tools": {
+        "//out/bazel-import/nasm": "//third_party/nasm:nasm"
+      },
       "outputs": [
         "//out/bazel-import/obj/third_party/ffmpeg/ffmpeg_nasm/aacpsdsp.o",
         "//out/bazel-import/obj/third_party/ffmpeg/ffmpeg_nasm/autorename_libavcodec_x86_videodsp.o",
@@ -199600,7 +199604,9 @@
         "//third_party/libaom/source/libaom/tools/obu_parser.h",
         "//third_party/libaom/source/libaom/tools/txfm_analyzer/txfm_graph.h"
       ],
-      "tools": {},
+      "tools": {
+        "//out/bazel-import/nasm": "//third_party/nasm:nasm"
+      },
       "outputs": [
         "//out/bazel-import/obj/third_party/libaom/libaom_nasm/intrapred_asm_sse2.o",
         "//out/bazel-import/obj/third_party/libaom/libaom_nasm/aom_subpixel_8t_ssse3.o",
@@ -200540,7 +200546,9 @@
         "//third_party/libvpx/source/libvpx/y4menc.h",
         "//third_party/libvpx/source/libvpx/y4minput.h"
       ],
-      "tools": {},
+      "tools": {
+        "//out/bazel-import/nasm": "//third_party/nasm:nasm"
+      },
       "outputs": [
         "//out/bazel-import/obj/third_party/libvpx/libvpx_asm/dequantize_mmx.o",
         "//out/bazel-import/obj/third_party/libvpx/libvpx_asm/idctllm_mmx.o",
@@ -201891,7 +201899,9 @@
         "//third_party/openh264/src/test/utils/InputStream.h",
         "//third_party/openh264/src/ut.def"
       ],
-      "tools": {},
+      "tools": {
+        "//out/bazel-import/nasm": "//third_party/nasm:nasm"
+      },
       "outputs": [
         "//out/bazel-import/obj/third_party/openh264/openh264_common_asm/asm_inc.o",
         "//out/bazel-import/obj/third_party/openh264/openh264_common_asm/cpuid.o",
@@ -202435,7 +202445,9 @@
         "//third_party/openh264/src/test/utils/InputStream.h",
         "//third_party/openh264/src/ut.def"
       ],
-      "tools": {},
+      "tools": {
+        "//out/bazel-import/nasm": "//third_party/nasm:nasm"
+      },
       "outputs": [
         "//out/bazel-import/obj/third_party/openh264/openh264_encoder_asm/coeff.o",
         "//out/bazel-import/obj/third_party/openh264/openh264_encoder_asm/dct.o",
@@ -202946,7 +202958,9 @@
         "//third_party/openh264/src/test/utils/InputStream.h",
         "//third_party/openh264/src/ut.def"
       ],
-      "tools": {},
+      "tools": {
+        "//out/bazel-import/nasm": "//third_party/nasm:nasm"
+      },
       "outputs": [
         "//out/bazel-import/obj/third_party/openh264/openh264_processing_asm/denoisefilter.o",
         "//out/bazel-import/obj/third_party/openh264/openh264_processing_asm/downsample_bilinear.o",
