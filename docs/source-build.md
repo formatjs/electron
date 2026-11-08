@@ -1700,3 +1700,10 @@ into a temporary Bazel `--distdir`, using the original release filenames.
 The shell bootstrap checks their pinned SHA-256 values before Bazel independently
 checks BCR integrity. Downloads stay outside build actions. No dependency version,
 patch, compiler input or source-generation action changes.
+
+The [c2be721 BCR consumer](https://formatjs.buildbuddy.io/invocation/e54b7089-c094-4412-b5d0-1233b2a4d28e)
+passed bootstrap fetches, then GitHub returned HTTP 502 for Electron's own source
+archive. The prefetch list also includes the exact Electron 39.0.0 archive from
+codeload, verified against the existing `bcr/source.json` integrity. Its staged
+filename remains `v39.0.0.tar.gz`, matching the BCR URL. This changes transport
+only; all source patches and module metadata remain unchanged.
