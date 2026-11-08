@@ -10,11 +10,16 @@ BRIDGE = RUST_PROFILE["media_bridge"]
 
 electron_source_action(
     name = "symphonia_generate",
-    srcs = {
-        "@electron_rust_sources//:" + BRIDGE["script"]: BRIDGE["script"],
-        "@electron_rust_sources//:" + BRIDGE["source"]: BRIDGE["source"],
-        "@electron_base_sources//:gen/build/rust/gni_impl/rustc-print-cfg-x86_64-unknown-linux-gnu.txt": "out/bazel-import/gen/build/rust/gni_impl/rustc-print-cfg-x86_64-unknown-linux-gnu.txt",
-    },
+    srcs = dict([
+        (
+            "@electron_rust_sources//:" + path,
+            path,
+        )
+        for path in BRIDGE["python_inputs"] + [BRIDGE["source"]]
+    ] + [(
+        "@electron_base_sources//:gen/build/rust/gni_impl/rustc-print-cfg-x86_64-unknown-linux-gnu.txt",
+        "out/bazel-import/gen/build/rust/gni_impl/rustc-print-cfg-x86_64-unknown-linux-gnu.txt",
+    )]),
     args = BRIDGE["args"],
     logical_outputs = BRIDGE["outputs"],
     out_files = BRIDGE["outputs"],

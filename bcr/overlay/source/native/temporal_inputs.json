@@ -877,6 +877,11 @@
       "gen/media/filters/symphonia_glue.rs.h",
       "gen/media/filters/symphonia_glue.rs.cc"
     ],
+    "python_inputs": [
+      "third_party/rust/cxx/chromium_integration/run_cxxbridge.py",
+      "build/action_helpers.py",
+      "build/gn_helpers.py"
+    ],
     "root": "//media/filters:symphonia_glue",
     "script": "third_party/rust/cxx/chromium_integration/run_cxxbridge.py",
     "source": "media/filters/symphonia_glue.rs"
@@ -4993,8 +4998,10 @@
     "LICENSE",
     "base/logging/log_severity.h",
     "base/logging/rust_logger.rs",
+    "build/action_helpers.py",
     "build/build_config.h",
     "build/buildflag.h",
+    "build/gn_helpers.py",
     "build/rust/allocator/alias.cc",
     "build/rust/allocator/alias.h",
     "build/rust/allocator/alloc_error_handler_impl.cc",

@@ -293,7 +293,9 @@ def capture(graph, source, fontconfig=None, skia=None):
     arguments = [argument.replace("{{source_gen_dir}}", "gen/media/filters").replace("{{source_file_part}}", "symphonia_glue.rs").replace("{{source}}", "../../" + bridge_source[2:]) for argument in bridge["args"]]
     if any("{{" in argument for argument in arguments):
         raise ValueError("Untranslated Symphonia generator argument")
-    root_files.add(checked_file(bridge["script"][2:]))
+    python_inputs = [bridge["script"][2:], "build/action_helpers.py", "build/gn_helpers.py"]
+    for path in python_inputs:
+        root_files.add(checked_file(path))
     fixture_files = {"flac": "media/test/data/sfx.flac", "wave": "media/test/data/sfx_s24le.wav"}
     for path in fixture_files.values():
         root_files.add(checked_file(path))
@@ -335,7 +337,7 @@ def capture(graph, source, fontconfig=None, skia=None):
             omitted.append(flag)
         else:
             retained.append(flag)
-    media_bridge = {"cppdeps": native_cpp["//build/rust:cxx_cppdeps"], "fixture": media_fixture, "root": MEDIA_ROOT, "crate": name(MEDIA_ROOT), "generator": MEDIA_ROOT + "_cxx_generated_gen", "script": bridge["script"][2:], "args": arguments, "gn_args": bridge["args"], "gn_inputs": bridge["inputs"], "gn_deps": bridge["deps"], "outputs": [path.removeprefix("//out/bazel-import/") for path in outputs], "source": bridge_source[2:], "copts": retained, "defines": [d.replace('"', '\\"') for d in value(bridge_cpp, "defines")], "omitted_toolchain_options": omitted}
+    media_bridge = {"python_inputs": python_inputs, "cppdeps": native_cpp["//build/rust:cxx_cppdeps"], "fixture": media_fixture, "root": MEDIA_ROOT, "crate": name(MEDIA_ROOT), "generator": MEDIA_ROOT + "_cxx_generated_gen", "script": bridge["script"][2:], "args": arguments, "gn_args": bridge["args"], "gn_inputs": bridge["inputs"], "gn_deps": bridge["deps"], "outputs": [path.removeprefix("//out/bazel-import/") for path in outputs], "source": bridge_source[2:], "copts": retained, "defines": [d.replace('"', '\\"') for d in value(bridge_cpp, "defines")], "omitted_toolchain_options": omitted}
 
     flags = targets[ALLOCATOR + "buildflags"]
     if flags["type"] != "action" or flags["deps"] != ["//build:buildflag_header_h"] or flags["script"] != "//build/write_buildflag_header.py" or flags["response_file_contents"] != ["--flags", "RUST_ALLOCATOR_USES_PARTITION_ALLOC=true", "RUST_ALLOCATOR_USES_ALIGNED_MALLOC=false"]:
