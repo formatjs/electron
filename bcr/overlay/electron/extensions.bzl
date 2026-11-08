@@ -1,7 +1,7 @@
 """Exact, patched dependencies for the Electron source overlay."""
 
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository", "new_git_repository")
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load(":archive_urls.bzl", http_archive = "electron_source_archive")
 load(":base_repository.bzl", "electron_base_repository")
 load(":codecs_repository.bzl", "electron_codecs_repository")
 load(":display_repository.bzl", "electron_display_repository")

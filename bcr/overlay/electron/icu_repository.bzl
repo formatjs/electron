@@ -1,5 +1,7 @@
 """Pin ICU independently of other source repository implementations."""
 
+load(":archive_urls.bzl", "source_archive_urls")
+
 def _impl(ctx):
     revision = "1b2e3e8a421efae36141a7b932b41e315b089af8"
     dependency = ctx.read(ctx.attr.chromium).partition("'src/third_party/icu':")[2].partition("\n\n")[0]
@@ -7,7 +9,8 @@ def _impl(ctx):
         fail("Pinned ICU revision differs from Electron's Chromium DEPS")
     integrity = "sha256-Y7ha2oVUxB/rO1rnLCk9koACgW/V8VDaoFEju7G/u28="
     ctx.download_and_extract(
-        url = "https://github.com/foolip/chromium-icu/archive/" + revision + ".tar.gz",
+        url = source_archive_urls("https://github.com/foolip/chromium-icu/archive/" + revision + ".tar.gz"),
+        type = "tar.gz",
         integrity = integrity,
         stripPrefix = "chromium-icu-" + revision,
     )

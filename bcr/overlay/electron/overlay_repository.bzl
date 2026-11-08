@@ -1,11 +1,14 @@
 """Stable source fetch and overlay projection rules."""
 
+load(":archive_urls.bzl", "source_archive_urls")
+
 def _archive_impl(ctx):
     root = ctx.path(ctx.attr.catalog).dirname
     base = root.get_child("overlays/" + ctx.attr.overlay + "/bcr")
     source = json.decode(ctx.read(base.get_child("source.json")))
     ctx.download_and_extract(
-        url = source["url"],
+        url = source_archive_urls(source["url"]),
+        type = "tar.gz" if source["url"].endswith(".tar.gz") else "",
         integrity = source["integrity"],
         stripPrefix = source.get("strip_prefix", ""),
     )

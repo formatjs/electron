@@ -1,8 +1,11 @@
 """Electron's patched native source trees, independent of runtime downloads."""
 
+load(":archive_urls.bzl", "source_archive_urls")
+
 def _node_sources_impl(ctx):
     ctx.download_and_extract(
-        url = "https://github.com/nodejs/node/archive/refs/tags/v22.20.0.tar.gz",
+        url = source_archive_urls("https://github.com/nodejs/node/archive/refs/tags/v22.20.0.tar.gz"),
+        type = "tar.gz",
         sha256 = "5c2e4ecc6583c5d49f9a9a4473fc267402762fc8e8a7835465919dacd6fdd5d8",
         stripPrefix = "node-22.20.0",
     )
@@ -33,7 +36,7 @@ electron_abseil_repository = repository_rule(
 )
 
 def _patched_upstream_impl(ctx):
-    ctx.download_and_extract(url = ctx.attr.url, sha256 = ctx.attr.sha256, stripPrefix = ctx.attr.strip_prefix)
+    ctx.download_and_extract(url = source_archive_urls(ctx.attr.url), sha256 = ctx.attr.sha256, stripPrefix = ctx.attr.strip_prefix, type = "tar.gz" if ctx.attr.url.endswith(".tar.gz") else "")
     stack = ctx.path(ctx.attr.electron).dirname.get_child("patches/" + ctx.attr.patch_group)
     patches = [line.strip() for line in ctx.read(stack.get_child(".patches")).splitlines() if line.strip()]
     for patch in patches:

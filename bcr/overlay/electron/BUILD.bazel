@@ -1,4 +1,5 @@
 exports_files([
+    "archive_urls.bzl",
     "extensions.bzl",
     "source_rules.bzl",
     "source_repositories.bzl",

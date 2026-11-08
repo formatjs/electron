@@ -25,7 +25,7 @@ actions:
             --target-registry "$registry" --module electron --version 39.0.0
           bazel --host_jvm_args=-Xmx24g test --config=buildbuddy --downloader_config="$source_downloader" --distdir="$source_distdir" --strategy=TestRunner=remote \
             --registry="file://$registry" --registry=https://bcr.bazel.build \
-            //tests:hermetic_execution_test
+            //tests:hermetic_execution_test //tests:archive_urls_test
           bazel --host_jvm_args=-Xmx24g test --config=buildbuddy --downloader_config="$source_downloader" --distdir="$source_distdir" --strategy=TestRunner=local \
             --registry="file://$registry" --registry=https://bcr.bazel.build \
             --profile="$BUILDBUDDY_ARTIFACTS_DIRECTORY/source-graphics-profile.json.gz" \

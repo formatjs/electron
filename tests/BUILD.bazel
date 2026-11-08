@@ -1,4 +1,7 @@
 load("@rules_python//python:defs.bzl", "py_test")
+load(":archive_urls_test.bzl", "archive_urls_test")
+
+archive_urls_test(name = "archive_urls_test")
 
 test_suite(
     name = "hermetic_execution_test",
