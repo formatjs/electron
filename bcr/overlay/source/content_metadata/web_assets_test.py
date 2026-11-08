@@ -57,7 +57,13 @@ class WebAssetsTest(unittest.TestCase):
         run_node(BROTLI_PROGRAM, HTML, COMPRESSED, DIGEST)
 
     def test_manifest_points_to_compressed_frontend_assets(self):
-        includes = {node.attrib["resource_path"]: node.attrib for node in ElementTree.parse(GRD).iter("include")}
+        nodes = list(ElementTree.parse(GRD).iter("include"))
+        protocol = [node for node in nodes if node.attrib["name"] == "COMPRESSED_PROTOCOL_JSON"]
+        self.assertEqual(len(protocol), 1)
+        self.assertEqual(protocol[0].attrib["file"], "${protocol_file}")
+        self.assertEqual(protocol[0].attrib["compress"], "brotli")
+        self.assertEqual(protocol[0].attrib["skip_in_resource_map"], "true")
+        includes = {node.attrib["resource_path"]: node.attrib for node in nodes if node is not protocol[0]}
         for resource in ["devtools_app.html", "Images/account-tree.svg"]:
             with self.subTest(resource=resource):
                 self.assertEqual(includes[resource]["file"], resource + ".compressed")

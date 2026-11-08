@@ -2068,3 +2068,16 @@ The 87,412-action audit preserves every previous C++/Rust/Python action key,
 adds 248 Python actions and finds zero CMake or foreign-cc actions.
 Generation, reproducibility and contract execution still need hosted BB evidence.
 These resource checks do not establish browser UI execution or a linked Electron.
+
+
+### Hosted tracing wire result and manifest fixture correction
+
+The 71f1e29 BCR consumer completed its source tests. The tracing protobuf wire
+runtime, binary policies and all three native Blink probes passed. Its only
+reported failed probe was the web-assets test, isolated to the manifest case.
+The original DevTools GRD template deliberately gives `COMPRESSED_PROTOCOL_JSON`
+no `resource_path`; the fixture incorrectly indexed every include by that key.
+It now checks this protocol placeholder separately, including Brotli compression
+and resource-map exclusion, before checking the routed frontend assets.
+The original generator and asset contracts remain unchanged. Hosted validation
+of this fixture correction and the new resource projections is still required.
