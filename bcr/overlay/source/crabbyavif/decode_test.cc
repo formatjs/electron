@@ -23,6 +23,10 @@ void Require(bool condition, const char* check) {
   }
 }
 
+void Stage(const char* stage) {
+  std::fprintf(stderr, "crabby_decode probe stage: %s\n", stage);
+}
+
 void CheckConversion() {
   auto* image = crabby_avifImageCreate(2, 2, 8, AVIF_PIXEL_FORMAT_YUV420);
   Require(image != nullptr, "C API allocates conversion image");
@@ -52,6 +56,7 @@ void CheckConversion() {
 
 int main(int argc, char** argv) {
   using namespace crabbyavif;
+  Stage("entry");
   Require(argc == 3, "declared AVIF and independent PNG fixtures");
   char versions[256]{};
   crabby_avifCodecVersions(versions);
@@ -60,6 +65,7 @@ int main(int argc, char** argv) {
   Require(crabby_avifLibYUVVersion() == LIBYUV_VERSION,
           "generated libyuv binding matches source headers");
 
+  Stage("versions");
   auto* bad_decoder = crabby_avifDecoderCreate();
   auto* bad_image = crabby_avifImageCreateEmpty();
   Require(bad_decoder && bad_image, "C API allocates error case objects");
@@ -69,6 +75,7 @@ int main(int argc, char** argv) {
   crabby_avifImageDestroy(bad_image);
   crabby_avifDecoderDestroy(bad_decoder);
 
+  Stage("invalid");
   std::ifstream input(argv[1], std::ios::binary);
   Require(input.is_open(), "declared AVIF fixture available");
   const std::vector<uint8_t> encoded{std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>()};
@@ -79,6 +86,7 @@ int main(int argc, char** argv) {
   Require(crabby_avifDecoderReadMemory(decoder, image, encoded.data(), encoded.size()) == AVIF_RESULT_OK,
           "original Rust decoder reads lossless AVIF through native dav1d");
 
+  Stage("decode");
   FILE* reference = std::fopen(argv[2], "rb");
   Require(reference != nullptr, "declared PNG reference available");
   png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
@@ -102,6 +110,7 @@ int main(int argc, char** argv) {
   std::fclose(reference);
   Require(image->width == width && image->height == height && image->depth == 8,
           "decoded AVIF dimensions and depth match reference");
+  Stage("png");
   avifRGBImage rgb{};
   crabby_avifRGBImageSetDefaults(&rgb, image);
   rgb.format = AVIF_RGB_FORMAT_RGB;
@@ -115,8 +124,11 @@ int main(int argc, char** argv) {
   for (unsigned y = 0; y < height; ++y)
     Require(std::memcmp(rgb.pixels + y * rgb.rowBytes, expected.data() + y * width * 3, width * 3) == 0,
             "every decoded RGB byte matches independent lossless PNG");
+  Stage("pixels");
   crabby_avifRGBImageFreePixels(&rgb);
   crabby_avifImageDestroy(image);
   crabby_avifDecoderDestroy(decoder);
+  Stage("conversion");
   CheckConversion();
+  Stage("done");
 }
