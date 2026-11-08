@@ -10,6 +10,8 @@ from pathlib import Path
 import shlex
 import tomllib
 from capture_cxx import capture_bridges, capture_font_fixtures
+from native_graph import capture_library
+from capture_crabby import ROOT as CRABBY_ROOT, BINDINGS as CRABBY_BINDINGS, CODECS as CRABBY_CODECS, capture_binding, source_identity
 
 ROOT = "//third_party/rust/temporal_capi/v0_1:lib"
 VENDOR = "third_party/rust/chromium_crates_io/vendor/"
@@ -36,6 +38,8 @@ BLINK_ROOTS = {
     "font_format_check": "//third_party/blink/renderer/platform:font_format_check",
 }
 NATIVE_CPP.update({root + "_cxx_generated": "@electron//source/blink_rust:" + key + "_headers" for key, root in BLINK_ROOTS.items()})
+NATIVE_CPP.update(CRABBY_CODECS)
+NATIVE_CPP["//third_party/crabbyavif:header_files"] = "@electron_rust_sources//:crabbyavif_headers"
 FONT_ROOT = "//third_party/fontconfig:fontconfig_fontations_ffi"
 FONT_BINDINGS = {"//third_party/fontconfig:" + name for name in ("fcint_h_bindgen", "fontconfig_h_bindgen")}
 
@@ -44,7 +48,7 @@ def name(label):
     return "crate_" + hashlib.sha256(label.encode()).hexdigest()[:16]
 
 
-def capture(graph, source, fontconfig=None, skia=None):
+def capture(graph, source, fontconfig=None, skia=None, crabbyavif=None):
     targets = graph["targets"]
     native_cpp = dict(NATIVE_CPP)
     if skia:
@@ -74,6 +78,10 @@ def capture(graph, source, fontconfig=None, skia=None):
             return
         target = targets[label]
         bare = label.split("(")[0]
+        if bare in CRABBY_BINDINGS:
+            selected[label] = target
+            ffi[label] = target
+            return
         if bare in FONT_BINDINGS:
             selected[label] = target
             ffi[label] = target
@@ -100,7 +108,7 @@ def capture(graph, source, fontconfig=None, skia=None):
         for dep in target.get("deps", []):
             visit(dep)
 
-    for root in [ROOT, MEDIA_ROOT] + list(BLINK_ROOTS.values()) + BASE_ROOTS + ([FONT_ROOT] if fontconfig else []) + (SKIA_ROOTS if skia else []):
+    for root in [ROOT, MEDIA_ROOT, CRABBY_ROOT] + list(BLINK_ROOTS.values()) + BASE_ROOTS + ([FONT_ROOT] if fontconfig else []) + (SKIA_ROOTS if skia else []):
         visit(root)
     root_files = {"LICENSE", "build/build_config.h", "build/buildflag.h", "build/rust/bindings.rs"}
     packages, crates, cpp, bindings = {}, {}, {}, {}
@@ -134,6 +142,8 @@ def capture(graph, source, fontconfig=None, skia=None):
             owner, relative = fontconfig, path.removeprefix("third_party/fontconfig/src/")
         if skia and path.startswith("third_party/skia/"):
             owner, relative = skia, path.removeprefix("third_party/skia/")
+        if crabbyavif and path.startswith("third_party/crabbyavif/src/"):
+            owner, relative = crabbyavif, path.removeprefix("third_party/crabbyavif/src/")
         candidate = owner / relative
         if not candidate.is_file() or not candidate.resolve().is_relative_to(owner.resolve()):
             raise ValueError("Missing or escaping pinned Rust input: " + path)
@@ -200,7 +210,10 @@ def capture(graph, source, fontconfig=None, skia=None):
                 sources.append(checked_file(path[2:]))
         if not package:
             root_files.update(sources)
-        if label in ffi:
+        if label in CRABBY_BINDINGS:
+            deps = [resolved for dep in target["deps"] if targets[dep]["type"] != "copy" and (resolved := resolve(dep))]
+            macros, cc_deps = [], []
+        elif label in ffi:
             deps = [name(dep) for dep in target.get("deps", []) if dep in FONT_BINDINGS]
             macros, cc_deps = [], []
         else:
@@ -227,6 +240,9 @@ def capture(graph, source, fontconfig=None, skia=None):
     for label, target in ffi.items():
         suffix = HOST if label.endswith(HOST) else ""
         bare = label.removesuffix(suffix) if suffix else label
+        if bare in CRABBY_BINDINGS:
+            bindings[label] = capture_binding(graph, source, label, checked_file, root_files)
+            continue
         if bare in FONT_BINDINGS:
             generator = bare + "_generator"
             action = targets[generator]
@@ -354,11 +370,21 @@ def capture(graph, source, fontconfig=None, skia=None):
         raise ValueError("Expected captured PartitionAlloc Rust bridge")
     if flags["args"] != ["--output", "build/rust/allocator/buildflags.h", "--rulename", ALLOCATOR + "buildflags", "--gen-dir", "gen", "--definitions", "{{response_file_name}}"] or flags["outputs"] != ["//out/bazel-import/gen/build/rust/allocator/buildflags.h"]:
         raise ValueError("Unexpected Rust allocator buildflag layout")
+    crabby_source = source_identity(source)
+    crabby_source["crate"] = name(CRABBY_ROOT)
+    crabby_source["header"] = checked_file("third_party/crabbyavif/src/include/avif/avif.h")
+    root_files.add(crabby_source["header"])
+    crabby_source["cpp_config"] = capture_library(graph, targets["//third_party/crabbyavif:header_files"], {}, lambda path: root_files.add(checked_file(path[2:])), "//third_party/crabbyavif:header_files")
+    crabby_source["fixtures"] = {}
+    for key, filename in {"avif": "paris_identity.avif", "png": "paris_icc_exif_xmp.png"}.items():
+        path = checked_file("third_party/crabbyavif/src/tests/data/" + filename)
+        root_files.add(path)
+        crabby_source["fixtures"][key] = {"file": path, "sha256": hashlib.sha256((crabbyavif / "tests/data" / filename).read_bytes()).hexdigest()}
     temporal_package = VENDOR + "temporal_capi-v0_1"
     cpp_headers = [p for p in packages[temporal_package] if "/bindings/cpp/" in p and p.endswith((".h", ".hpp"))]
     if not cpp_headers:
         raise ValueError("Missing original Temporal C++ bindings")
-    return {"blink_font_fixtures": blink_font_fixtures, "blink_bridges": blink_bridges, "media_bridge": media_bridge, "root": name(ROOT), "base_roots": {label: name(label) for label in BASE_ROOTS}, "rust": crates, "cpp": cpp, "ffi": bindings, "packages": packages, "root_files": sorted(root_files), "cpp_headers": cpp_headers, "provided_by_toolchain": sorted(provided), "allocator_buildflags": {"output": "build/rust/allocator/buildflags.h", "rule": ALLOCATOR + "buildflags", "response": flags["response_file_contents"]}}
+    return {"crabbyavif_source": crabby_source, "blink_font_fixtures": blink_font_fixtures, "blink_bridges": blink_bridges, "media_bridge": media_bridge, "root": name(ROOT), "base_roots": {label: name(label) for label in BASE_ROOTS}, "rust": crates, "cpp": cpp, "ffi": bindings, "packages": packages, "root_files": sorted(root_files), "cpp_headers": cpp_headers, "provided_by_toolchain": sorted(provided), "allocator_buildflags": {"output": "build/rust/allocator/buildflags.h", "rule": ALLOCATOR + "buildflags", "response": flags["response_file_contents"]}}
 
 
 def main():
@@ -367,11 +393,12 @@ def main():
     parser.add_argument("--source-root", type=Path, required=True)
     parser.add_argument("--fontconfig-root", type=Path, required=True)
     parser.add_argument("--skia-root", type=Path, required=True)
+    parser.add_argument("--crabbyavif-root", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--v8-output", type=Path, required=True)
     args = parser.parse_args()
     data = args.graph.read_bytes()
-    profile = capture(json.loads(gzip.decompress(data)), args.source_root, args.fontconfig_root, args.skia_root)
+    profile = capture(json.loads(gzip.decompress(data)), args.source_root, args.fontconfig_root, args.skia_root, args.crabbyavif_root)
     profile["graph_sha256"] = hashlib.sha256(data).hexdigest()
     args.output.write_text(json.dumps(profile, sort_keys=True, indent=2) + "\n")
     graph = json.loads(gzip.decompress(data))

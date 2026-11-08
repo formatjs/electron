@@ -1544,3 +1544,24 @@ source suite took 39.841 seconds with 12 tracked remote actions, 2.445 CPU secon
 Full source profiles remain Linux AMD64; CrabbyAVIF, Blink and full Electron
 remain unfinished. CrabbyAVIF's dav1d/libyuv bindings will reuse the matching
 native source owners already present in the platform profile.
+
+## CrabbyAVIF (validation pending)
+
+The Rust profile includes Chromium's original CrabbyAVIF decoder and its dav1d/
+libyuv namespace wrappers: 122 Rust targets, with all 119 earlier records and
+89 vendor inventories unchanged. Source revision
+`3ba05863e84fd3acb4f4af2b4545221b317a2e55` comes from Electron's Chromium DEPS.
+Original features, bindgen allowlists and named generated files are retained;
+Cargo build scripts are not substituted for the GN graph. Native codec symbols
+and headers use the existing matching source-built dav1d/libyuv owners.
+
+The decoder probe compares every RGB byte of the upstream lossless AVIF fixture
+against its independent PNG, decoded with the existing source libpng owner.
+It also checks malformed input, native codec versions, C API object lifetimes
+and limited-range RGB/YUV conversion. Both fixtures have checked-in source hashes.
+
+Analysis passes with zero build actions. Capture is stable across hash seeds.
+A full source-aggregate/decoder dependency audit found zero CMake/foreign-cc
+actions, with 24,493 CppCompile actions as a positive control. Hosted compilation
+and runtime validation remain pending. Full source profiles remain Linux AMD64;
+Blink and full Electron remain unfinished.

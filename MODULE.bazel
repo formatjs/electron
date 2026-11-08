@@ -59,6 +59,7 @@ use_repo(
     "electron_chromium_sources",
     "electron_chromium_webui_upstream",
     "electron_codecs_sources",
+    "electron_crabbyavif_upstream",
     "electron_dawn_upstream",
     "electron_devtools_frontend_sources",
     "electron_display_sources",

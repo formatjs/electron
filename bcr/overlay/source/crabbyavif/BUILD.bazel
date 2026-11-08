@@ -1,0 +1,42 @@
+load("@electron_rust_sources//:profile.bzl", "PROFILE")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+
+package(default_visibility = ["//visibility:public"])
+
+SOURCE = PROFILE["crabbyavif_source"]
+
+cc_library(
+    name = "crabbyavif",
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    deps = [
+        "@electron_rust_sources//:" + SOURCE["crate"],
+        "@electron_rust_sources//:crabbyavif_headers",
+    ],
+)
+
+cc_test(
+    name = "decode_test",
+    srcs = ["decode_test.cc"],
+    args = ["$(rootpath @electron_rust_sources//:" + SOURCE["fixtures"][key]["file"] + ")" for key in [
+        "avif",
+        "png",
+    ]],
+    copts = SOURCE["cpp_config"]["copts"],
+    data = ["@electron_rust_sources//:" + fixture["file"] for fixture in SOURCE["fixtures"].values()],
+    linkstatic = True,
+    local_defines = SOURCE["cpp_config"]["defines"],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    deps = [
+        ":crabbyavif",
+        "@electron_fonts_sources//:target_0f8d5cdf8c760fbb",
+        "@electron_platform_sources//:target_830dc734f9f95978",
+        "@electron_platform_sources//:target_c8955ce20d217363",
+    ],
+)

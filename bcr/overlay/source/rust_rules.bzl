@@ -44,7 +44,7 @@ def _bindings_impl(ctx):
     output = ctx.actions.declare_directory(ctx.label.name)
     ctx.actions.run(
         executable = ctx.attr._runner[DefaultInfo].files_to_run,
-        arguments = [ctx.file.src.path, output.path],
+        arguments = [ctx.file.src.path, output.path, ctx.attr.filename],
         inputs = [ctx.file.src],
         outputs = [output],
         env = {"LANG": "C", "LC_ALL": "C", "TZ": "UTC"},
@@ -59,6 +59,7 @@ _bindings = rule(
     implementation = _bindings_impl,
     attrs = {
         "src": attr.label(allow_single_file = True),
+        "filename": attr.string(default = "bindings.rs"),
         "_runner": attr.label(default = Label("//electron/private:copy_bindings"), executable = True, cfg = "exec"),
     },
 )
@@ -67,6 +68,12 @@ def electron_temporal():
     """Declare the exact runtime/host crate variants behind the stable source shim."""
     repository_root = Label("@electron_rust_sources//:BUILD.bazel").workspace_root
     native.exports_files(PROFILE["root_files"] + ["BUILD.bazel", "profile.bzl"])
+    cc_library(
+        name = "crabbyavif_headers",
+        hdrs = [PROFILE["crabbyavif_source"]["header"]],
+        includes = [".", "third_party/crabbyavif/src/include"],
+        target_compatible_with = _LINUX_AMD64,
+    )
     _allocator_flags(name = "allocator_buildflags")
     cc_library(
         name = "blink_headers",
@@ -101,15 +108,25 @@ def electron_temporal():
         )
     for label, ffi in PROFILE["ffi"].items():
         crate = PROFILE["rust"][label]
+        owner = ffi["owner"] if ffi["owner"].startswith("@") else ":" + ffi["owner"]
+        if ffi.get("generated_filename"):
+            cc_library(
+                name = crate["name"] + "_binding_headers",
+                hdrs = [_file(ffi["header"])],
+                includes = ["."],
+                deps = [owner],
+                target_compatible_with = _LINUX_AMD64,
+            )
+            owner = ":" + crate["name"] + "_binding_headers"
         rust_bindgen(
             name = crate["name"] + "_generator",
             header = ffi.get("header_label", _file(ffi["header"])),
-            cc_lib = ffi["owner"] if ffi["owner"].startswith("@") else ":" + ffi["owner"],
+            cc_lib = owner,
             bindgen_flags = ffi["bindgen_flags"],
             clang_flags = ffi.get("clang_flags", ["-x", "c++", "-std=c++20", "-fparse-all-comments", "-fvisibility=default"]),
             target_compatible_with = _LINUX_AMD64,
         )
-        _bindings(name = crate["name"] + "_bindings", src = ":" + crate["name"] + "_generator")
+        _bindings(name = crate["name"] + "_bindings", src = ":" + crate["name"] + "_generator", filename = ffi.get("generated_filename", "bindings.rs"))
     for label, crate in PROFILE["rust"].items():
         environment = dict(crate["rustc_env"])
         if "CARGO_MANIFEST_DIR" in crate["rewritten_paths"]:
