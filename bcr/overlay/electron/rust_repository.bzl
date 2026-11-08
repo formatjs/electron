@@ -1,4 +1,4 @@
-"""Project declared Temporal/base/fontations inputs from pinned source archives."""
+"""Project declared Electron Rust inputs from pinned source archives."""
 
 def _impl(ctx):
     ctx.read(ctx.attr.chromium)

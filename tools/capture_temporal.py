@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""Capture Electron's Temporal/base/fontations Rust closures and original bridges."""
+"""Capture pinned Electron Rust closures and original native bridges."""
 
 import argparse
 import gzip
@@ -28,6 +28,8 @@ NATIVE_CPP["//base/allocator/partition_allocator:raw_ptr"] = "@electron_partitio
 SEVERITY = "//base:logging_log_severity_bindgen"
 SKIA_ROOTS = ["//skia:bridge_rust_side", "//skia:rust_png_ffi"]
 SKIA_CPP = {label: "@electron_skia_sources//:target_" + hashlib.sha256(label.encode()).hexdigest()[:16] for label in ["//skia:bridge_rust_side_cxx_generated", "//skia:path_bridge", "//skia:rust_png_ffi_cpp", "//skia:rust_png_ffi_cxx_generated"]}
+MEDIA_ROOT = "//media/filters:symphonia_glue"
+NATIVE_CPP[MEDIA_ROOT + "_cxx_generated"] = "@electron//source/media:symphonia_headers"
 FONT_ROOT = "//third_party/fontconfig:fontconfig_fontations_ffi"
 FONT_BINDINGS = {"//third_party/fontconfig:" + name for name in ("fcint_h_bindgen", "fontconfig_h_bindgen")}
 
@@ -92,7 +94,7 @@ def capture(graph, source, fontconfig=None, skia=None):
         for dep in target.get("deps", []):
             visit(dep)
 
-    for root in [ROOT] + BASE_ROOTS + ([FONT_ROOT] if fontconfig else []) + (SKIA_ROOTS if skia else []):
+    for root in [ROOT, MEDIA_ROOT] + BASE_ROOTS + ([FONT_ROOT] if fontconfig else []) + (SKIA_ROOTS if skia else []):
         visit(root)
     root_files = {"LICENSE", "build/build_config.h", "build/buildflag.h", "build/rust/bindings.rs"}
     packages, crates, cpp, bindings = {}, {}, {}, {}
@@ -280,6 +282,61 @@ def capture(graph, source, fontconfig=None, skia=None):
                 retained.append(flag)
         cpp[owner] = {"name": name(owner), "srcs": [path for path in cpp_sources if path.endswith(".cc")], "hdrs": [path for path in cpp_sources if path.endswith(".h")], "copts": retained, "defines": [d.replace('"', '\\"') for d in value(native, "defines")], "partition_alloc": bare == ALLOCATOR + "allocator_impls_ffi", "gn_deps": native["deps"], "omitted_toolchain_options": skipped}
 
+    bridge = targets[MEDIA_ROOT + "_cxx_generated_gen"]
+    bridge_cpp = targets[MEDIA_ROOT + "_cxx_generated"]
+    bridge_source = targets[MEDIA_ROOT]["crate_root"]
+    if bridge["type"] != "action_foreach" or bridge["script"] != "//third_party/rust/cxx/chromium_integration/run_cxxbridge.py" or bridge["sources"] != [bridge_source]:
+        raise ValueError("Unexpected original Symphonia bridge generator")
+    outputs = ["//out/bazel-import/gen/media/filters/symphonia_glue.rs." + extension for extension in ["h", "cc"]]
+    if bridge["outputs"] != outputs or bridge_cpp["sources"] != outputs:
+        raise ValueError("Unexpected original Symphonia bridge outputs")
+    arguments = [argument.replace("{{source_gen_dir}}", "gen/media/filters").replace("{{source_file_part}}", "symphonia_glue.rs").replace("{{source}}", "../../" + bridge_source[2:]) for argument in bridge["args"]]
+    if any("{{" in argument for argument in arguments):
+        raise ValueError("Untranslated Symphonia generator argument")
+    root_files.add(checked_file(bridge["script"][2:]))
+    fixture_files = {"flac": "media/test/data/sfx.flac", "wave": "media/test/data/sfx_s24le.wav"}
+    for path in fixture_files.values():
+        root_files.add(checked_file(path))
+    encoded = (source / fixture_files["flac"]).read_bytes()
+    reference = (source / fixture_files["wave"]).read_bytes()
+    if encoded[:8] != b"fLaC\x00\x00\x00\x22" or reference[:4] != b"RIFF" or reference[8:12] != b"WAVE":
+        raise ValueError("Unexpected original FLAC/WAV fixture format")
+    info = encoded[8:42]
+    pcm = None
+    position = 12
+    while position + 8 <= len(reference):
+        length = int.from_bytes(reference[position + 4:position + 8], "little")
+        if reference[position:position + 4] == b"data":
+            pcm = reference[position + 8:position + 8 + length]
+        position += 8 + length + (length & 1)
+    if pcm is None or hashlib.md5(pcm).digest() != info[18:34]:
+        raise ValueError("Pinned WAV reference differs from FLAC PCM checksum")
+    start = 4
+    while True:
+        last = encoded[start] & 128
+        length = int.from_bytes(encoded[start + 1:start + 4], "big")
+        start += 4 + length
+        if last:
+            break
+    crc, end = 0, None
+    for index in range(start, len(encoded) - 2):
+        crc ^= encoded[index] << 8
+        for _ in range(8):
+            crc = ((crc << 1) ^ (0x8005 if crc & 0x8000 else 0)) & 0xffff
+        if crc == 0 and encoded[index + 1] == 0xff and encoded[index + 2] & 0xfc == 0xf8:
+            end = index + 1
+            break
+    if end is None or info[:2] != info[2:4]:
+        raise ValueError("Missing fixed-block first FLAC frame fixture")
+    media_fixture = dict(files=fixture_files, packet_offset=start, packet_size=end - start, frames=int.from_bytes(info[:2], "big"), source_sha256={key: hashlib.sha256((source / path).read_bytes()).hexdigest() for key, path in fixture_files.items()})
+    retained, omitted = [], []
+    for flag in value(bridge_cpp, "cflags") + value(bridge_cpp, "cflags_cc"):
+        if flag in ("-Werror", "-nostdinc++") or flag.startswith(("--sysroot=", "--target=", "-isystem../../", "-fcrash-diagnostics-dir=", "--warning-suppression-mappings=")):
+            omitted.append(flag)
+        else:
+            retained.append(flag)
+    media_bridge = {"cppdeps": native_cpp["//build/rust:cxx_cppdeps"], "fixture": media_fixture, "root": MEDIA_ROOT, "crate": name(MEDIA_ROOT), "generator": MEDIA_ROOT + "_cxx_generated_gen", "script": bridge["script"][2:], "args": arguments, "gn_args": bridge["args"], "gn_inputs": bridge["inputs"], "gn_deps": bridge["deps"], "outputs": [path.removeprefix("//out/bazel-import/") for path in outputs], "source": bridge_source[2:], "copts": retained, "defines": [d.replace('"', '\\"') for d in value(bridge_cpp, "defines")], "omitted_toolchain_options": omitted}
+
     flags = targets[ALLOCATOR + "buildflags"]
     if flags["type"] != "action" or flags["deps"] != ["//build:buildflag_header_h"] or flags["script"] != "//build/write_buildflag_header.py" or flags["response_file_contents"] != ["--flags", "RUST_ALLOCATOR_USES_PARTITION_ALLOC=true", "RUST_ALLOCATOR_USES_ALIGNED_MALLOC=false"]:
         raise ValueError("Expected captured PartitionAlloc Rust bridge")
@@ -289,7 +346,7 @@ def capture(graph, source, fontconfig=None, skia=None):
     cpp_headers = [p for p in packages[temporal_package] if "/bindings/cpp/" in p and p.endswith((".h", ".hpp"))]
     if not cpp_headers:
         raise ValueError("Missing original Temporal C++ bindings")
-    return {"root": name(ROOT), "base_roots": {label: name(label) for label in BASE_ROOTS}, "rust": crates, "cpp": cpp, "ffi": bindings, "packages": packages, "root_files": sorted(root_files), "cpp_headers": cpp_headers, "provided_by_toolchain": sorted(provided), "allocator_buildflags": {"output": "build/rust/allocator/buildflags.h", "rule": ALLOCATOR + "buildflags", "response": flags["response_file_contents"]}}
+    return {"media_bridge": media_bridge, "root": name(ROOT), "base_roots": {label: name(label) for label in BASE_ROOTS}, "rust": crates, "cpp": cpp, "ffi": bindings, "packages": packages, "root_files": sorted(root_files), "cpp_headers": cpp_headers, "provided_by_toolchain": sorted(provided), "allocator_buildflags": {"output": "build/rust/allocator/buildflags.h", "rule": ALLOCATOR + "buildflags", "response": flags["response_file_contents"]}}
 
 
 def main():

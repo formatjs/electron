@@ -1398,3 +1398,23 @@ path workaround or source patch is needed.
 The GPU transport launcher declares the complete pinned desktop runtime and native
 shared GLib/zlib owners. Its isolated library path includes that closure before
 host defaults; driver lookup points only to the declared SwiftShader manifest.
+
+## Symphonia media dependency (validation pending)
+
+Chromium's compositor depends on media, including its original Symphonia FLAC
+Rust bridge. The capture now includes that exact closure: ten additional Rust
+targets and nine vendored packages, preserving the existing 107 Rust targets.
+Native rules run the original CXX wrapper with source-built cxxbridge and declared
+target Rust configuration. The C++ boundary keeps generated headers separate
+from native link owners.
+
+The new native test decodes a complete FLAC packet through Chromium's original
+CXX/Rust bridge and compares every output sample against its independent WAV
+fixture. Capture verifies the WAV PCM checksum against the FLAC STREAMINFO MD5,
+records source SHA-256 values and identifies the first packet by its frame CRC.
+The test also checks empty packets, decoder recovery and rejected initialization.
+Both fixtures come from the pinned public Chromium sources.
+
+Metadata analysis passed without local build actions; capture bytes remain stable
+across hash seeds. BB compile/runtime validation is pending. This dependency does
+not complete the compositor, media stack or Electron executable.

@@ -1,0 +1,87 @@
+load("@electron_rust_sources//:profile.bzl", RUST_PROFILE = "PROFILE")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+load("//electron:source_action.bzl", "electron_source_action")
+load("//electron:source_headers.bzl", "electron_source_headers")
+
+package(default_visibility = ["//visibility:public"])
+
+BRIDGE = RUST_PROFILE["media_bridge"]
+
+electron_source_action(
+    name = "symphonia_generate",
+    srcs = {
+        "@electron_rust_sources//:" + BRIDGE["script"]: BRIDGE["script"],
+        "@electron_rust_sources//:" + BRIDGE["source"]: BRIDGE["source"],
+        "@electron_base_sources//:gen/build/rust/gni_impl/rustc-print-cfg-x86_64-unknown-linux-gnu.txt": "out/bazel-import/gen/build/rust/gni_impl/rustc-print-cfg-x86_64-unknown-linux-gnu.txt",
+    },
+    args = BRIDGE["args"],
+    logical_outputs = BRIDGE["outputs"],
+    out_files = BRIDGE["outputs"],
+    script = BRIDGE["script"],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    tools = {"@electron_rust_sources//:cxxbridge": "out/bazel-import/clang_x64_for_rust_host_build_tools/cxxbridge"},
+)
+
+cc_library(
+    name = "bridge_headers",
+    hdrs = ["gen/media/filters/symphonia_glue.rs.h"],
+    includes = ["gen"],
+    deps = [BRIDGE["cppdeps"]],
+)
+
+electron_source_headers(
+    name = "symphonia_headers",
+    deps = [":bridge_headers"],
+)
+
+cc_library(
+    name = "symphonia_bridge",
+    srcs = ["gen/media/filters/symphonia_glue.rs.cc"],
+    copts = BRIDGE["copts"],
+    local_defines = BRIDGE["defines"],
+    deps = [":bridge_headers"],
+)
+
+cc_library(
+    name = "symphonia",
+    deps = [
+        ":symphonia_bridge",
+        "@electron_rust_sources//:" + BRIDGE["crate"],
+    ],
+)
+
+filegroup(
+    name = "symphonia_libraries",
+    srcs = [
+        ":symphonia_bridge",
+        "@electron_rust_sources//:" + BRIDGE["crate"],
+    ],
+)
+
+cc_test(
+    name = "symphonia_test",
+    srcs = ["symphonia_test.cc"],
+    args = [
+        "$(rootpath @electron_rust_sources//:media/test/data/sfx.flac)",
+        "$(rootpath @electron_rust_sources//:media/test/data/sfx_s24le.wav)",
+        str(BRIDGE["fixture"]["packet_offset"]),
+        str(BRIDGE["fixture"]["packet_size"]),
+        str(BRIDGE["fixture"]["frames"]),
+    ],
+    copts = BRIDGE["copts"],
+    data = [
+        "@electron_rust_sources//:media/test/data/sfx.flac",
+        "@electron_rust_sources//:media/test/data/sfx_s24le.wav",
+    ],
+    linkstatic = True,
+    local_defines = BRIDGE["defines"],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    deps = [":symphonia"],
+)

@@ -60,6 +60,7 @@ filegroup(
         "//source:v8_regexp",
         "//source:v8_support_libraries",
         "//source:v8_torque",
+        "//source/media:symphonia_libraries",
     ],
 )
 
@@ -98,6 +99,7 @@ test_suite(
         "//source:v8_regexp_test",
         "//source:v8_support_test",
         "//source:v8_tasks_test",
+        "//source/media:symphonia_test",
         "//tests:electron_bundles_test",
         "//tests:node_builtins_test",
         "//tests:v8_torque_test",
