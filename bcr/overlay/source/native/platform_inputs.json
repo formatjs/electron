@@ -584692,6 +584692,10 @@
       "name": "target_b88207e4b6c9e1e6",
       "kind": "action",
       "gn_deps": [],
+      "reproducibility_options": {
+        "year": "2025",
+        "basis": "Chromium 142 source release"
+      },
       "script": "tools/variations/fieldtrial_to_struct.py",
       "inputs": [
         "//components/variations/field_trial_config/field_trial_testing_config_schema.json",
@@ -584731,7 +584735,8 @@
             "--namespace=variations",
             "--schema=../../components/variations/field_trial_config/field_trial_testing_config_schema.json",
             "--platform=linux",
-            "--output=fieldtrial_testing_config"
+            "--output=fieldtrial_testing_config",
+            "--year=2025"
           ],
           "outputs": [
             "//out/bazel-import/gen/components/variations/field_trial_config/fieldtrial_testing_config.cc",

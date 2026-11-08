@@ -240,6 +240,10 @@ def capture(graph, digest, chromium, source_roots, profiles):
                 root = physical(directory)
                 inputs.update("//" + directory + "/" + path.relative_to(root).as_posix() for path in source_files(root) if path.suffix == ".py")
             args = [arg.replace("$SOURCE_ROOT/out/bazel-import/", "") for arg in target.get("args", [])]
+            if target["script"] == "//tools/variations/fieldtrial_to_struct.py":
+                # Original option avoids a wall-clock-dependent copyright header.
+                record["reproducibility_options"] = {"year": "2025", "basis": "Chromium 142 source release"}
+                args.append("--year=2025")
             if target["script"] == "//build/gn_run_binary.py":
                 executable = BUILD + args[0] if args else ""
                 if executable not in tools:
