@@ -142,3 +142,22 @@ py_test(
         "@platforms//cpu:x86_64",
     ],
 )
+
+_POLICY_INPUTS = [
+    "@electron_platform_sources//:third_party/pyyaml/__init__.py",
+    "@electron_platform_sources//:components/policy/resources/templates/policies.yaml",
+    "@electron_platform_sources//:components/policy/resources/templates/policy_definitions/Startup/HomepageLocation.yaml",
+    "@electron_platform_sources//:gen/chrome/app/policy/policy_templates.json",
+    "@electron_platform_sources//:gen/chrome/app/policy/policy_templates.d",
+]
+
+py_test(
+    name = "policy_test",
+    srcs = ["policy_test.py"],
+    args = ["$(rootpath " + label + ")" for label in _POLICY_INPUTS],
+    data = _POLICY_INPUTS + ["@electron_platform_sources//:policy_python_runtime"],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)

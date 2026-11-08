@@ -2081,3 +2081,34 @@ It now checks this protocol placeholder separately, including Brotli compression
 and resource-map exclusion, before checking the routed frontend assets.
 The original generator and asset contracts remain unchanged. Hosted validation
 of this fixture correction and the new resource projections is still required.
+
+
+### Remaining content generator families
+
+The content frontier now requests the original CT log list, domain reliability,
+policy templates/source, model descriptors, vector icons, Blink validation,
+speech-dispatcher loader and histogram allowlist producers. Their closure adds
+14 actions and two groups without native sources. New generated headers remain
+scoped to their future native owners; existing native source configurations and
+header inventories are preserved.
+
+Policy templates declare every source YAML and the vendored PyYAML runtime.
+Model descriptors use the existing GN-listed pure Python protobuf files.
+A checked substitution writes policy depfile dependencies relative to the build
+directory: the original writer otherwise records its absolute `__file__` root.
+The JSON/proto/C++ generation logic stays upstream. Policy tests compare all live
+and deleted IDs against source YAML, check the homepage schema and require
+relative declared depfile paths. All execution remains pending on BB.
+
+The 7809849 BCR consumer found a Catapult import failure at its entrypoint.
+GN's resource inputs omit `tracing_build` and its parser runtime. The capture now
+adds that package and the exact BeautifulSoup/html5lib/webencodings/six source
+directories selected by Catapult's own `_InitBeautifulSoup`. No replacement
+parser, host package or disabled minification is introduced. The existing tracing
+asset and PAK contracts remain required. Full Electron integration is unfinished.
+
+
+The 87,459-action metadata audit passed: 37,384 C++ compile actions, 254 Rust
+and 26 Cargo build-script action keys are unchanged. Python actions increase
+from 6,592 to 6,606; every previous action key remains present. Zero CMake or
+foreign-cc actions matched. This does not replace hosted generator/runtime tests.

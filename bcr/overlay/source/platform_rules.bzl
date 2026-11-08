@@ -106,6 +106,11 @@ def electron_platform():
             target_compatible_with = _COMPATIBLE,
         )
     native.filegroup(name = "devtools_node_modules", srcs = PROFILE.get("devtools_node_modules_files", []))
+    adapters = {}
+    for source, substitutions in PROFILE.get("source_adapters", {}).items():
+        name = "source_adapter_" + source[2:].replace("/", "_").replace(".", "_")
+        expand_template(name = name, template = _file(source), substitutions = substitutions, out = "source_adapters/" + source[2:])
+        adapters[source] = ":" + name
     workspace = PROFILE.get("devtools_workspace")
     if workspace:
         expand_template(
@@ -122,7 +127,7 @@ def electron_platform():
             outputs = [path[len(_BUILD):] for path in run["outputs"]]
             electron_source_action(
                 name = name,
-                srcs = {":devtools_workspace_script" if workspace and original == workspace["target"] and path == "//" + workspace["script"] else _file(path): path[2:] for path in action["inputs"]},
+                srcs = {adapters.get(path, ":devtools_workspace_script" if workspace and original == workspace["target"] and path == "//" + workspace["script"] else _file(path)): path[2:] for path in action["inputs"]},
                 tools = {_label(label): path[2:] for path, label in action["tools"].items()},
                 python_tools = action.get("python_tools", {}),
                 source_groups = ([":devtools_node_modules"] if action.get("devtools_node_modules") else []) + (["@electron_ui_sources//:node_modules"] if action.get("webui_node_modules") else []),
@@ -205,6 +210,8 @@ def electron_platform():
     native.filegroup(name = "libraries", srcs = [_label(label) for label, library in PROFILE["libraries"].items() if library["kind"] != "executable"] + shared + icds)
     for name, original in PROFILE.get("content_web_assets", {}).items():
         native.alias(name = name, actual = ":" + PROFILE["actions"][original]["name"] + "_runs")
+    native.filegroup(name = "policy_python_runtime", srcs = [_file("//" + path) for path in PROFILE["files"] if path.startswith("third_party/pyyaml/") and path.endswith(".py")])
+    native.filegroup(name = "content_generators", srcs = [":" + PROFILE["actions"][label]["name"] + "_runs" for label in PROFILE.get("content_generators", {}).values()])
     native.filegroup(name = "content_web_assets", srcs = [":" + PROFILE["actions"][label]["name"] + "_runs" for label in PROFILE.get("content_web_assets", {}).values()])
     for name, original in PROFILE.get("content_resources", {}).items():
         native.alias(name = name, actual = ":" + PROFILE["actions"][original]["name"] + "_runs")

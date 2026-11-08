@@ -36,7 +36,22 @@ CONTENT_WEB_ASSETS = {
     "mojo_bindings_lite": "//mojo/public/js:bindings_lite",
     "devtools_resource_manifest": "//third_party/devtools-frontend/src:generate_devtools_grd",
 }
-ROOTS = CORE_ROOTS + ["//third_party/blink/renderer/modules:modules", DEVTOOLS_ROOT] + list(CONTENT_METADATA.values()) + list(CONTENT_RESOURCES.values()) + list(CONTENT_WEB_ASSETS.values())
+CONTENT_GENERATORS = {
+    "ct_log_list": "//components/certificate_transparency/data:ct_log_list",
+    "domain_reliability": "//components/domain_reliability:bake_in_configs",
+    "model_descriptors": "//components/optimization_guide/core:on_device_model_execution_proto_generator",
+    "policy_templates": "//components/policy:generate_policy_templates",
+    "policy_source": "//components/policy:policy_code_generate",
+    "component_icons": "//components/vector_icons:components_vector_icons",
+    "touch_icons": "//ui/touch_selection/vector_icons:touch_selection_vector_icons",
+    "window_icons": "//ui/views/window/vector_icons:window_control_vector_icons",
+    "view_icons": "//ui/views:views_vector_icons",
+    "blink_file_list": "//third_party/blink/renderer/bindings:check_generated_file_list",
+    "blink_idl_validation": "//third_party/blink/renderer/bindings:validate_web_idl",
+    "speech_dispatcher_loader": "//third_party/speech-dispatcher:speech-dispatcher_loader",
+    "bubble_histograms": "//ui/views:bubble_histograms_variant",
+}
+ROOTS = CORE_ROOTS + ["//third_party/blink/renderer/modules:modules", DEVTOOLS_ROOT] + list(CONTENT_METADATA.values()) + list(CONTENT_RESOURCES.values()) + list(CONTENT_WEB_ASSETS.values()) + list(CONTENT_GENERATORS.values())
 SOURCE_PREFIXES = ["third_party/libyuv", "third_party/angle", "third_party/dawn", "third_party/swiftshader", "third_party/spirv-tools/src", "third_party/spirv-headers/src", "third_party/vulkan-loader/src", "third_party/vulkan-tools/src", "third_party/vulkan-utility-libraries/src", "third_party/vulkan-headers/src", "third_party/vulkan_memory_allocator", "third_party/wayland/src", "third_party/wayland-protocols/src", "third_party/wayland-protocols/kde"]
 MEDIA_SOURCE_PREFIXES = ["third_party/flac", "media/cdm/api", "third_party/libaom/source/libaom", "third_party/crc32c/src", "third_party/ffmpeg", "third_party/libvpx/source/libvpx", "third_party/openh264/src", "third_party/dav1d/libdav1d", "third_party/libgav1/src", "third_party/leveldatabase/src", "third_party/libwebm/source"]
 COMPOSITOR_SOURCE_PREFIXES = ["third_party/webrtc", "third_party/federated_compute/src", "third_party/libsrtp"]
@@ -62,6 +77,16 @@ SCRIPTS = MOJO_SCRIPTS | {"//" + name for name in (
     "build/write_buildflag_header.py", "build/gn_run_binary.py", "build/util/version.py",
     "components/safe_browsing/content/resources/gen_file_type_proto.py",
     "components/resources/ssl/ssl_error_assistant/gen_ssl_error_assistant_proto.py",
+    "components/certificate_transparency/tools/make_ct_known_logs_list.py",
+    "components/domain_reliability/bake_in_configs.py",
+    "components/optimization_guide/tools/gen_on_device_proto_descriptors.py",
+    "components/policy/resources/policy_templates.py",
+    "components/policy/tools/generate_policy_source.py",
+    "components/vector_icons/aggregate_vector_icons.py",
+    "third_party/blink/renderer/bindings/scripts/check_generated_file_list.py",
+    "third_party/blink/renderer/bindings/scripts/validate_web_idl.py",
+    "tools/generate_library_loader/generate_library_loader.py",
+    "tools/metrics/histograms/generate_allowlist_from_histograms_file.py",
     "mojo/public/tools/bindings/concatenate-files.py",
     "mojo/public/tools/bindings/concatenate_and_replace_closure_exports.py",
     "third_party/devtools-frontend/src/scripts/build/generate_devtools_grd.py",
@@ -433,7 +458,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
         if kind in ("action", "action_foreach"):
             if target["script"] not in SCRIPTS:
                 raise ValueError("Untranslated platform generator: " + target["script"])
-            if label in CONTENT_PROTO_HEADER_ACTIONS:
+            if label in CONTENT_PROTO_HEADER_ACTIONS or label in CONTENT_GENERATORS.values():
                 record["scoped_native_headers"] = True
             inputs = set(target.get("inputs", []) + target.get("sources", []) + [target["script"]]) | dependency_inputs(label)
             if label in CONTENT_RESOURCES.values():
@@ -445,12 +470,30 @@ def capture(graph, digest, chromium, source_roots, profiles):
                     raise ValueError("Expected one generated resource Python module: " + label)
                 inputs.update(modules)
                 record["generated_proto_inputs"] = modules
+            if label == CONTENT_GENERATORS["model_descriptors"]:
+                for runtime in CONTENT_PROTO_RUNTIME_COPIES:
+                    inputs.update(targets[runtime]["sources"])
+            if label == CONTENT_GENERATORS["policy_templates"]:
+                for directory, suffixes in [("components/policy/resources/templates", (".yaml",)), ("third_party/pyyaml", (".py",))]:
+                    root = physical(directory)
+                    paths = ["//" + directory + "/" + path.relative_to(root).as_posix() for path in source_files(root) if path.suffix in suffixes]
+                    if not paths:
+                        raise ValueError("Missing pinned policy inputs: " + directory)
+                    inputs.update(paths)
             if target["script"] == "//tools/grit/grit.py":
                 inputs.update(grit_resource_inputs(inputs, physical))
             script_parent = physical(target["script"][2:]).parent
             for path in script_parent.glob("*.py"):
                 inputs.add(target["script"].rsplit("/", 1)[0] + "/" + path.name)
             helper_directories = []
+            if label == CONTENT_WEB_ASSETS["about_tracing"]:
+                helper_directories += ["third_party/catapult/" + path for path in (
+                    "tracing/tracing_build",
+                    "third_party/beautifulsoup4-4.9.3/py3k/bs4",
+                    "third_party/html5lib-1.1/html5lib",
+                    "third_party/webencodings-0.5.1/webencodings",
+                    "third_party/six",
+                )]
             if label in CONTENT_RESOURCES.values():
                 helper_directories.append("components/resources/protobufs")
             if target["script"].startswith("//tools/grit/") or target["script"] == "//third_party/blink/renderer/build/scripts/generate_permission_element_grd.py":
@@ -618,7 +661,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
                 input_file(path)
             record.update(script=target["script"][2:], inputs=sorted(inputs - tools.keys()), tools={path: tools[path] for path in sorted(inputs) if path in tools}, outputs=target["outputs"], runs=runs, response=target.get("response_file_contents", []))
             record["environment"] = {"ANGLE_UPSTREAM_HASH": revisions["third_party/angle"]["commit"][:12]} if target["script"] == "//third_party/angle/src/commit_id.py" else {}
-            if label in CONTENT_RESOURCES.values():
+            if label in CONTENT_RESOURCES.values() or label == CONTENT_GENERATORS["model_descriptors"]:
                 record["environment"]["PROTOBUF_PYTHON_IMPLEMENTATION"] = "python"
             actions[label] = record
         elif kind == "copy":
@@ -785,7 +828,12 @@ def capture(graph, digest, chromium, source_roots, profiles):
     )
     used = {dep for label in seen for dep in targets[label].get("deps", []) if dep in external}
     devtools_actions = sorted(label for label in closure([DEVTOOLS_ROOT]) if label in actions)
-    return dict(content_web_assets=CONTENT_WEB_ASSETS, content_resources=CONTENT_RESOURCES, content_protobuf_runtime=CONTENT_PROTO_RUNTIME_COPIES, content_metadata=CONTENT_METADATA, devtools_workspace=devtools_workspace, devtools_frontend_actions=devtools_actions, header_layers=header_layers, devtools_esbuild=devtools_esbuild, copies=copies, devtools_node_modules_files=devtools_packages, native_header_actions=sorted(native_header_actions), source_aliases=source_aliases, roots=ROOTS, graph_sha256=digest, source_revisions=revisions, names=names, libraries=libraries, actions=actions, metadata=metadata, literal_metadata=literal_metadata, execution_tools=sorted(set(tools.values())), execution_closure=sorted(execution_closure), producers=producers, headers=headers, files=sorted(files), external_files={path: shared[path] for path in sorted(used_shared)}, external={label: external[label] for label in sorted(used)}, generated_files=generated, toolchain_deps=sorted(TOOLCHAIN), sdk_libraries=sorted(SDK_LIBS))
+    policy_script = "components/policy/resources/policy_templates.py"
+    original = "f.write(' '.join(source_files))"
+    if physical(policy_script).read_text().count(original) != 1:
+        raise ValueError("Original policy depfile writer changed")
+    source_adapters = {"//" + policy_script: {original: "f.write(' '.join(os.path.relpath(path) for path in source_files))"}}
+    return dict(content_generators=CONTENT_GENERATORS, source_adapters=source_adapters, content_web_assets=CONTENT_WEB_ASSETS, content_resources=CONTENT_RESOURCES, content_protobuf_runtime=CONTENT_PROTO_RUNTIME_COPIES, content_metadata=CONTENT_METADATA, devtools_workspace=devtools_workspace, devtools_frontend_actions=devtools_actions, header_layers=header_layers, devtools_esbuild=devtools_esbuild, copies=copies, devtools_node_modules_files=devtools_packages, native_header_actions=sorted(native_header_actions), source_aliases=source_aliases, roots=ROOTS, graph_sha256=digest, source_revisions=revisions, names=names, libraries=libraries, actions=actions, metadata=metadata, literal_metadata=literal_metadata, execution_tools=sorted(set(tools.values())), execution_closure=sorted(execution_closure), producers=producers, headers=headers, files=sorted(files), external_files={path: shared[path] for path in sorted(used_shared)}, external={label: external[label] for label in sorted(used)}, generated_files=generated, toolchain_deps=sorted(TOOLCHAIN), sdk_libraries=sorted(SDK_LIBS))
 
 
 def main():
