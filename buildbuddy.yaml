@@ -6,7 +6,7 @@ actions:
     timeout: 2h
     resource_requests:
       cpu: 8
-      memory: 16GB
+      memory: 32GB
       disk: 100GB
     triggers:
       push:
@@ -20,23 +20,25 @@ actions:
           registry="$(mktemp -d /tmp/electron-registry.XXXXXX)"
           python3 tools/stage_bcr_entry.py --source-registry bcr \
             --target-registry "$registry" --module electron --version 39.0.0
-          bazel test --config=buildbuddy --strategy=TestRunner=remote \
+          bazel --host_jvm_args=-Xmx24g test --config=buildbuddy --strategy=TestRunner=remote \
             --registry="file://$registry" --registry=https://bcr.bazel.build \
             //tests:hermetic_execution_test
-          bazel test --config=buildbuddy --strategy=TestRunner=local \
+          bazel --host_jvm_args=-Xmx24g test --config=buildbuddy --strategy=TestRunner=local \
             --registry="file://$registry" --registry=https://bcr.bazel.build \
             --profile="$BUILDBUDDY_ARTIFACTS_DIRECTORY/source-graphics-profile.json.gz" \
             @electron//source:platform_graphics_test
           # Keep compile-only archives in CAS; tests download their declared data.
-          bazel build --config=buildbuddy --remote_download_outputs=minimal --registry="file://$registry" \
+          bazel --host_jvm_args=-Xmx24g build --config=buildbuddy --remote_download_outputs=minimal --registry="file://$registry" \
             --profile="$BUILDBUDDY_ARTIFACTS_DIRECTORY/source-components-profile.json.gz" \
+            --memory_profile="$BUILDBUDDY_ARTIFACTS_DIRECTORY/source-components.memory" \
             --experimental_profile_additional_tasks=remote_cache_check \
             --experimental_profile_additional_tasks=remote_download \
             --experimental_profile_additional_tasks=remote_queue \
             --registry=https://bcr.bazel.build //:source_components
-          bazel test --config=buildbuddy --strategy=TestRunner=local \
+          bazel --host_jvm_args=-Xmx24g test --config=buildbuddy --strategy=TestRunner=local \
             --registry="file://$registry" --registry=https://bcr.bazel.build \
             --profile="$BUILDBUDDY_ARTIFACTS_DIRECTORY/source-tests-profile.json.gz" \
+            --memory_profile="$BUILDBUDDY_ARTIFACTS_DIRECTORY/source-tests.memory" \
             --experimental_profile_additional_tasks=remote_cache_check \
             --experimental_profile_additional_tasks=remote_download \
             //:source_tests //tests:prepare_source_test
@@ -74,7 +76,7 @@ actions:
     timeout: 2h
     resource_requests:
       cpu: 8
-      memory: 16GB
+      memory: 32GB
       disk: 100GB
     triggers:
       push:
@@ -89,12 +91,13 @@ actions:
           python3 tools/stage_bcr_entry.py --source-registry bcr \
             --target-registry "$registry" --module electron --version 39.0.0
           cd tests/bcr
-          bazel test --config=buildbuddy --strategy=TestRunner=remote \
+          bazel --host_jvm_args=-Xmx24g test --config=buildbuddy --strategy=TestRunner=remote \
             --registry="file://$registry" --registry=https://bcr.bazel.build \
             @electron//tests:hermetic_execution_test
-          bazel test --config=buildbuddy --strategy=TestRunner=local \
+          bazel --host_jvm_args=-Xmx24g test --config=buildbuddy --strategy=TestRunner=local \
             --registry="file://$registry" --registry=https://bcr.bazel.build \
             --profile="$BUILDBUDDY_ARTIFACTS_DIRECTORY/source-consumer-profile.json.gz" \
+            --memory_profile="$BUILDBUDDY_ARTIFACTS_DIRECTORY/source-consumer.memory" \
             --experimental_profile_additional_tasks=remote_cache_check \
             --experimental_profile_additional_tasks=remote_download \
             //:loop_consumer_test @electron//:source_tests
