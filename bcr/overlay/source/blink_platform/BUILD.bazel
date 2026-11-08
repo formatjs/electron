@@ -1,0 +1,54 @@
+load("@electron_platform_sources//:profile.bzl", "PROFILE")
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+load("@rules_python//python:defs.bzl", "py_test")
+
+package(default_visibility = ["//visibility:public"])
+
+_BLINK = PROFILE["libraries"]["//third_party/blink/renderer/platform:platform"]
+
+cc_binary(
+    name = "platform_probe",
+    srcs = ["platform_probe.cc"],
+    copts = _BLINK["copts"],
+    dynamic_deps = ["//source/glib:" + name for name in [
+        "zlib",
+        "glib",
+        "gobject",
+        "gmodule",
+        "gio",
+    ]],
+    linkstatic = True,
+    local_defines = _BLINK["defines"],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    deps = ["@electron_platform_sources//:blink_platform"],
+)
+
+py_test(
+    name = "platform_test",
+    srcs = ["//source/compositor:compositor_test.py"],
+    args = [
+        "$(rootpath :platform_probe)",
+        "$(rootpath @electron_platform_sources//:libEGL.so)",
+        "$(rootpath @electron_platform_sources//:vk_swiftshader_icd.json)",
+        "$(rootpath @electron_platform_runtime//:libffi.so.7)",
+        "$(rootpath //source/glib:glib)",
+        "$(rootpath @electron_icu_sources//:common/icudtl.dat)",
+    ],
+    data = [
+        ":platform_probe",
+        "//source/glib",
+        "@electron_icu_sources//:common/icudtl.dat",
+        "@electron_platform_runtime//:libffi.so.7",
+        "@electron_platform_sources//:libEGL.so",
+        "@electron_platform_sources//:runtime",
+        "@electron_platform_sources//:vk_swiftshader_icd.json",
+    ],
+    main = "//source/compositor:compositor_test.py",
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)

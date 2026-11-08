@@ -1,0 +1,16 @@
+--- a/tools/json_to_struct/json_to_struct.py
++++ b/tools/json_to_struct/json_to_struct.py
+@@ -333,6 +333,7 @@
+   parser.add_option('-s', '--schema', help='path to the schema file, '
+       'mandatory.')
+   parser.add_option('-o', '--output', help='output filename, ')
++  parser.add_option("--year", type="int", help="copyright year for generated files")
+   (opts, args) = parser.parse_args()
+ 
+   if not opts.schema:
+@@ -354,4 +355,4 @@
+   schema = _Load(opts.schema)
+   description = _Load(description_filename)
+   GenerateStruct(basepath, output_root, opts.namespace, schema, description,
+-                 description_filename, opts.schema)
++                 description_filename, opts.schema, year=opts.year)

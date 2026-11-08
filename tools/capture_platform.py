@@ -9,6 +9,7 @@ import json
 import os
 import posixpath
 import re
+from functools import cache
 from pathlib import Path
 
 from capture_mojo import SCRIPTS as MOJO_SCRIPTS
@@ -16,15 +17,20 @@ from native_graph import BUILD, capture_library, load_profiles
 
 BLINK_BINDINGS_ROOTS = ["//third_party/blink/renderer/bindings:web_idl_database", "//third_party/blink/renderer/core:core_event_interfaces", "//third_party/blink/renderer/modules:modules_event_interfaces"]
 BLINK_PLATFORM_GENERATORS = ['//third_party/blink/common:make_generated_document_policy_features', '//third_party/blink/common:make_generated_features', '//third_party/blink/common:make_generated_origin_trials', '//third_party/blink/common:make_runtime_feature_state_contexts_impl', '//third_party/blink/public/common:make_generated_permissions_policy_helper', '//third_party/blink/public/common:make_runtime_feature_state_contexts_headers', '//third_party/blink/public/mojom/origin_trials:generate_origin_trial_feature', '//third_party/blink/public/mojom/runtime_feature_state:generate_runtime_feature', '//third_party/blink/public:runtime_features_for_public', '//third_party/blink/renderer/core:make_core_generated_settings', '//third_party/blink/renderer/platform/loader:make_platform_loader_generated_delivery_type_names', '//third_party/blink/renderer/platform/loader:make_platform_loader_generated_fetch_initiator_type_names', '//third_party/blink/renderer/platform/network:http_names', '//third_party/blink/renderer/platform:color_data', '//third_party/blink/renderer/platform:font_family_names', '//third_party/blink/renderer/platform:runtime_enabled_features', '//third_party/blink/renderer/platform:runtime_feature_state_override_context']
-ROOTS = ["//ui/ozone:ozone", "//ui/gl:gl", "//gpu/command_buffer/client:gles2_implementation", "//gpu/command_buffer/service:gles2", "//components/viz/common:common", "//gpu/ipc/service:service", "//gpu/ipc/client:client", "//gpu/ipc/host:host", "//media:media", "//cc:cc"] + BLINK_BINDINGS_ROOTS + BLINK_PLATFORM_GENERATORS
+ROOTS = ["//ui/ozone:ozone", "//ui/gl:gl", "//gpu/command_buffer/client:gles2_implementation", "//gpu/command_buffer/service:gles2", "//components/viz/common:common", "//gpu/ipc/service:service", "//gpu/ipc/client:client", "//gpu/ipc/host:host", "//media:media", "//cc:cc", "//third_party/blink/renderer/platform:platform"] + BLINK_BINDINGS_ROOTS + BLINK_PLATFORM_GENERATORS
 SOURCE_PREFIXES = ["third_party/libyuv", "third_party/angle", "third_party/dawn", "third_party/swiftshader", "third_party/spirv-tools/src", "third_party/spirv-headers/src", "third_party/vulkan-loader/src", "third_party/vulkan-tools/src", "third_party/vulkan-utility-libraries/src", "third_party/vulkan-headers/src", "third_party/vulkan_memory_allocator", "third_party/wayland/src", "third_party/wayland-protocols/src", "third_party/wayland-protocols/kde"]
 MEDIA_SOURCE_PREFIXES = ["third_party/flac", "media/cdm/api", "third_party/libaom/source/libaom", "third_party/crc32c/src", "third_party/ffmpeg", "third_party/libvpx/source/libvpx", "third_party/openh264/src", "third_party/dav1d/libdav1d", "third_party/libgav1/src", "third_party/leveldatabase/src", "third_party/libwebm/source"]
 COMPOSITOR_SOURCE_PREFIXES = ["third_party/webrtc", "third_party/federated_compute/src", "third_party/libsrtp"]
-SOURCE_PREFIXES += MEDIA_SOURCE_PREFIXES + COMPOSITOR_SOURCE_PREFIXES
+BLINK_SOURCE_PREFIXES = ['third_party/cld_3/src', 'third_party/cpuinfo/src', 'third_party/devtools-frontend/src', 'third_party/eigen3/src', 'third_party/emoji-segmenter/src', 'third_party/farmhash/src', 'third_party/flatbuffers/src', 'third_party/fxdiv/src', 'third_party/gemmlowp/src', 'third_party/libphonenumber/dist', 'third_party/material_color_utilities/src', 'third_party/neon_2_sse/src', 'third_party/ots/src', 'third_party/pthreadpool/src', 'third_party/ruy/src', 'third_party/search_engines_data/resources', 'third_party/smhasher/src', 'third_party/tflite/src', 'third_party/xnnpack/src']
+SOURCE_PREFIXES += MEDIA_SOURCE_PREFIXES + COMPOSITOR_SOURCE_PREFIXES + BLINK_SOURCE_PREFIXES
 TOOLCHAIN = {"//buildtools/third_party/libc++:" + name for name in ("all_modules", "custom_headers", "libcxx_headers", "libc++")}
 SDK_LIBS = {"atspi", "Xcomposite", "Xdamage", "Xfixes", "Xrandr", "Xrender", "Xtst", "drm", "asound", "ffi_pic", "X11", "Xi", "Xext", "pci", "gbm", "dbus-1", "udev", "cairo", "harfbuzz", "pango-1.0", "pangocairo-1.0", "atk-1.0", "atk-bridge-2.0"}
 SCRIPTS = MOJO_SCRIPTS | {"//" + name for name in (
     "build/write_buildflag_header.py", "build/gn_run_binary.py",
+    "tools/json_to_struct/json_to_struct.py",
+    "services/device/public/cpp/usb/tools/usb_ids.py",
+    "third_party/devtools-frontend/src/scripts/build/typescript/ts_library.py",
+    "third_party/devtools-frontend/src/scripts/build/build_inspector_overlay.py",
     "third_party/blink/renderer/bindings/scripts/collect_idl_files.py",
     "third_party/blink/renderer/bindings/scripts/build_web_idl_database.py",
     "third_party/blink/renderer/bindings/scripts/generate_event_interface_names.py",
@@ -91,8 +97,8 @@ def source_revisions(chromium):
     variables, entries = read_deps(chromium / "third_party/dawn/DEPS")
     for prefix in ["third_party/khronos/EGL-Registry", "third_party/khronos/OpenGL-Registry"]:
         record("third_party/dawn/" + prefix, entries[prefix])
-    for group in ("ffmpeg", "webrtc"):
-        records["third_party/" + group]["patch_group"] = group
+    for group, prefix in [("ffmpeg", "third_party/ffmpeg"), ("webrtc", "third_party/webrtc"), ("devtools_frontend", "third_party/devtools-frontend/src")]:
+        records[prefix]["patch_group"] = group
     return records
 
 
@@ -128,6 +134,13 @@ def capture(graph, digest, chromium, source_roots, profiles):
                 return root / path[len(prefix):].lstrip("/")
         return chromium / path
 
+    @cache
+    def source_includes(source):
+        text = physical(source).read_text(encoding="utf-8", errors="surrogateescape")
+        implementations = re.findall(r'^\s*#\s*include\s*["<]([^"\n>]+\.(?:c|cc|cpp))[">]', text, re.M)
+        quoted = re.findall(r'^\s*#\s*include\s*"([^"\n]+)"', text, re.M)
+        return implementations, quoted
+
     hook_label = "//gpu/webgpu:checkout_lastchange_dawn"
     hook_name = "checkout_lastchange_dawn"
     hook_outputs = [BUILD + "src/gpu/webgpu/" + name for name in ["DAWN_VERSION", "dawn_commit_hash.h"]]
@@ -148,7 +161,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
     producers = {}
     for label in sorted(seen):
         target = targets[label]
-        if target["type"] in ("action", "action_foreach", "generated_file"):
+        if target["type"] in ("action", "action_foreach", "generated_file", "copy"):
             for output in target["outputs"]:
                 if not output.startswith(BUILD) or output in producers:
                     raise ValueError("Unexpected/duplicate platform output")
@@ -156,6 +169,10 @@ def capture(graph, digest, chromium, source_roots, profiles):
     producers.update({path: hook_label for path in hook_outputs})
     tools = {output: label for label, target in targets.items() if target["type"] == "executable" and (label in seen or label in external) for output in target.get("outputs", [])[:1]}
     tools[BUILD + "gperf"] = "@gperf//:gperf"
+    node = "//third_party/node/linux/node-linux-x64/bin/node"
+    esbuild = "//third_party/devtools-frontend/src/third_party/esbuild/esbuild"
+    tools[node] = "@electron_chromium_node_tool//:node-linux-x64/bin/node"
+    tools[esbuild] = "@electron_platform_esbuild//:esbuild"
     execution_closure, pending = set(), [label for label in seen if targets[label]["type"] == "executable"]
     while pending:
         label = pending.pop()
@@ -185,6 +202,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
 
     directories = ["services/viz/public", "third_party/libyuv", "gpu", "components/viz/common", "third_party/khronos", "ui", "dbus", "components/dbus", "components/url_formatter", "components/headless", "services/service_manager/public", "third_party/angle", "third_party/dawn", "third_party/swiftshader", "third_party/spirv-tools/src", "third_party/spirv-headers/src", "third_party/vulkan-loader/src", "third_party/vulkan-tools/src", "third_party/vulkan-utility-libraries/src", "third_party/vulkan-headers/src", "third_party/wayland/src", "third_party/wayland/include"]
     media_header_roots = ["media", "third_party/libaom", "third_party/crc32c", "third_party/ffmpeg", "third_party/flac", "third_party/opus", "third_party/libvpx", "third_party/openh264", "third_party/dav1d", "third_party/libgav1", "third_party/leveldatabase", "third_party/libwebm"]
+    directories.append("third_party/eigen3/src")
     directories += media_header_roots
     directories += [path for path in MEDIA_SOURCE_PREFIXES if path not in directories]
     implicit_header_roots = set()
@@ -200,7 +218,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
     for directory in directories:
         root = physical(directory)
         roots = [(directory, root)] + [(prefix, checkout) for prefix, checkout in source_roots.items() if prefix.startswith(directory + "/")]
-        inventory = sorted({prefix + "/" + path.relative_to(checkout).as_posix() for prefix, checkout in roots for path in source_files(checkout) if path.is_file() and path.suffix in (".h", ".hh", ".hpp", ".hpp11", ".inc", ".inl", ".def", ".gen")})
+        inventory = sorted({prefix + "/" + path.relative_to(checkout).as_posix() for prefix, checkout in roots for path in source_files(checkout) if path.is_file() and (path.suffix in (".h", ".hh", ".hpp", ".hpp11", ".inc", ".inl", ".def", ".gen") or (prefix == "third_party/eigen3/src" and not path.suffix and path.relative_to(checkout).as_posix().startswith(("Eigen/", "unsupported/Eigen/"))))})
         if not inventory and directory not in media_header_roots and directory not in implicit_header_roots:
             raise ValueError("Missing original platform header inventory: " + directory)
         headers[directory] = inventory
@@ -232,7 +250,18 @@ def capture(graph, digest, chromium, source_roots, profiles):
             pending.extend(target.get("deps", []))
         return paths
 
-    actions, libraries, metadata = {}, {}, {}
+    devtools_deps = ast.parse(physical("third_party/devtools-frontend/src/DEPS").read_text())
+    devtools_entries = next(node.value for node in devtools_deps.body if isinstance(node, ast.Assign) and any(isinstance(name, ast.Name) and name.id == "deps" for name in node.targets))
+    esbuild_entry = ast.literal_eval(next(value for key, value in zip(devtools_entries.keys, devtools_entries.values) if isinstance(key, ast.Constant) and key.value == "third_party/esbuild"))
+    if esbuild_entry["packages"] != [{"package": "infra/3pp/tools/esbuild/${{platform}}", "version": "version:3@0.25.1.chromium.2"}]:
+        raise ValueError("Update exact DevTools esbuild package pin")
+    devtools_esbuild = dict(url="https://chrome-infra-packages.appspot.com/dl/infra/3pp/tools/esbuild/linux-amd64/+/version:3@0.25.1.chromium.2", sha256="520554b1c0ad045201310582a01ef7a0ba9b5d033d8f03a709c369c52f81d9c9", source="third_party/devtools-frontend/src/DEPS", packages=esbuild_entry["packages"])
+    devtools_modules = "third_party/devtools-frontend/src/node_modules"
+    devtools_packages = sorted(devtools_modules + "/" + path.relative_to(physical(devtools_modules)).as_posix() for path in source_files(physical(devtools_modules)) if path.is_file() and path.name not in ("BUILD", "BUILD.bazel"))
+    if not devtools_packages:
+        raise ValueError("Missing original DevTools npm inventory")
+    files.update(devtools_packages)
+    actions, libraries, metadata, copies = {}, {}, {}, {}
     for label in sorted(seen):
         target = targets[label]
         if target["toolchain"] != "//build/toolchain/linux:clang_x64":
@@ -257,9 +286,16 @@ def capture(graph, digest, chromium, source_roots, profiles):
             for directory in helper_directories:
                 root = physical(directory)
                 inputs.update("//" + directory + "/" + path.relative_to(root).as_posix() for path in source_files(root) if path.suffix == ".py")
+            devtools = target["script"].startswith("//third_party/devtools-frontend/src/")
+            if devtools:
+                inputs.update({"//third_party/node/node.py", "//third_party/node/node_modules.py", "//third_party/devtools-frontend/src/scripts/devtools_paths.py"})
+                inputs.add(node)
+                if target["script"].endswith("/ts_library.py"):
+                    inputs.add(esbuild)
+                record["devtools_node_modules"] = True
             args = [arg.replace("$SOURCE_ROOT/out/bazel-import/", "") for arg in target.get("args", [])]
-            if target["script"] == "//tools/variations/fieldtrial_to_struct.py":
-                # Original option avoids a wall-clock-dependent copyright header.
+            if target["script"] in ("//tools/variations/fieldtrial_to_struct.py", "//tools/json_to_struct/json_to_struct.py"):
+                # Pin generated copyright to the captured release year.
                 record["reproducibility_options"] = {"year": "2025", "basis": "Chromium 142 source release"}
                 args.append("--year=2025")
             if "gperf" in args:
@@ -317,7 +353,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
             runs = []
             if kind == "action_foreach":
                 for source in target["sources"]:
-                    substitutions = {"{{source}}": "../../" + source[2:], "{{source_name_part}}": Path(source).stem}
+                    substitutions = {"{{source}}": "../../" + source[2:], "{{source_name_part}}": Path(source).stem, "{{source_gen_dir}}": "gen/" + posixpath.dirname(source[2:])}
                     expanded = args
                     for placeholder, value in substitutions.items():
                         expanded = [arg.replace(placeholder, value) for arg in expanded]
@@ -333,6 +369,13 @@ def capture(graph, digest, chromium, source_roots, profiles):
             record.update(script=target["script"][2:], inputs=sorted(inputs - tools.keys()), tools={path: tools[path] for path in sorted(inputs) if path in tools}, outputs=target["outputs"], runs=runs, response=target.get("response_file_contents", []))
             record["environment"] = {"ANGLE_UPSTREAM_HASH": revisions["third_party/angle"]["commit"][:12]} if target["script"] == "//third_party/angle/src/commit_id.py" else {}
             actions[label] = record
+        elif kind == "copy":
+            if len(target["sources"]) != len(target["outputs"]):
+                raise ValueError("Unexpected original platform copy: " + label)
+            for path in target["sources"]:
+                input_file(path)
+            record.update(sources=target["sources"], outputs=target["outputs"])
+            copies[label] = record
         elif kind == "generated_file":
             for path in target["outputs"]:
                 if path not in graph["generated_files"]:
@@ -388,7 +431,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
             if source.startswith(BUILD) or source in visited:
                 continue
             visited.add(source)
-            for include in re.findall(r'^\s*#\s*include\s*["<]([^"\n>]+\.(?:c|cc|cpp))[">]', physical(source[2:]).read_text(), re.M):
+            for include in source_includes(source[2:])[0]:
                 candidates = [posixpath.normpath(posixpath.join(posixpath.dirname(source[2:]), include))]
                 candidates += [posixpath.normpath(posixpath.join(directory, include)) for directory in library["includes"]]
                 candidates += [include, posixpath.join("gen", include)]
@@ -408,7 +451,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
         if source in visited or Path(source).suffix not in (".h", ".hh", ".hpp", ".inc", ".inl", ".def", ".cc", ".cpp", ".c", ".S", ".s"):
             continue
         visited.add(source)
-        for include in re.findall(r'^\s*#\s*include\s*"([^"\n]+)"', physical(source).read_text(), re.M):
+        for include in source_includes(source)[1]:
             candidate = posixpath.normpath(posixpath.join(posixpath.dirname(source), include))
             if candidate.startswith(("/", "../")) or not physical(candidate).is_file():
                 continue
@@ -416,6 +459,8 @@ def capture(graph, digest, chromium, source_roots, profiles):
             if candidate not in files:
                 files.add(candidate)
                 pending.append(candidate)
+    used_shared.discard("//tools/json_to_struct/json_to_struct.py")
+    files.add("tools/json_to_struct/json_to_struct.py")
     for path in sorted(files):
         if not physical(path).is_file():
             raise ValueError("Missing original platform input: " + path)
@@ -430,7 +475,7 @@ def capture(graph, digest, chromium, source_roots, profiles):
         pending.extend(targets[label].get("deps", []))
     native_header_actions.update(label for label in actions if label not in targets)
     used = {dep for label in seen for dep in targets[label].get("deps", []) if dep in external}
-    return dict(native_header_actions=sorted(native_header_actions), source_aliases=source_aliases, roots=ROOTS, graph_sha256=digest, source_revisions=revisions, names=names, libraries=libraries, actions=actions, metadata=metadata, literal_metadata=literal_metadata, execution_tools=sorted(set(tools.values())), execution_closure=sorted(execution_closure), producers=producers, headers=headers, files=sorted(files), external_files={path: shared[path] for path in sorted(used_shared)}, external={label: external[label] for label in sorted(used)}, generated_files=generated, toolchain_deps=sorted(TOOLCHAIN), sdk_libraries=sorted(SDK_LIBS))
+    return dict(devtools_esbuild=devtools_esbuild, copies=copies, devtools_node_modules_files=devtools_packages, native_header_actions=sorted(native_header_actions), source_aliases=source_aliases, roots=ROOTS, graph_sha256=digest, source_revisions=revisions, names=names, libraries=libraries, actions=actions, metadata=metadata, literal_metadata=literal_metadata, execution_tools=sorted(set(tools.values())), execution_closure=sorted(execution_closure), producers=producers, headers=headers, files=sorted(files), external_files={path: shared[path] for path in sorted(used_shared)}, external={label: external[label] for label in sorted(used)}, generated_files=generated, toolchain_deps=sorted(TOOLCHAIN), sdk_libraries=sorted(SDK_LIBS))
 
 
 def main():

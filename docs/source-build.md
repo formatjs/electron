@@ -1591,8 +1591,8 @@ Electron executable or renderer integration.
 `@electron_platform_sources//:blink_bindings` builds the original Web IDL
 collections/database, testing IDLs and event tables, plus 17 original platform
 generators for runtime features, policy declarations, settings, names and color
-data. The profile has 551 generator targets and 1,491 native library/group
-records. Existing records stay unchanged; the extra group owns testing IDLs.
+data. At `3888599`, this pipeline had 551 generator targets and 1,491 native
+library/group records. Existing records stay unchanged; the extra group owns testing IDLs.
 
 Color generation uses declared, source-built `@gperf//:gperf` (3.1.bcr.2). The
 runner stages that executable explicitly with an empty PATH. Every generator
@@ -1610,3 +1610,25 @@ Implementation `3888599` passed hosted components, BCR consumer and cross
 probes. Its aggregate profile records 26 generator actions, including native
 gperf generation, and the full source suite reports the binding probe PASSED.
 Full Blink platform integration is unfinished.
+
+## Full Blink platform capture
+
+The Linux AMD64 capture now includes original
+`//third_party/blink/renderer/platform:platform` and its dependency closure:
+12,256 source/object units, 2,989 native library/group targets, 1,633 generator
+targets and three copy targets. All previous native library, generator and literal
+metadata records remain unchanged. Forty-nine exact source pins include the
+additional ML/font dependencies; DevTools retains Electron's original patches.
+
+DevTools uses declared Node and the SHA256-pinned esbuild package from its own
+DEPS. Its npm inventory contains 24,211 files. FlatBuffers, USB IDs, search-engine
+data, Mojo, resources and Unicode character data retain their original producers.
+Native character generation receives declared ICU data. The JSON-to-struct CLI
+patch exposes a year parameter, and capture pins it to 2025. Source projection
+copies patched helpers before applying patches.
+
+`@electron//source/blink_platform:platform_test` exercises native ICU/WTF setup,
+UTF-8 validation, grapheme boundaries, string interning, Unicode properties and
+generated CSS color lookup. It uses the existing isolated desktop-library
+wrapper. Compile, link and runtime validation remain pending. The renderer and
+full Electron executable are still unfinished.

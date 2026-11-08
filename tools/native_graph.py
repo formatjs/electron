@@ -14,7 +14,12 @@ def value(graph, target, key):
 
 
 def capture_library(graph, target, record, input_file, label, extra_libs=()):
-    sources = target.get("sources", [])
+    resources = [path for path in target.get("sources", []) if path.endswith(".grd") or (path.endswith(".rc") and target.get("toolchain") == "//build/toolchain/linux:clang_x64")]
+    sources = [path for path in target.get("sources", []) if path not in resources]
+    if resources:
+        record["resource_sources"] = resources
+    for path in resources:
+        input_file(path)
     public = target.get("public", [])
     public = public if isinstance(public, list) else []
     compiler_inputs = [path for path in target.get("inputs", []) if path not in DIAGNOSTIC_INPUTS]

@@ -23,12 +23,13 @@ def _sources_impl(ctx):
                 matched = len(prefix)
         if not source.exists:
             fail("Pinned platform source missing: " + path)
-        if path == "build/util/lastchange.py":
+        if path in ["build/util/lastchange.py", "tools/json_to_struct/json_to_struct.py"]:
             ctx.file(path, ctx.read(source), executable = False)
         else:
             ctx.symlink(source, path)
     ctx.patch(ctx.attr.lastchange_patch, strip = 1)
-    ctx.file("native_compat_patches.json", json.encode({"graph_sha256": profile["graph_sha256"], "patches": [str(ctx.attr.lastchange_patch)], "files": ["build/util/lastchange.py"]}))
+    ctx.patch(ctx.attr.json_year_patch, strip = 1)
+    ctx.file("native_compat_patches.json", json.encode({"graph_sha256": profile["graph_sha256"], "patches": [str(ctx.attr.lastchange_patch), str(ctx.attr.json_year_patch)], "files": ["build/util/lastchange.py", "tools/json_to_struct/json_to_struct.py"]}))
     for path, content in profile["generated_files"].items():
         if not path.startswith("//out/bazel-import/") or ".." in path.split("/"):
             fail("Invalid platform metadata path")
@@ -40,6 +41,7 @@ _platform_sources = repository_rule(
     implementation = _sources_impl,
     attrs = {
         "chromium": attr.label(mandatory = True),
+        "json_year_patch": attr.label(default = Label("//source:json_to_struct_year.patch")),
         "lastchange_patch": attr.label(default = Label("//source:lastchange_environment.patch")),
         "sources": attr.label_keyed_string_dict(mandatory = True),
         "profile": attr.label(default = Label("//source/native:platform_inputs.json")),
@@ -70,10 +72,10 @@ _platform_runtime = repository_rule(
 
 def electron_platform_repositories(ctx):
     profile = json.decode(ctx.read(Label("//source/native:platform_inputs.json")))
-    anchors, names = {}, []
+    anchors, names = {"@electron//:DEPS": "electron"}, []
     for prefix, pin in profile["source_revisions"].items():
         group = pin.get("patch_group")
-        if group in ["ffmpeg", "webrtc"]:
+        if group in ["ffmpeg", "webrtc", "devtools_frontend"]:
             original = [entry for entry in json.decode(ctx.read(Label("//source:upstream_pins.json"))) if entry["group"] == group][0]
             if original["url"] != pin["remote"] + "@" + pin["commit"]:
                 fail("Platform revision differs from Electron's patched source: " + group)
@@ -84,6 +86,15 @@ def electron_platform_repositories(ctx):
         new_git_repository(name = name, remote = pin["remote"], commit = pin["commit"], build_file_content = "exports_files([\"BUILD.bazel\"], visibility = [\"//visibility:public\"])\n")
         anchors["@" + name + "//:BUILD.bazel"] = prefix
         names.append(name)
+    esbuild = profile["devtools_esbuild"]
+    http_archive(
+        name = "electron_platform_esbuild",
+        urls = [esbuild["url"]],
+        sha256 = esbuild["sha256"],
+        type = "zip",
+        build_file_content = "exports_files([\"esbuild\"], visibility = [\"//visibility:public\"])\n",
+    )
+    names.append("electron_platform_esbuild")
     _platform_sources(name = "electron_platform_sources", chromium = "@electron_chromium_sources//:DEPS", sources = anchors)
     _platform_runtime(name = "electron_platform_runtime")
     http_archive(

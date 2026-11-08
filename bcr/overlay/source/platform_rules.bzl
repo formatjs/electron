@@ -76,6 +76,7 @@ def electron_platform():
         deps = [":upstream_headers", "@electron_platform_sdk//:headers"],
         target_compatible_with = _COMPATIBLE,
     )
+    native.filegroup(name = "devtools_node_modules", srcs = PROFILE.get("devtools_node_modules_files", []))
     for original, action in PROFILE["actions"].items():
         runs = []
         for index, run in enumerate(action["runs"]):
@@ -86,6 +87,7 @@ def electron_platform():
                 name = name,
                 srcs = {_file(path): path[2:] for path in action["inputs"]},
                 tools = {_label(label): path[2:] for path, label in action["tools"].items()},
+                source_groups = [":devtools_node_modules"] if action.get("devtools_node_modules") else [],
                 tool_inputs = [":" + PROFILE["libraries"][label]["name"] + "_runtime" for label in action["tools"].values() if PROFILE["libraries"].get(label, {}).get("native_tool_data")],
                 deps = [":" + PROFILE["names"][label] + "_runs" for label in action["ordering_deps"]],
                 exec_compatible_with = _COMPATIBLE,
@@ -106,6 +108,15 @@ def electron_platform():
             includes = ["gen"],
             target_compatible_with = _COMPATIBLE,
         )
+    for original, copy in PROFILE.get("copies", {}).items():
+        outputs = [path[len(_BUILD):] for path in copy["outputs"]]
+        arguments = []
+        for source, output in zip(copy["sources"], outputs):
+            arguments += ["../../" + source[2:], output]
+        inputs = {_file(path): path[2:] for path in copy["sources"]}
+        inputs["@electron//electron/private:copy_files.py"] = "electron/private/copy_files.py"
+        electron_source_action(name = copy["name"] + "_run", srcs = inputs, script = "electron/private/copy_files.py", args = arguments, out_files = outputs, logical_outputs = outputs, target_compatible_with = _COMPATIBLE)
+        cc_library(name = copy["name"], hdrs = [_file(path) for path in copy["outputs"] if path.endswith(".h")], textual_hdrs = [_file(path) for path in copy["outputs"] if not path.endswith(".h")], includes = ["gen"], target_compatible_with = _COMPATIBLE)
     for original, metadata in PROFILE["metadata"].items():
         cc_library(name = metadata["name"], data = [_file(path) for path in metadata["outputs"]], target_compatible_with = _COMPATIBLE)
     shared = []
@@ -120,6 +131,8 @@ def electron_platform():
             target_compatible_with = _COMPATIBLE,
             deps = [":tool_headers" if original in PROFILE["execution_closure"] else ":source_headers"] + _system_deps(library) + list({_label(dep): True for dep in library["gn_deps"] if dep not in PROFILE["toolchain_deps"] and dep not in PROFILE["execution_tools"]}),
         )
+        if library.get("resource_sources"):
+            settings["data"] = [_file(path) for path in library["resource_sources"]]
         for language, sources, flags in [("c", library["c_srcs"], library["c_copts"]), ("asm", library["asm_srcs"], library["asm_copts"])]:
             if sources:
                 compiler_inputs = []
@@ -154,6 +167,7 @@ def electron_platform():
     native.filegroup(name = "libraries", srcs = [_label(label) for label, library in PROFILE["libraries"].items() if library["kind"] != "executable"] + shared + icds)
     native.filegroup(name = "blink_bindings", srcs = [":" + PROFILE["actions"][label]["name"] + "_runs" for label in PROFILE["roots"] if label.startswith("//third_party/blink/") and label in PROFILE["actions"]])
     native.filegroup(name = "runtime", srcs = ["@electron//source/glib:runtime"] + shared + icds + ["@electron_platform_runtime//:libraries", "@electron_platform_pciutils//:libpci.so.3"])
+    native.alias(name = "blink_platform", actual = _label("//third_party/blink/renderer/platform:platform"))
     native.alias(name = "ozone", actual = _label("//ui/ozone:ozone"))
     native.alias(name = "gl", actual = _label("//ui/gl:gl"))
 
