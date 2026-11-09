@@ -83,6 +83,8 @@ EXTRA_NATIVE_DEPS = {
 }
 
 EXTRA_NATIVE_HEADERS = {
+    "//components/password_manager/core/browser:browser": ["//components/credential_management/credential_manager_interface.h"],
+    "//components/permissions:permissions": ["//components/messages/android/message_enums.h"],
     "//ui/message_center:message_center": ["//ash/constants/ash_features.h"],
     "//ui/message_center/public/cpp:cpp": ["//chromeos/constants/chromeos_features.h"],
     "//content/browser:browser": ["//ash/constants/ash_switches.h", "//gpu/config/gpu_lists_version.h"],

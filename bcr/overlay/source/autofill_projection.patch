@@ -1,0 +1,11 @@
+--- a/components/autofill/core/browser/metrics/quality_metrics.cc
++++ b/components/autofill/core/browser/metrics/quality_metrics.cc
+@@ -78,7 +78,7 @@
+                         base::TimeTicks now) {
+   size_t num_detected_field_types =
+       std::ranges::count_if(form, &FieldHasMeaningfulPossibleFieldTypes,
+-                            &std::unique_ptr<AutofillField>::operator*);
++                            [](const auto& field) -> const auto& { return *field; });
+   bool form_has_autofilled_fields = std::ranges::any_of(
+       form, [](const auto& field) { return field->is_autofilled(); });
+   bool has_observed_one_time_code_field =

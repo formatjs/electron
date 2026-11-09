@@ -2691,3 +2691,12 @@ The `416f428` components workflow passed the original-library
 and [graphics tests](https://formatjs.buildbuddy.io/invocation/0c982c98-9671-4fd3-a141-5918f3318e0d).
 The wire test exercised successful round trips in both insertion orders and
 the expected duplicate-paper rejection. Broad source builds remain unverified.
+
+The broad `416f428` build reached missing Credential Manager interface and
+shared message-enum headers. Both are now declared on their original consuming
+libraries. Autofill metrics also hit the existing libc++ `unique_ptr::operator*`
+projection issue; its equivalent dereference lambda follows the cookie-store
+fix. Compile-only probes now cover all three owning libraries. The header change
+is guarded to alter only two file entries and the corresponding owner header
+lists. BB validation remains pending; the live broad build is still warming
+unaffected actions.
