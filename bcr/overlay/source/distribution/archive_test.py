@@ -12,11 +12,34 @@ import zipfile
 
 from electron.private.runtime_archive import assemble
 
-ARCHIVE, REPORT, PATCHELF, PROGRAM, ANSWER, BASE = map(Path, sys.argv[1:])
+ARCHIVE, REPORT, PATCHELF, PROGRAM, ANSWER, BASE, NSS_ARCHIVE, NSS_REPORT, NSS_PROBE = map(Path, sys.argv[1:])
 del sys.argv[1:]
 
 
 class RuntimeArchiveTest(unittest.TestCase):
+    def test_relocated_nss_initialization_and_final_module_integrity(self):
+        with tempfile.TemporaryDirectory(prefix="NSS runtime relocated 世界 ") as directory:
+            root = Path(directory)
+            with zipfile.ZipFile(NSS_ARCHIVE) as archive:
+                archive.extractall(root)
+            records = {entry["path"]: entry for entry in json.loads(NSS_REPORT.read_text())["elf"]}
+            self.assertIn("lib/libnss3.so", records)
+            self.assertIn("lib/libnspr4.so", records)
+            environment = {"PATH": "", "LANG": "C", "LC_ALL": "C", "TZ": "UTC", "HOME": str(root)}
+
+            def verify():
+                return subprocess.run([str(NSS_PROBE.resolve()), str(root / "lib")], cwd=root,
+                                      env=environment, capture_output=True, timeout=30).returncode
+
+            self.assertEqual(verify(), 0)
+            for name in ("libfreebl3.so", "libfreebl3.chk"):
+                path = root / "lib" / name
+                original = path.read_bytes()
+                path.write_bytes(original[:-1] + bytes([original[-1] ^ 1]))
+                self.assertEqual(verify(), 5, name)
+                path.write_bytes(original)
+            self.assertEqual(verify(), 0)
+
     def manifest(self):
         return {
             "entries": [

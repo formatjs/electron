@@ -97,6 +97,7 @@ py_binary(
 exports_files([
     "artifact_file.py",
     "copy_files.py",
+    "nss_integrity.py",
     "source_action.py",
     "runtime_archive.py",
     "source_tool.py",

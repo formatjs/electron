@@ -1,3 +1,14 @@
+--- a/BUILD.bazel
++++ b/BUILD.bazel
+@@ -5,6 +5,8 @@
+ load("//bazel:sources.bzl", "EXPORTS")
+ 
+ package(default_visibility = ["//visibility:public"])
++
++exports_files(["COPYING", "cmd/shlibsign/shlibsign.c"])
+ 
+ export_headers(
+     name = "export_headers",
 --- a/bazel/actions.bzl
 +++ b/bazel/actions.bzl
 @@ -37,20 +37,23 @@

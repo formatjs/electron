@@ -25,6 +25,35 @@ _NATIVE_LIBRARIES = {
     "libgio-2.0.so.0": "//source/glib:gio",
 }
 
+_NATIVE_LIBRARIES.update({"lib" + name + ".so": "@nspr//:lib" + name + ".so" for name in [
+    "nspr4",
+    "plc4",
+    "plds4",
+]})
+
+_NATIVE_LIBRARIES.update({"lib" + name + ".so": "@nss//:lib" + name + ".so" for name in [
+    "freebl3",
+    "freeblpriv3",
+    "nss3",
+    "nssckbi",
+    "nssdbm3",
+    "nssutil3",
+    "smime3",
+    "softokn3",
+    "ssl3",
+]})
+
+_NSS_INTEGRITY = {
+    "nss_integrity_modules": ["lib" + name + ".so" for name in [
+        "freebl3",
+        "freeblpriv3",
+        "nssdbm3",
+        "softokn3",
+    ]],
+    "nss_integrity_tool": "//electron/private:nss_checksum",
+    "nss_parameters": "@nss//:cmd/shlibsign/shlibsign.c",
+}
+
 _LIBRARIES = {"@electron_platform_runtime//:" + name: name for name in LIBRARIES if name not in _NATIVE_LIBRARIES}
 
 _LIBRARIES.update({label: name for name, label in _NATIVE_LIBRARIES.items()})
@@ -58,6 +87,8 @@ _FILES.update({
     "@glib//:COPYING": "licenses/native/glib.COPYING",
     "@zlib//:LICENSE": "licenses/native/zlib.LICENSE",
     "@electron_platform_pciutils//:COPYING": "licenses/native/pciutils.COPYING",
+    "@nss//:COPYING": "licenses/native/nss.COPYING",
+    "@nspr//:LICENSE": "licenses/native/nspr.LICENSE",
 })
 
 _NOTICE_HASHES = {"licenses/debian/" + name + ".copyright": notice["sha256"] for name, notice in COPYRIGHTS.items()}
@@ -111,6 +142,7 @@ electron_runtime_archive(
     libraries = _LIBRARIES,
     report = "electron-linux-x64.elf.json",
     target_compatible_with = _COMPATIBLE,
+    **_NSS_INTEGRITY
 )
 
 py_test(
@@ -178,6 +210,27 @@ electron_runtime_archive(
     target_compatible_with = _COMPATIBLE,
 )
 
+electron_runtime_archive(
+    name = "nss_fixture_runtime",
+    archive = "nss-fixture-runtime.zip",
+    exec_compatible_with = _COMPATIBLE,
+    executables = ["electron"],
+    files = {":fixture_program": "electron"},
+    host_abi = _HOST_ABI,
+    libraries = {label: name for name, label in _NATIVE_LIBRARIES.items() if label.startswith("@nss//") or label.startswith("@nspr//")},
+    report = "nss-fixture-runtime.elf.json",
+    target_compatible_with = _COMPATIBLE,
+    **_NSS_INTEGRITY
+)
+
+cc_binary(
+    name = "nss_runtime_probe",
+    srcs = ["nss_runtime_probe.cc"],
+    linkopts = ["-ldl"],
+    target_compatible_with = _COMPATIBLE,
+    deps = ["@nss//:headers"],
+)
+
 py_test(
     name = "archive_test",
     srcs = ["archive_test.py"],
@@ -188,6 +241,9 @@ py_test(
         ":fixture_program",
         ":libfixture_answer.so",
         ":libfixture_base.so",
+        ":nss-fixture-runtime.zip",
+        ":nss-fixture-runtime.elf.json",
+        ":nss_runtime_probe",
     ]],
     data = [
         ":fixture-runtime.elf.json",
@@ -195,6 +251,9 @@ py_test(
         ":fixture_program",
         ":libfixture_answer.so",
         ":libfixture_base.so",
+        ":nss-fixture-runtime.elf.json",
+        ":nss-fixture-runtime.zip",
+        ":nss_runtime_probe",
         "@patchelf",
     ],
     target_compatible_with = _COMPATIBLE,

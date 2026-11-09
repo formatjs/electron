@@ -96,10 +96,23 @@ def assemble(manifest, directory, mtime=0):
         raise ValueError("Unbundled runtime dependencies: " + ", ".join(missing))
     if not executables <= {record["path"] for record in records}:
         raise ValueError("Runtime executable is missing")
+    paths = [entry["path"] for entry in entries]
+    integrity = manifest.get("nss_integrity", {})
+    if integrity:
+        libraries = [str(root / record["path"]) for record in records if record["soname"]]
+        for module in sorted(integrity["modules"]):
+            path = "lib/" + _relative(module)
+            checksum = path.removesuffix(".so") + ".chk"
+            if path not in paths or checksum in paths:
+                raise ValueError("NSS integrity requires distinct declared module paths")
+            # NSS verifies final module bytes, including repaired ELF search paths.
+            subprocess.run([sys.executable, "-I", "-B", integrity["script"], integrity["tool"],
+                            integrity["parameters"], str(root / path), str(root / checksum), *libraries],
+                           env=environment, check=True)
+            paths.append(checksum)
     archive = directory / "runtime.zip"
     with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=1) as output:
-        for entry in entries:
-            path = entry["path"]
+        for path in sorted(paths):
             info = zipfile.ZipInfo(path, date_time=(1980, 1, 1, 0, 0, 0))
             info.create_system = 3
             info.compress_type = zipfile.ZIP_DEFLATED

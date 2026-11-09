@@ -2779,4 +2779,13 @@ otherwise unreferenced constructor. The b351244
 [BB preflight](https://formatjs.buildbuddy.io/invocation/061bb911-50ec-47c4-88b4-0b1041802607)
 passed both fixtures and the real ASAR reader. The scoped header compile and
 printing test also passed. Full Electron linking and runtime smoke remain
-unverified; both source workflows are still running.
+unverified at that preflight.
+
+The b351244 [component build](https://formatjs.buildbuddy.io/invocation/78ca97f3-df63-4622-8463-e54531bc689e)
+cleared the Electron link, then runtime assembly rejected missing `libnspr4.so`
+and `libnss3.so`. The queued fix bundles the existing native NSS/NSPR producers,
+including loadable NSS modules and notices. It regenerates `.chk` files from
+the final RPATH-adjusted bytes with the existing deterministic integrity tool.
+A relocated fixture checks original NSS module verification, initialization,
+random generation and rejection of modified modules/checksums. BB validation
+and full-runtime launch remain pending.

@@ -1,7 +1,7 @@
 Electron's notice is LICENSE. Chromium and its source dependencies are covered
 by LICENSES.chromium.html, generated with the original Chromium license scanner.
 
-native/ contains the GLib, zlib and pciutils notices. MODULE.bazel and
+native/ contains the GLib, zlib, pciutils, NSS and NSPR notices. MODULE.bazel and
 upstream_pins.json identify pinned native source dependencies.
 
 debian/ contains notices from the bundled SDK-matched runtime packages.
