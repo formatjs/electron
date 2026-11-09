@@ -1,6 +1,12 @@
 load("@rules_python//python:defs.bzl", "py_library")
 
 py_library(
+    name = "native_action_audit",
+    srcs = ["audit_native_actions.py"],
+    visibility = ["//tests:__pkg__"],
+)
+
+py_library(
     name = "source_preparation",
     srcs = ["prepare_source.py"],
     visibility = ["//visibility:public"],

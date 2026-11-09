@@ -3,6 +3,12 @@ load(":archive_urls_test.bzl", "archive_urls_test")
 
 archive_urls_test(name = "archive_urls_test")
 
+py_test(
+    name = "native_action_audit_test",
+    srcs = ["native_action_audit_test.py"],
+    deps = ["//tools:native_action_audit"],
+)
+
 test_suite(
     name = "hermetic_execution_test",
     tests = [

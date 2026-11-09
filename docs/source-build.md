@@ -2816,7 +2816,7 @@ sources. Assertions remain enabled; relocated runtime smoke must validate this
 change on BB.
 
 The 737a6f7 [consumer test](https://formatjs.buildbuddy.io/invocation/a0350adf-df3c-4bd7-9135-a9450f95649f)
-passed run-as-Node versions and browser `--version`, plus 82 other probes.
+passed run-as-Node versions and browser `--version`, plus 71 distinct probes.
 The packaged browser then failed `path.IsAbsolute()` in Chromium's filesystem
 directory enumeration, reached through `DomStorageDatabaseLevelDB::Destroy`.
 The smoke now checks default home/app/session paths before browser startup.
@@ -2826,3 +2826,10 @@ The network preflight now includes native LevelDB binary-data write/reopen/read
 and directory removal, followed by asynchronous removal through the original
 `DomStorageDatabaseFactory`. This covers the failing storage API separately from
 Electron initialization. These new checks still need BB validation.
+
+CI now audits component/test and cross-probe action graphs with `aquery`.
+It requires native `CppCompile` actions and rejects foreign-cc, CMake, Make,
+Meson and Ninja action mnemonics. Unknown or inconsistent summaries fail closed.
+The parser follows [Bazel 9.2's summary formatter](https://github.com/bazelbuild/bazel/blob/9.2.0/src/main/java/com/google/devtools/build/lib/query2/aquery/ActionGraphSummaryOutputFormatterCallback.java).
+Network isolation, declared inputs and deterministic bytes keep their separate
+checks. The new gate and its regression tests still need BB validation.
