@@ -13,6 +13,7 @@
 #include "base/command_line.h"
 #include "base/feature_list.h"
 #include "base/functional/bind.h"
+#include "base/functional/callback.h"
 #include "base/files/file.h"
 #include "base/files/file_util.h"
 #include "base/files/memory_mapped_file.h"
@@ -95,10 +96,12 @@ void CheckLeveldb() {
       base::ThreadPool::CreateSequencedTaskRunner(
           {base::MayBlock(), base::WithBaseSyncPrimitives(),
            base::TaskShutdownBehavior::BLOCK_SHUTDOWN}),
-      base::BindOnce([&loop](storage::DbStatus status) {
-        Require(status.ok(), "DOM storage persistent destroy");
-        loop.Quit();
-      }));
+      base::BindOnce(
+          [](base::RepeatingClosure quit, storage::DbStatus status) {
+            Require(status.ok(), "DOM storage persistent destroy");
+            quit.Run();
+          },
+          loop.QuitClosure()));
   loop.Run();
   Require(!base::PathExists(path), "DOM storage persistent destroy");
 }
