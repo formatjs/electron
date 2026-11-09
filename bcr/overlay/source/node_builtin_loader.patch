@@ -1,0 +1,33 @@
+diff --git a/electron/shell/common/node_util.cc b/electron/shell/common/node_util.cc
+--- a/electron/shell/common/node_util.cc
++++ b/electron/shell/common/node_util.cc
+@@ -31,15 +31,22 @@
+     v8::LocalVector<v8::Value>* arguments) {
+   v8::TryCatch try_catch{isolate};
+ 
+-  static base::NoDestructor<
+-      base::ThreadLocalOwnedPointer<node::builtins::BuiltinLoader>>
+-      builtin_loader;
+-  if (!builtin_loader->Get()) {
+-    builtin_loader->Set(base::WrapUnique(new node::builtins::BuiltinLoader));
++  auto* realm = node::Realm::GetCurrent(context);
++  node::builtins::BuiltinLoader* loader;
++  if (realm) {
++    // Node records compilation results against the realm's own loader.
++    loader = realm->env()->builtin_loader();
++  } else {
++    static base::NoDestructor<
++        base::ThreadLocalOwnedPointer<node::builtins::BuiltinLoader>>
++        builtin_loader;
++    if (!builtin_loader->Get()) {
++      builtin_loader->Set(base::WrapUnique(new node::builtins::BuiltinLoader));
++    }
++    loader = builtin_loader->Get();
+   }
+   v8::MaybeLocal<v8::Function> compiled =
+-      builtin_loader->Get()->LookupAndCompile(context, id, parameters,
+-                                              node::Realm::GetCurrent(context));
++      loader->LookupAndCompile(context, id, parameters, realm);
+ 
+   if (compiled.IsEmpty()) {
+     // TODO(samuelmaddock): how can we get the compilation error message?

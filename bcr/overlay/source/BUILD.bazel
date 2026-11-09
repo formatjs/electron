@@ -710,6 +710,7 @@ electron_js2c(
 
 exports_files([
     "asar_canonical_paths.patch",
+    "node_builtin_loader.patch",
     "nss_integrity.patch",
     "nspr_runtime.patch",
     "cookie_subscription_projection.patch",

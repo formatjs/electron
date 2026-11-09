@@ -2806,3 +2806,11 @@ staging paths and mtimes. The 32fefac
 subsequently built the full source Electron archive with a closed ELF dependency
 set. Its relocated executable failed the run-as-Node startup check. Browser/IPC,
 rendering and filesystem alias checks remain unverified.
+
+The 96a72d6 [consumer test](https://formatjs.buildbuddy.io/invocation/422fe33e-dc25-4a22-8415-d18547036779)
+identified the startup assertion in Node's `BuiltinLoader::LookupAndCompile`:
+Electron passed a realm to a separate thread-local loader. The compatibility
+patch uses the realm's environment loader when present, retaining a thread-local
+loader for contexts without Node. Both loaders include the original embedder
+sources. Assertions remain enabled; relocated runtime smoke must validate this
+change on BB.
