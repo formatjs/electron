@@ -2706,3 +2706,8 @@ provider's generated-header include context. Both now belong to its declared
 inputs/dependencies, with that original library added to compile probes. The
 metadata guard limits this follow-up to one file entry and the shim's header and
 dependency fields. Validation remains pending.
+
+The finished broad run also reached Safe Browsing interface-header omissions and
+Electron's `gio/gdesktopappinfo.h` include. Electron now depends on the existing
+native GLib `gio_unix` provider. Safe Browsing header closure remains open; the
+next compile probe will validate these fixes before another broad build.
