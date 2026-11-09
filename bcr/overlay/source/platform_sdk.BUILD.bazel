@@ -145,3 +145,12 @@ _SONAMES = {
         _SHARED[soname],
     ] + ([":cups_headers"] if name == "cups" else []),
 ) for name, soname in _SONAMES.items()]
+
+cc_library(
+    name = "curl_headers",
+    hdrs = glob(
+        ["usr/include/x86_64-linux-gnu/curl/*.h"],
+        allow_empty = False,
+    ),
+    strip_include_prefix = "usr/include/x86_64-linux-gnu",
+)

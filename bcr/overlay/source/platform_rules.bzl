@@ -47,6 +47,8 @@ def _system_deps(original, library):
         deps.append("@electron_platform_sdk//:va_headers")
     if original == "//electron:libnotify_loader":
         deps.append("@electron_platform_runtime//:notify_headers")
+    if original == "//third_party/crashpad/crashpad/util:net":
+        deps.append("@electron_platform_sdk//:curl_headers")
     return deps
 
 def _link_settings(library):

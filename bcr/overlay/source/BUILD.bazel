@@ -1215,6 +1215,7 @@ filegroup(
     name = "platform_header_compile_probes",
     srcs = ["@electron_platform_sources//:" + PLATFORM_PROFILE["libraries"][label]["name"] for label in [
         "//third_party/libaddressinput:util",
+        "//third_party/crashpad/crashpad/util:net",
         "//ui/message_center/public/cpp:cpp",
     ]],
     output_group = "compilation_outputs",
