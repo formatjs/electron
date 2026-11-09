@@ -5,6 +5,7 @@
 #include "base/at_exit.h"
 #include "base/command_line.h"
 #include "base/feature_list.h"
+#include "mojo/core/embedder/embedder.h"
 #include "printing/backend/mojom/print_backend.mojom.h"
 #include "printing/backend/print_backend.h"
 #include "ui/gfx/geometry/size.h"
@@ -28,6 +29,7 @@ int main(int argc, char** argv) {
   base::AtExitManager at_exit;
   base::CommandLine::Init(argc, argv);
   Require(base::FeatureList::InitInstance("", ""), "default features");
+  mojo::core::Init();
   using Caps = printing::PrinterSemanticCapsAndDefaults;
   const Caps::Paper first("A", "Z", gfx::Size(210000, 297000));
   const Caps::Paper second("B", "A", gfx::Size(215900, 279400));

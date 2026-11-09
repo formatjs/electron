@@ -1242,5 +1242,8 @@ cc_test(
         "@platforms//os:linux",
         "@platforms//cpu:x86_64",
     ],
-    deps = ["@electron_platform_sources//:" + PLATFORM_PROFILE["libraries"]["//printing/backend/mojom:mojom"]["name"]],
+    deps = [
+        "@electron_network_sources//:mojo_embedder",
+        "@electron_platform_sources//:" + PLATFORM_PROFILE["libraries"]["//printing/backend/mojom:mojom"]["name"],
+    ],
 )
