@@ -2700,3 +2700,9 @@ fix. Compile-only probes now cover all three owning libraries. The header change
 is guarded to alter only two file entries and the corresponding owner header
 lists. BB validation remains pending; the live broad build is still warming
 unaffected actions.
+
+The Chrome shim also needs `ash/ash_export.h` and the existing PDF GRIT
+provider's generated-header include context. Both now belong to its declared
+inputs/dependencies, with that original library added to compile probes. The
+metadata guard limits this follow-up to one file entry and the shim's header and
+dependency fields. Validation remains pending.

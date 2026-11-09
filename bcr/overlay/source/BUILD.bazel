@@ -1215,6 +1215,7 @@ cc_test(
 filegroup(
     name = "platform_header_compile_probes",
     srcs = ["@electron_platform_sources//:" + PLATFORM_PROFILE["libraries"][label]["name"] for label in [
+        "//electron/chromium_src:chrome",
         "//components/password_manager/core/browser:browser",
         "//components/permissions:permissions",
         "//components/autofill/core/browser:browser",
