@@ -12,6 +12,11 @@ load("//electron:source_tool.bzl", "electron_source_tool")
 
 _BUILD = "//out/bazel-import/"
 _COMPATIBLE = ["@platforms//os:linux", "@platforms//cpu:x86_64"]
+_NATIVE_LINK_INPUTS = {
+    "//electron:electron_app": {
+        "obj/third_party/electron_node/deps/uv/libuv.a": "@electron_node_sources//:libuv",
+    },
+}
 
 def _label(original):
     if original.startswith("@"):
@@ -55,11 +60,13 @@ def _system_deps(original, library):
         deps.append("@electron_platform_sdk//:curl_headers")
     if original == "//electron:electron_lib":
         deps += ["@glib//gio:gio_unix", "@electron//source:asar_path_resolver"]
-    return deps
+    return deps + _NATIVE_LINK_INPUTS.get(original, {}).values()
 
-def _link_settings(library):
+def _link_settings(original, library):
     flags = []
     for flag in library["gn_ldflags"]:
+        if flag in _NATIVE_LINK_INPUTS.get(original, {}):
+            continue
         if flag in library.get("replaced_rust_toolchain_flags", []):
             continue
         if flag in ["-Werror", "-nostdlib++"] or flag.startswith(("--target=", "--sysroot=")):
@@ -245,7 +252,7 @@ def electron_platform():
         if library["kind"] == "executable":
             settings.pop("includes")
             settings["srcs"] = [_file(path) for path in library["srcs"]] + settings.pop("hdrs") + settings.pop("textual_hdrs")
-            link = _link_settings(library)
+            link = _link_settings(original, library)
             settings["linkopts"] += link.pop("linkopts")
             cc_binary(name = library["name"], copts = library["copts"], **dict(settings, **link))
             if library.get("native_tool_data"):
@@ -262,7 +269,7 @@ def electron_platform():
             cc_library(name = internal, srcs = [_file(path) for path in library["srcs"]], copts = library["copts"], alwayslink = True, **settings)
             soname = library["outputs"][0].split("/")[-1]
             shared.append(":" + soname)
-            link = _link_settings(library)
+            link = _link_settings(original, library)
             link["linkopts"] += ["-Wl,-soname," + soname]
             link["dynamic_deps"] = ["@electron//source/glib:" + name for name in ["zlib", "glib", "gobject", "gmodule", "gio"]]
             cc_binary(name = soname, deps = [":" + internal], linkshared = True, linkstatic = True, target_compatible_with = _COMPATIBLE, **link)

@@ -2748,3 +2748,14 @@ Its test writes an ASAR fixture, exercises canonical sidecar reads and writes,
 checks shared packed-file extraction identity, preserves link stats, enumerates
 a directory alias and rejects cycles. This avoids linking Blink while testing
 the production reader methods. BB compilation and execution remain pending.
+
+The 0a54b87 component run passed the scoped
+[compile probe](https://formatjs.buildbuddy.io/invocation/cc0d352a-8e26-4861-8f15-b72b923d8880),
+[printing wire test](https://formatjs.buildbuddy.io/invocation/d3bab36c-4dbf-4c20-83f6-ffaaa6ad7c8a)
+and [graphics test](https://formatjs.buildbuddy.io/invocation/69fb60ff-5374-4c98-b734-58da0696a056).
+The broad build reached Electron linking, then failed because the original GN
+flags still named `obj/third_party/electron_node/deps/uv/libuv.a`. The queued
+translation replaces that exact input on `//electron:electron_app` with the
+existing Electron-patched native libuv provider. Captured GN metadata stays
+intact; no prebuilt archive or foreign build action is introduced. Linking and
+full-runtime launch remain unverified.
