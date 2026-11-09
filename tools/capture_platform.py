@@ -104,8 +104,8 @@ EXTRA_NATIVE_HEADERS = {
 }
 
 EXTRA_NATIVE_HEADER_DIRS = {
-    "//electron/chromium_src:chrome": ["components/captive_portal", "components/fullscreen_control", "components/safe_browsing"],
-    "//electron:electron_lib": ["components/safe_browsing"],
+    "//electron/chromium_src:chrome": ["components/captive_portal", "components/fullscreen_control", "components/safe_browsing", "components/security_interstitials", "components/signin"],
+    "//electron:electron_lib": ["components/safe_browsing", "components/security_interstitials"],
 }
 SDK_LIBS = {"atomic", "cairo-gobject", "gdk-3", "gtk-3", "gdk_pixbuf-2.0", "cups", "xshmfence", "atspi", "Xcomposite", "Xdamage", "Xfixes", "Xrandr", "Xrender", "Xtst", "drm", "asound", "ffi_pic", "X11", "Xi", "Xext", "pci", "gbm", "dbus-1", "udev", "cairo", "harfbuzz", "pango-1.0", "pangocairo-1.0", "atk-1.0", "atk-bridge-2.0"}
 SCRIPTS = MOJO_SCRIPTS | API_SCRIPTS | {"//" + name for name in (
