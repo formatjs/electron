@@ -30,9 +30,12 @@ load("//source/native:v8_bytecode_inputs.bzl", "BYTECODE_GENERATOR")
 load("//source/native:v8_regexp_inputs.bzl", "REGEXP_GENERATOR")
 load("//source/native:v8_torque_inputs.bzl", "TORQUE_RUN")
 load(":bundles.bzl", "electron_bundles")
+load(":gn_link_order_test.bzl", "gn_link_order_tests")
 load(":probes.bzl", "loop_probes")
 
 package(default_visibility = ["//visibility:public"])
+
+gn_link_order_tests()
 
 cc_library(
     name = "asar_path_resolver",

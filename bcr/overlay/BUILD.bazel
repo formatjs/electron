@@ -99,6 +99,8 @@ test_suite(
         "//source:fonts_test",
         "//source:fuses_test",
         "//source:gfx_test",
+        "//source:gn_link_plain_test",
+        "//source:gn_link_thin_lto_test",
         "//source:gpu_transport_test",
         "//source:icu_test",
         "//source:ipcz_test",

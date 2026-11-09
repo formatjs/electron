@@ -2766,3 +2766,13 @@ ASAR utility and temporary-file sources, then checks canonical sidecar reads and
 writes, shared extraction identity, link stats, directory aliases and cycles.
 Full Electron filesystem smoke remains unverified. Cross probes also passed;
 the source component/consumer runs are still active.
+
+The 6c5ad31 component build passed reader, compile, printing and graphics probes,
+then reached duplicate definitions at the final Electron link. The pinned GN
+Chrome shim is a static archive; some of its sources also belong to forced-in
+source sets. Interleaving lazy archives before those source sets extracts members
+which GN's object-first link would leave unused. The queued executable link
+adapter keeps every forced source-set input first, then preserves the original
+order of lazy inputs. Sources, compile flags, initializers and captured metadata
+stay intact. Plain/ThinLTO regression fixtures check duplicate resolution and an
+otherwise unreferenced constructor. BB validation remains pending.

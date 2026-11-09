@@ -9,6 +9,7 @@ load("//electron:artifact_file.bzl", "electron_artifact_file")
 load("//electron:source_action.bzl", "electron_source_action")
 load("//electron:source_headers.bzl", "electron_source_headers")
 load("//electron:source_tool.bzl", "electron_source_tool")
+load("//source:gn_link.bzl", "gn_executable_link_context")
 
 _BUILD = "//out/bazel-import/"
 _COMPATIBLE = ["@platforms//os:linux", "@platforms//cpu:x86_64"]
@@ -254,6 +255,12 @@ def electron_platform():
             settings["srcs"] = [_file(path) for path in library["srcs"]] + settings.pop("hdrs") + settings.pop("textual_hdrs")
             link = _link_settings(original, library)
             settings["linkopts"] += link.pop("linkopts")
+            gn_executable_link_context(
+                name = library["name"] + "_gn_link",
+                deps = settings["deps"],
+                target_compatible_with = _COMPATIBLE,
+            )
+            settings["deps"] = [":" + library["name"] + "_gn_link"]
             cc_binary(name = library["name"], copts = library["copts"], **dict(settings, **link))
             if library.get("native_tool_data"):
                 # Executables share this package's output directory.
