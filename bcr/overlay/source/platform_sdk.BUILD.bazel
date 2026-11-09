@@ -80,7 +80,6 @@ cc_library(
         "usr/include/dbus-1.0",
         "usr/include/gdk-pixbuf-2.0",
         "usr/include/gtk-3.0",
-        "usr/include/gtk-3.0/unix-print",
         "usr/include/libdrm",
         "usr/include/pango-1.0",
         "usr/include/pipewire-0.3",
@@ -154,4 +153,14 @@ cc_library(
         allow_empty = False,
     ),
     strip_include_prefix = "usr/include/x86_64-linux-gnu",
+)
+
+cc_library(
+    name = "gtk_unix_print_headers",
+    hdrs = glob(
+        ["usr/include/gtk-3.0/unix-print/gtk/**/*.h"],
+        allow_empty = False,
+    ),
+    includes = ["usr/include/gtk-3.0/unix-print"],
+    deps = [":headers"],
 )

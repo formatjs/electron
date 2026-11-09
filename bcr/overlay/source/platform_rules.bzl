@@ -45,6 +45,8 @@ def _system_deps(original, library):
     deps += ["@electron_platform_sdk//:" + name for name in library["libs"] if name in PROFILE["sdk_libraries"] and name != "pci"]
     if original in ["//media/gpu/vaapi:libva_stubs", "//media/gpu/chromeos:fourcc"]:
         deps.append("@electron_platform_sdk//:va_headers")
+    if original in ["//ui/gtk:gtk", "//ui/gtk:gtk_stubs", "//electron:electron_gtk_stubs"]:
+        deps.append("@electron_platform_sdk//:gtk_unix_print_headers")
     if original == "//electron:libnotify_loader":
         deps.append("@electron_platform_runtime//:notify_headers")
     if original == "//third_party/crashpad/crashpad/tools:tool_support":
