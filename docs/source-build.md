@@ -2796,3 +2796,10 @@ the same CommonJS module through each alias. It compares packed alias extraction
 inodes, writes through an unpacked alias descriptor and rejects cycles. These
 checks run in the relocated source Electron browser process before renderer/IPC
 validation; they have not passed BB yet.
+
+The f7fd796 [consumer preflight](https://formatjs.buildbuddy.io/invocation/4139368a-13da-4ca6-9897-9208f3a06566)
+passed relocated NSS loading, initialization and random generation. Original NSS
+verified all four regenerated module checksums, then rejected modified module
+bytes and checksum bytes. The fixture archive also passed repeat assembly across
+staging paths and mtimes. Full Electron archive assembly and browser/ASAR smoke
+remain pending.
