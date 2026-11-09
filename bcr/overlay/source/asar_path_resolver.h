@@ -21,6 +21,9 @@ inline bool SplitArchivePath(std::string_view path,
     const auto part = path.substr(0, delimiter);
     if (part == ".." || part.find('\0') != std::string_view::npos)
       return false;
+    if (separators.find('\\') != std::string_view::npos &&
+        part.find(':') != std::string_view::npos)
+      return false;
     if (!part.empty() && part != ".")
       parts->emplace_back(part);
     if (delimiter == std::string_view::npos)

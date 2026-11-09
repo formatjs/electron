@@ -2741,3 +2741,10 @@ resolver against pinned Chromium dictionaries, including cycles and Windows
 separators. The original Electron library owns the declared helper dependency.
 BB compilation, reader integration and full-runtime filesystem smoke remain
 unverified; bootstrap runtimes do not contain this patch.
+
+A queued focused reader target compiles the real `archive.cc`, `asar_util.cc`
+and `scoped_temporary_file.cc` with declared base/crypto/libuv/fuse dependencies.
+Its test writes an ASAR fixture, exercises canonical sidecar reads and writes,
+checks shared packed-file extraction identity, preserves link stats, enumerates
+a directory alias and rejects cycles. This avoids linking Blink while testing
+the production reader methods. BB compilation and execution remain pending.

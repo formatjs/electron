@@ -71,6 +71,31 @@ def _link_settings(library):
 
 def electron_platform():
     native.exports_files(PROFILE["files"] + [path[2:] for path in PROFILE["generated_files"]] + ["profile.bzl", "BUILD.bazel", "native_compat_patches.json"])
+    electron = PROFILE["libraries"]["//electron:electron_lib"]
+    cc_library(
+        name = "asar_reader",
+        srcs = ["electron/shell/common/asar/" + name for name in [
+            "archive.cc",
+            "asar_util.cc",
+            "scoped_temporary_file.cc",
+        ]],
+        hdrs = ["electron/shell/common/asar/" + name for name in [
+            "archive.h",
+            "asar_util.h",
+            "scoped_temporary_file.h",
+        ]] + ["electron/shell/common/thread_restrictions.h"],
+        copts = electron["copts"],
+        includes = ["electron"],
+        local_defines = electron["defines"],
+        target_compatible_with = _COMPATIBLE,
+        deps = [
+            "@electron//source:asar_path_resolver",
+            "@electron//source:electron_fuses",
+            "@electron_base_sources//:base",
+            "@electron_network_sources//:crypto",
+            "@electron_node_sources//:libuv",
+        ],
+    )
     layers = PROFILE.get("header_layers")
     platform_actions = PROFILE.get("native_header_actions", PROFILE["actions"].keys())
     core_libraries = {}

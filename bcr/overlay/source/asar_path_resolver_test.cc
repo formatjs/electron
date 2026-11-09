@@ -19,6 +19,7 @@ int main() {
   files.Set("cycle-b", base::Value::Dict().Set("link", "cycle-a"));
   files.Set("directory-cycle", base::Value::Dict().Set("link", "directory-cycle/subdir"));
   files.Set("escape", base::Value::Dict().Set("link", "../outside"));
+  files.Set("C:", base::Value::Dict().Set("files", base::Value::Dict().Set("addon.node", base::Value::Dict().Set("unpacked", true))));
   base::Value::Dict root;
   root.Set("files", std::move(files));
   const auto* target = root.FindDict("files")->FindDict("native")->FindDict("files")->FindDict("addon.node");
@@ -48,5 +49,7 @@ int main() {
   if (asar::internal::ResolveArchivePath(root, "directory\\addon.node", "\\/", true, &canonical) != target ||
       canonical != "native/addon.node")
     return 6;
+  if (asar::internal::ResolveArchivePath(root, "C:\\addon.node", "\\/", true, nullptr))
+    return 7;
   std::cout << "ASAR_CANONICAL_PATHS_OK\n";
 }

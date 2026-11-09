@@ -27,7 +27,7 @@ actions:
             --registry="file://$registry" --registry=https://bcr.bazel.build \
             //tests:hermetic_execution_test //tests:archive_urls_test //tests:gn_dependencies_test \
             @electron//source/default_app:assets_test @electron//source/credits:credits_test \
-            @electron//source/distribution:metadata_test @electron//source/distribution:archive_test @electron//source:cairo_loader_test @electron//source:asar_path_resolver_test
+            @electron//source/distribution:metadata_test @electron//source/distribution:archive_test @electron//source:cairo_loader_test @electron//source:asar_path_resolver_test @electron//source:asar_reader_test
           bazel --host_jvm_args=-Xmx24g build --config=buildbuddy --downloader_config="$source_downloader" --distdir="$source_distdir" \
             --registry="file://$registry" --registry=https://bcr.bazel.build \
             @electron//source:platform_header_compile_probes
@@ -113,7 +113,7 @@ actions:
             --registry="file://$registry" --registry=https://bcr.bazel.build \
             @electron//tests:hermetic_execution_test @electron//electron/private:source_action_test \
             @electron//source/default_app:assets_test @electron//source/credits:credits_test \
-            @electron//source/distribution:metadata_test @electron//source/distribution:archive_test @electron//source:cairo_loader_test @electron//source:asar_path_resolver_test
+            @electron//source/distribution:metadata_test @electron//source/distribution:archive_test @electron//source:cairo_loader_test @electron//source:asar_path_resolver_test @electron//source:asar_reader_test
           bazel --host_jvm_args=-Xmx24g build --config=buildbuddy --downloader_config="$source_downloader" --distdir="$source_distdir" \
             --registry="file://$registry" --registry=https://bcr.bazel.build \
             @electron//source:platform_header_compile_probes
