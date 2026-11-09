@@ -2759,3 +2759,10 @@ translation replaces that exact input on `//electron:electron_app` with the
 existing Electron-patched native libuv provider. Captured GN metadata stays
 intact; no prebuilt archive or foreign build action is introduced. Linking and
 full-runtime launch remain unverified.
+
+The 6c5ad31 [consumer preflight](https://formatjs.buildbuddy.io/invocation/2ad91d1f-91e3-4950-a76a-65a631b812cd)
+passed both ASAR tests. The reader target compiles the actual patched archive,
+ASAR utility and temporary-file sources, then checks canonical sidecar reads and
+writes, shared extraction identity, link stats, directory aliases and cycles.
+Full Electron filesystem smoke remains unverified. Cross probes also passed;
+the source component/consumer runs are still active.
