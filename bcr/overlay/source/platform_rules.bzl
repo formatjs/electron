@@ -54,7 +54,7 @@ def _system_deps(original, library):
     if original == "//third_party/crashpad/crashpad/util:net":
         deps.append("@electron_platform_sdk//:curl_headers")
     if original == "//electron:electron_lib":
-        deps.append("@glib//gio:gio_unix")
+        deps += ["@glib//gio:gio_unix", "@electron//source:asar_path_resolver"]
     return deps
 
 def _link_settings(library):

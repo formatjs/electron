@@ -2725,3 +2725,19 @@ uses public release asset 468524906 and verifies BCR SHA-256
 `491108728f120ce05b539934b41a750235031a6df8abc6b47e57aff7de15094d`
 before Bazel consumes the unchanged source archive from `--distdir`. The official
 Bazel mirror returned 404. No binary tool download or build wrapper is involved.
+
+The 6f5a084 component probe passed preflight, then reached missing security-
+interstitial headers through Safe Browsing and sign-in headers through
+accessibility. Their pinned source inventories now belong to the Chrome shim;
+Electron also receives security-interstitial headers. The metadata guard allows
+only new file entries and these two owner header lists. Feature flags and link
+dependencies remain unchanged. Hosted compilation is pending.
+
+The ASAR reader now uses a shared bounded resolver for chained file/directory
+links and root aliases. `Realpath` returns the canonical archive path;
+`CopyFileOut` uses it for unpacked sidecars and extracted-file cache keys.
+`Stat` still reports a final link as a link. A focused native test checks the
+resolver against pinned Chromium dictionaries, including cycles and Windows
+separators. The original Electron library owns the declared helper dependency.
+BB compilation, reader integration and full-runtime filesystem smoke remain
+unverified; bootstrap runtimes do not contain this patch.

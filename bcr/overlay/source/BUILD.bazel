@@ -34,6 +34,28 @@ load(":probes.bzl", "loop_probes")
 
 package(default_visibility = ["//visibility:public"])
 
+cc_library(
+    name = "asar_path_resolver",
+    hdrs = ["asar_path_resolver.h"],
+    deps = ["@electron_base_sources//:base"],
+)
+
+cc_test(
+    name = "asar_path_resolver_test",
+    srcs = ["asar_path_resolver_test.cc"],
+    copts = BASE_PROFILE["libraries"]["//base:base"]["copts"],
+    linkstatic = True,
+    local_defines = [value for value in BASE_PROFILE["libraries"]["//base:base"]["defines"] if value not in [
+        "BASE_IMPLEMENTATION",
+        "IS_RAW_PTR_IMPL",
+    ]],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    deps = [":asar_path_resolver"],
+)
+
 cc_binary(
     name = "gpu_transport_probe",
     srcs = ["gpu_transport_probe.cc"],
@@ -668,6 +690,7 @@ electron_js2c(
 )
 
 exports_files([
+    "asar_canonical_paths.patch",
     "cookie_subscription_projection.patch",
     "printing_comparator.patch",
     "lastchange_environment.patch",

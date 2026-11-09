@@ -1,0 +1,203 @@
+--- a/electron/shell/common/asar/archive.cc
++++ b/electron/shell/common/asar/archive.cc
+@@ -3,6 +3,7 @@
+ // found in the LICENSE file.
+ 
+ #include "shell/common/asar/archive.h"
++#include "source/asar_path_resolver.h"
+ 
+ #include <string>
+ #include <string_view>
+@@ -46,7 +47,8 @@
+   // Test for symbol linked directory.
+   const std::string* link = dir.FindString("link");
+   if (link != nullptr) {
+-    const base::Value::Dict* linked_node = GetNodeFromPath(*link, root);
++    const base::Value::Dict* linked_node =
++        internal::ResolveArchivePath(root, *link, kSeparators, true, nullptr);
+     if (!linked_node)
+       return nullptr;
+     return linked_node->FindDict("files");
+@@ -55,37 +57,10 @@
+   return dir.FindDict("files");
+ }
+ 
+-// Gets sub-file "name" from "dir".
+-const base::Value::Dict* GetChildNode(const base::Value::Dict& root,
+-                                      const std::string& name,
+-                                      const base::Value::Dict& dir) {
+-  if (name.empty())
+-    return &root;
+-
+-  const base::Value::Dict* files = GetFilesNode(root, dir);
+-  return files ? files->FindDict(name) : nullptr;
+-}
+-
+ // Gets the node of "path" from "root".
+ const base::Value::Dict* GetNodeFromPath(std::string path,
+                                          const base::Value::Dict& root) {
+-  if (path.empty())
+-    return &root;
+-
+-  const base::Value::Dict* dir = &root;
+-  for (size_t delimiter_position = path.find_first_of(kSeparators);
+-       delimiter_position != std::string::npos;
+-       delimiter_position = path.find_first_of(kSeparators)) {
+-    const base::Value::Dict* child =
+-        GetChildNode(root, path.substr(0, delimiter_position), *dir);
+-    if (!child)
+-      return nullptr;
+-
+-    dir = child;
+-    path.erase(0, delimiter_position + 1);
+-  }
+-
+-  return GetChildNode(root, path, *dir);
++  return internal::ResolveArchivePath(root, path, kSeparators, false, nullptr);
+ }
+ 
+ bool FillFileInfoWithNode(Archive::FileInfo* info,
+@@ -280,19 +255,38 @@
+   if (!header_)
+     return false;
+ 
++  const base::Value::Dict* node = internal::ResolveArchivePath(
++      *header_, path.AsUTF8Unsafe(), kSeparators, true, nullptr);
++  if (!node)
++    return false;
++
++  return FillFileInfoWithNode(info, header_size_, header_validated_, node);
++}
++
++bool Archive::Stat(const base::FilePath& path, Stats* stats) const {
++  if (!header_)
++    return false;
++
+   const base::Value::Dict* node =
+       GetNodeFromPath(path.AsUTF8Unsafe(), *header_);
+   if (!node)
+     return false;
+ 
+-  const std::string* link = node->FindString("link");
+-  if (link)
+-    return GetFileInfo(base::FilePath::FromUTF8Unsafe(*link), info);
+-
+-  return FillFileInfoWithNode(info, header_size_, header_validated_, node);
+-}
+-
+-bool Archive::Stat(const base::FilePath& path, Stats* stats) const {
++  if (node->Find("link")) {
++    stats->type = FileType::kLink;
++    return true;
++  }
++
++  if (node->Find("files")) {
++    stats->type = FileType::kDirectory;
++    return true;
++  }
++
++  return FillFileInfoWithNode(stats, header_size_, header_validated_, node);
++}
++
++bool Archive::Readdir(const base::FilePath& path,
++                      std::vector<base::FilePath>* files) const {
+   if (!header_)
+     return false;
+ 
+@@ -301,29 +295,6 @@
+   if (!node)
+     return false;
+ 
+-  if (node->Find("link")) {
+-    stats->type = FileType::kLink;
+-    return true;
+-  }
+-
+-  if (node->Find("files")) {
+-    stats->type = FileType::kDirectory;
+-    return true;
+-  }
+-
+-  return FillFileInfoWithNode(stats, header_size_, header_validated_, node);
+-}
+-
+-bool Archive::Readdir(const base::FilePath& path,
+-                      std::vector<base::FilePath>* files) const {
+-  if (!header_)
+-    return false;
+-
+-  const base::Value::Dict* node =
+-      GetNodeFromPath(path.AsUTF8Unsafe(), *header_);
+-  if (!node)
+-    return false;
+-
+   const base::Value::Dict* files_node = GetFilesNode(*header_, *node);
+   if (!files_node)
+     return false;
+@@ -338,18 +309,11 @@
+   if (!header_)
+     return false;
+ 
+-  const base::Value::Dict* node =
+-      GetNodeFromPath(path.AsUTF8Unsafe(), *header_);
+-  if (!node)
+-    return false;
+-
+-  const std::string* link = node->FindString("link");
+-  if (link) {
+-    *realpath = base::FilePath::FromUTF8Unsafe(*link);
+-    return true;
+-  }
+-
+-  *realpath = path;
++  std::string canonical;
++  if (!internal::ResolveArchivePath(*header_, path.AsUTF8Unsafe(), kSeparators,
++                                    true, &canonical))
++    return false;
++  *realpath = base::FilePath::FromUTF8Unsafe(canonical);
+   return true;
+ }
+ 
+@@ -357,25 +321,29 @@
+   if (!header_)
+     return false;
+ 
++  base::FilePath canonical;
++  if (!Realpath(path, &canonical))
++    return false;
++
+   base::AutoLock auto_lock(external_files_lock_);
+ 
+-  auto it = external_files_.find(path.value());
++  auto it = external_files_.find(canonical.value());
+   if (it != external_files_.end()) {
+     *out = it->second->path();
+     return true;
+   }
+ 
+   FileInfo info;
+-  if (!GetFileInfo(path, &info))
++  if (!GetFileInfo(canonical, &info))
+     return false;
+ 
+   if (info.unpacked) {
+-    *out = path_.AddExtension(FILE_PATH_LITERAL("unpacked")).Append(path);
++    *out = path_.AddExtension(FILE_PATH_LITERAL("unpacked")).Append(canonical);
+     return true;
+   }
+ 
+   auto temp_file = std::make_unique<ScopedTemporaryFile>();
+-  base::FilePath::StringType ext = path.Extension();
++  base::FilePath::StringType ext = canonical.Extension();
+   if (!temp_file->InitFromFile(&file_, ext, info.offset, info.size,
+                                info.integrity))
+     return false;
+@@ -388,7 +356,7 @@
+ #endif
+ 
+   *out = temp_file->path();
+-  external_files_[path.value()] = std::move(temp_file);
++  external_files_[canonical.value()] = std::move(temp_file);
+   return true;
+ }
+ 

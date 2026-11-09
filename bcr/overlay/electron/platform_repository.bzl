@@ -25,7 +25,7 @@ def _sources_impl(ctx):
                 matched = len(prefix)
         if not source.exists:
             fail("Pinned platform source missing: " + path)
-        if path in ["build/util/lastchange.py", "tools/json_to_struct/json_to_struct.py", "content/browser/cookie_store/cookie_store_manager.cc", "printing/backend/mojom/print_backend_mojom_traits.cc", "components/autofill/core/browser/metrics/quality_metrics.cc"]:
+        if path in ["build/util/lastchange.py", "tools/json_to_struct/json_to_struct.py", "content/browser/cookie_store/cookie_store_manager.cc", "printing/backend/mojom/print_backend_mojom_traits.cc", "components/autofill/core/browser/metrics/quality_metrics.cc", "electron/shell/common/asar/archive.cc"]:
             ctx.file(path, ctx.read(source), executable = False)
         else:
             ctx.symlink(source, path)
@@ -34,7 +34,8 @@ def _sources_impl(ctx):
     ctx.patch(ctx.attr.cookie_projection_patch, strip = 1)
     ctx.patch(ctx.attr.printing_comparator_patch, strip = 1)
     ctx.patch(ctx.attr.autofill_projection_patch, strip = 1)
-    ctx.file("native_compat_patches.json", json.encode({"graph_sha256": profile["graph_sha256"], "patches": [str(ctx.attr.lastchange_patch), str(ctx.attr.json_year_patch), str(ctx.attr.cookie_projection_patch), str(ctx.attr.printing_comparator_patch), str(ctx.attr.autofill_projection_patch)], "files": ["build/util/lastchange.py", "tools/json_to_struct/json_to_struct.py", "content/browser/cookie_store/cookie_store_manager.cc", "printing/backend/mojom/print_backend_mojom_traits.cc", "components/autofill/core/browser/metrics/quality_metrics.cc"]}))
+    ctx.patch(ctx.attr.asar_canonical_paths_patch, strip = 1)
+    ctx.file("native_compat_patches.json", json.encode({"graph_sha256": profile["graph_sha256"], "patches": [str(ctx.attr.lastchange_patch), str(ctx.attr.json_year_patch), str(ctx.attr.cookie_projection_patch), str(ctx.attr.printing_comparator_patch), str(ctx.attr.autofill_projection_patch), str(ctx.attr.asar_canonical_paths_patch)], "files": ["build/util/lastchange.py", "tools/json_to_struct/json_to_struct.py", "content/browser/cookie_store/cookie_store_manager.cc", "printing/backend/mojom/print_backend_mojom_traits.cc", "components/autofill/core/browser/metrics/quality_metrics.cc", "electron/shell/common/asar/archive.cc"]}))
     for path, content in profile["generated_files"].items():
         if not path.startswith("//out/bazel-import/") or ".." in path.split("/"):
             fail("Invalid platform metadata path")
@@ -47,6 +48,7 @@ _platform_sources = repository_rule(
     attrs = {
         "chromium": attr.label(mandatory = True),
         "printing_comparator_patch": attr.label(default = Label("//source:printing_comparator.patch")),
+        "asar_canonical_paths_patch": attr.label(default = Label("//source:asar_canonical_paths.patch")),
         "autofill_projection_patch": attr.label(default = Label("//source:autofill_projection.patch")),
         "cookie_projection_patch": attr.label(default = Label("//source:cookie_subscription_projection.patch")),
         "json_year_patch": attr.label(default = Label("//source:json_to_struct_year.patch")),

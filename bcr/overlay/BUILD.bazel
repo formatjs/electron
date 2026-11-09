@@ -87,6 +87,7 @@ test_suite(
     tests = [
         "//electron/private:nss_integrity_test",
         "//electron/private:source_action_test",
+        "//source:asar_path_resolver_test",
         "//source:base_test",
         "//source:cairo_loader_test",
         "//source:codecs_test",
