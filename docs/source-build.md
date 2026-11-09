@@ -2814,3 +2814,10 @@ patch uses the realm's environment loader when present, retaining a thread-local
 loader for contexts without Node. Both loaders include the original embedder
 sources. Assertions remain enabled; relocated runtime smoke must validate this
 change on BB.
+
+The 737a6f7 [consumer test](https://formatjs.buildbuddy.io/invocation/a0350adf-df3c-4bd7-9135-a9450f95649f)
+passed run-as-Node versions and browser `--version`, plus 82 other probes.
+The packaged browser then failed `path.IsAbsolute()` in Chromium's filesystem
+directory enumeration, reached through `DomStorageDatabaseLevelDB::Destroy`.
+The smoke now checks default home/app/session paths before browser startup.
+Storage initialization, renderer/IPC and full ASAR alias behavior remain open.

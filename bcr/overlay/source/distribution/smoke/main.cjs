@@ -4,6 +4,10 @@ const fs = require('node:fs');
 const originalFs = require('original-fs');
 const path = require('node:path');
 
+for (const name of ['home', 'appData', 'userData', 'sessionData']) {
+  assert(path.isAbsolute(app.getPath(name)), `Expected absolute ${name} path`);
+}
+
 async function checkAsarAliases() {
   const archive = path.join(process.resourcesPath, 'links.asar');
   const canonical = path.join(archive, 'native/answer.cjs');
