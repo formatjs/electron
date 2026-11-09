@@ -33,6 +33,9 @@ actions:
             @electron//source:platform_header_compile_probes
           bazel --host_jvm_args=-Xmx24g test --config=buildbuddy --downloader_config="$source_downloader" --distdir="$source_distdir" --strategy=TestRunner=local \
             --registry="file://$registry" --registry=https://bcr.bazel.build \
+            @electron//source:printing_wire_test
+          bazel --host_jvm_args=-Xmx24g test --config=buildbuddy --downloader_config="$source_downloader" --distdir="$source_distdir" --strategy=TestRunner=local \
+            --registry="file://$registry" --registry=https://bcr.bazel.build \
             --profile="$BUILDBUDDY_ARTIFACTS_DIRECTORY/source-graphics-profile.json.gz" \
             @electron//source:platform_graphics_test
           # Keep compile-only archives in CAS; tests download their declared data.
@@ -114,6 +117,9 @@ actions:
           bazel --host_jvm_args=-Xmx24g build --config=buildbuddy --downloader_config="$source_downloader" --distdir="$source_distdir" \
             --registry="file://$registry" --registry=https://bcr.bazel.build \
             @electron//source:platform_header_compile_probes
+          bazel --host_jvm_args=-Xmx24g test --config=buildbuddy --downloader_config="$source_downloader" --distdir="$source_distdir" --strategy=TestRunner=local \
+            --registry="file://$registry" --registry=https://bcr.bazel.build \
+            @electron//source:printing_wire_test
           bazel --host_jvm_args=-Xmx24g test --config=buildbuddy --downloader_config="$source_downloader" --distdir="$source_distdir" --strategy=TestRunner=local \
             --registry="file://$registry" --registry=https://bcr.bazel.build \
             --profile="$BUILDBUDDY_ARTIFACTS_DIRECTORY/source-consumer-profile.json.gz" \

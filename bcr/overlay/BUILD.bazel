@@ -109,6 +109,7 @@ test_suite(
         "//source:partition_alloc_test",
         "//source:perfetto_test",
         "//source:platform_graphics_test",
+        "//source:printing_wire_test",
         "//source:protobuf_test",
         "//source:skia_test",
         "//source:temporal_test",

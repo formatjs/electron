@@ -1,0 +1,49 @@
+--- a/printing/backend/mojom/print_backend_mojom_traits.cc
++++ b/printing/backend/mojom/print_backend_mojom_traits.cc
+@@ -5,6 +5,8 @@
+ #include "printing/backend/mojom/print_backend_mojom_traits.h"
+ 
+ #include <set>
++#include <tuple>
++#include <utility>
+ 
+ #include "base/containers/contains.h"
+ #include "base/logging.h"
+@@ -23,9 +25,8 @@
+ template <>
+ struct less<::gfx::Size> {
+   bool operator()(const ::gfx::Size& lhs, const ::gfx::Size& rhs) const {
+-    if (lhs.width() < rhs.width())
+-      return true;
+-    return lhs.height() < rhs.height();
++    return std::pair(lhs.width(), lhs.height()) <
++           std::pair(rhs.width(), rhs.height());
+   }
+ };
+ 
+@@ -34,10 +35,8 @@
+   bool operator()(
+       const ::printing::PrinterSemanticCapsAndDefaults::Paper& lhs,
+       const ::printing::PrinterSemanticCapsAndDefaults::Paper& rhs) const {
+-    if (lhs.display_name() < rhs.display_name()) {
+-      return true;
+-    }
+-    return lhs.vendor_id() < rhs.vendor_id();
++    return std::tie(lhs.display_name(), lhs.vendor_id()) <
++           std::tie(rhs.display_name(), rhs.vendor_id());
+   }
+ };
+ 
+@@ -79,7 +78,11 @@
+ 
+ template <class Key>
+ bool HasDuplicateItems(const std::vector<Key>& items) {
+-  std::set<Key> items_encountered;
++  // Keep specialized std::less semantics through libc++ tree optimizations.
++  const auto compare = [](const Key& lhs, const Key& rhs) {
++    return std::less<Key>()(lhs, rhs);
++  };
++  std::set<Key, decltype(compare)> items_encountered(compare);
+   for (const Key& item : items) {
+     bool inserted = items_encountered.insert(item).second;
+     if (!inserted) {

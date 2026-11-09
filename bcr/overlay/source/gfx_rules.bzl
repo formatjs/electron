@@ -27,6 +27,13 @@ def electron_gfx():
         deps = ["@electron_skia_sources//:source_headers", "@electron_mojo_sources//:bindings", "@electron_partition_alloc_sources//:raw_ptr"],
         target_compatible_with = _COMPATIBLE,
     )
+    cc_library(
+        name = "crashpad_tool_headers",
+        hdrs = ["third_party/crashpad/crashpad/tools/tool_support.h"],
+        includes = ["third_party/crashpad/crashpad"],
+        deps = [":source_headers"],
+        target_compatible_with = _COMPATIBLE,
+    )
     for original, action in PROFILE["actions"].items():
         outputs = [path[len(_BUILD):] for path in action["outputs"]]
         electron_source_action(

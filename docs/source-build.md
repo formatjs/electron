@@ -2655,3 +2655,17 @@ passed both original libraries on BB, followed by the
 Broad source builds remain live; complete Electron remains unverified.
 The next probe uses native `compilation_outputs` to avoid rebuilding dependency
 archives before checking these scoped translation units.
+
+The broad `2d3f9b1` build reached scoped Crashpad, GTK Unix printing,
+message-center Ash and spellchecker locale-header failures. The next revision
+adds their existing SDK/source/provider include contexts, plus compile-only
+probes of each original library. No host headers enter those providers.
+
+Printing also exposed libc++ tree desugaring of a specialized `std::less`.
+The minimal BB [repro failed](https://formatjs.buildbuddy.io/invocation/0bc651cb-7bf1-40ba-b648-c32b3fd3e48f);
+an explicit comparator wrapper [passed](https://formatjs.buildbuddy.io/invocation/63b9fda3-98f5-4138-9919-1b374c3e35b6).
+The source patch preserves that specialized identity comparison and makes its
+field ordering lexicographic. A real printing Mojo wire test checks crossed
+identities in both insertion orders and rejects equal identities with different
+paper geometry. Original-library compilation and wire execution remain pending
+BB validation; complete Electron remains unverified.

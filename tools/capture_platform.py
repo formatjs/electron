@@ -78,10 +78,12 @@ SOURCE_PREFIXES += ["third_party/libaddressinput/src", "third_party/ink/src", "t
 TOOLCHAIN = {"//buildtools/third_party/libc++:" + name for name in ("all_modules", "custom_headers", "libcxx_headers", "libc++")}
 # Download code uses obfuscation under the broader content-analysis buildflag.
 EXTRA_NATIVE_DEPS = {
+    "//electron/chromium_src:chrome_spellchecker": ["//chrome/app/resources:locale_settings_grit"],
     "//components/download/internal/common:internal": ["//components/enterprise/obfuscation/core:enterprise_obfuscation"],
 }
 
 EXTRA_NATIVE_HEADERS = {
+    "//ui/message_center:message_center": ["//ash/constants/ash_features.h"],
     "//ui/message_center/public/cpp:cpp": ["//chromeos/constants/chromeos_features.h"],
     "//content/browser:browser": ["//ash/constants/ash_switches.h", "//gpu/config/gpu_lists_version.h"],
     "//components/viz/host:host": ["//skia/ext/skia_commit_hash.h"],
