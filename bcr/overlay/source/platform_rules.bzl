@@ -53,6 +53,8 @@ def _system_deps(original, library):
         deps.append("@electron_gfx_sources//:crashpad_tool_headers")
     if original == "//third_party/crashpad/crashpad/util:net":
         deps.append("@electron_platform_sdk//:curl_headers")
+    if original == "//electron:electron_lib":
+        deps.append("@glib//gio:gio_unix")
     return deps
 
 def _link_settings(library):
