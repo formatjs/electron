@@ -2611,3 +2611,9 @@ notice staging; the original default-app ASAR test passed too.
 Runtime assembly still requires portable shared-library layout and native
 launch. The main executable, sandbox and Crashpad staging actions now declare
 Python directly, use an empty PATH and normalize executable modes/timestamps.
+
+SDK shared-library imports now carry the pinned runtime manifest's `DT_NEEDED`
+edges, with explicit host ABI exclusions. The previous consumer failed loading
+`libpixman-1.so.0` in a platform generator. A narrow Cairo paint test exercises
+that loader path before the full source suite. Analysis confirms pixman enters
+its link closure; native execution and full runtime launch remain unverified.

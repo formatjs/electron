@@ -1199,3 +1199,14 @@ alias(
     name = "platform_libraries",
     actual = "@electron_platform_sources//:libraries",
 )
+
+cc_test(
+    name = "cairo_loader_test",
+    srcs = ["cairo_loader_test.cc"],
+    linkopts = ["-Wl,--disable-new-dtags"],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    deps = ["@electron_platform_sdk//:cairo"],
+)

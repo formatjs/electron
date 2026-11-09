@@ -88,6 +88,7 @@ test_suite(
         "//electron/private:nss_integrity_test",
         "//electron/private:source_action_test",
         "//source:base_test",
+        "//source:cairo_loader_test",
         "//source:codecs_test",
         "//source:crypto_compat_test",
         "//source:display_test",

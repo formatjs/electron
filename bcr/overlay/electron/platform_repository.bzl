@@ -56,6 +56,11 @@ _platform_sources = repository_rule(
 def _runtime_impl(ctx):
     contents = ctx.read(ctx.attr.manifest)
     manifest = json.decode(contents)
+    host_abi = ["ld-linux-x86-64.so.2", "libc.so.6", "libdl.so.2", "libgcc_s.so.1", "libm.so.6", "libpthread.so.0", "libresolv.so.2", "librt.so.1", "libstdc++.so.6", "libutil.so.1"]
+    for name, library in manifest["libraries"].items():
+        for needed in library["needed"]:
+            if needed not in manifest["libraries"] and needed not in host_abi:
+                fail("Undeclared SDK runtime dependency: " + name + " needs " + needed)
     for package in manifest["packages"]:
         name = package["url"].split("/")[-1].split("_")[0]
         archive = "packages/" + name
@@ -72,7 +77,8 @@ def _runtime_impl(ctx):
     common = manifest.get("common_licenses", {})
     for name, notice in common.items():
         ctx.symlink("packages/" + notice["package"] + "/root/" + notice["path"], "licenses/common/" + name)
-    ctx.file("profile.bzl", "LIBRARIES = " + repr(sorted(manifest["libraries"])) + "\nCOPYRIGHTS = " + repr(copyrights) + "\nCOMMON_LICENSES = " + repr(common) + "\n")
+    needed = {name: library["needed"] for name, library in manifest["libraries"].items()}
+    ctx.file("profile.bzl", "LIBRARIES = " + repr(sorted(manifest["libraries"])) + "\nNEEDED = " + repr(needed) + "\nCOPYRIGHTS = " + repr(copyrights) + "\nCOMMON_LICENSES = " + repr(common) + "\n")
     build = [
         'load("@rules_cc//cc:cc_library.bzl", "cc_library")',
         'package(default_visibility = ["//visibility:public"])',
