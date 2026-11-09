@@ -1000,6 +1000,14 @@ def capture(graph, digest, chromium, source_roots, profiles, *, dependency_kinds
                 for header in ml_dtypes_headers:
                     input_file(header)
                 record["source_headers"] = sorted(set(record["source_headers"] + ml_dtypes_headers))
+            if label in ["//ui/gtk:gtk", "//ui/gtk:gtk_stubs", "//electron:electron_gtk_stubs"]:
+                signatures = sorted("//" + included for included in source_includes("ui/gtk/gtk_compat.h")[1]
+                                    if included.startswith("ui/gtk/") and included.endswith(".sigs"))
+                if not signatures:
+                    raise ValueError("Original GTK signature includes missing")
+                for signature in signatures:
+                    input_file(signature)
+                record["textual_headers"] = sorted(set(record.get("textual_headers", []) + signatures))
             if label in EXTRA_NATIVE_HEADERS:
                 # These source-root includes are omitted from GN's file lists.
                 extra_headers = set(EXTRA_NATIVE_HEADERS[label])

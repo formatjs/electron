@@ -2669,3 +2669,10 @@ field ordering lexicographic. A real printing Mojo wire test checks crossed
 identities in both insertion orders and rejects equal identities with different
 paper geometry. Original-library compilation and wire execution remain pending
 BB validation; complete Electron remains unverified.
+
+The `269f3c2` consumer preflight advanced to GTK compatibility macro fragments:
+`gtk_compat.h` includes five `.sigs` files already captured for stub generation,
+but those files also need C++ compiler inputs. The next capture exposes them as
+textual headers on the original GTK and Electron stub providers. Other profile
+fields stay unchanged. Original-library and printing wire validation remain
+pending; the previous preflight stopped before running the wire test.
