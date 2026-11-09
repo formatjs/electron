@@ -2801,5 +2801,8 @@ The f7fd796 [consumer preflight](https://formatjs.buildbuddy.io/invocation/41393
 passed relocated NSS loading, initialization and random generation. Original NSS
 verified all four regenerated module checksums, then rejected modified module
 bytes and checksum bytes. The fixture archive also passed repeat assembly across
-staging paths and mtimes. Full Electron archive assembly and browser/ASAR smoke
-remain pending.
+staging paths and mtimes. The 32fefac
+[consumer test](https://formatjs.buildbuddy.io/invocation/7ac59bd3-49e6-4950-9f0e-09264bcb3b06)
+subsequently built the full source Electron archive with a closed ELF dependency
+set. Its relocated executable failed the run-as-Node startup check. Browser/IPC,
+rendering and filesystem alias checks remain unverified.
