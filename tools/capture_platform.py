@@ -102,6 +102,11 @@ EXTRA_NATIVE_HEADERS = {
     "//printing/mojom:mojom": ["//printing/page_range.h"],
     "//device/bluetooth:bluetooth": ["//chromeos/constants/chromeos_features.h", "//third_party/cros_system_api/dbus/service_constants.h"],
 }
+
+EXTRA_NATIVE_HEADER_DIRS = {
+    "//electron/chromium_src:chrome": ["components/captive_portal", "components/fullscreen_control", "components/safe_browsing"],
+    "//electron:electron_lib": ["components/safe_browsing"],
+}
 SDK_LIBS = {"atomic", "cairo-gobject", "gdk-3", "gtk-3", "gdk_pixbuf-2.0", "cups", "xshmfence", "atspi", "Xcomposite", "Xdamage", "Xfixes", "Xrandr", "Xrender", "Xtst", "drm", "asound", "ffi_pic", "X11", "Xi", "Xext", "pci", "gbm", "dbus-1", "udev", "cairo", "harfbuzz", "pango-1.0", "pangocairo-1.0", "atk-1.0", "atk-bridge-2.0"}
 SCRIPTS = MOJO_SCRIPTS | API_SCRIPTS | {"//" + name for name in (
     "build/write_buildflag_header.py", "build/gn_run_binary.py", "build/util/version.py",
@@ -1012,9 +1017,16 @@ def capture(graph, digest, chromium, source_roots, profiles, *, dependency_kinds
                 for signature in signatures:
                     input_file(signature)
                 record["textual_headers"] = sorted(set(record.get("textual_headers", []) + signatures))
-            if label in EXTRA_NATIVE_HEADERS:
+            if label in EXTRA_NATIVE_HEADERS or label in EXTRA_NATIVE_HEADER_DIRS:
                 # These source-root includes are omitted from GN's file lists.
-                extra_headers = set(EXTRA_NATIVE_HEADERS[label])
+                extra_headers = set(EXTRA_NATIVE_HEADERS.get(label, []))
+                for directory in EXTRA_NATIVE_HEADER_DIRS.get(label, []):
+                    root = physical(directory)
+                    inventory = ["//" + directory + "/" + path.relative_to(root).as_posix()
+                                 for path in source_files(root) if path.suffix in (".h", ".hh", ".hpp", ".hxx", ".inc", ".inl", ".def", ".gen")]
+                    if not inventory:
+                        raise ValueError("Missing original component header inventory: " + directory)
+                    extra_headers.update(inventory)
                 pending_headers = [path for path in extra_headers if path.startswith("//third_party/cros_system_api/")]
                 while pending_headers:
                     header = pending_headers.pop()

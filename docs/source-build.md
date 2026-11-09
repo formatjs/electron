@@ -2711,3 +2711,10 @@ The finished broad run also reached Safe Browsing interface-header omissions and
 Electron's `gio/gdesktopappinfo.h` include. Electron now depends on the existing
 native GLib `gio_unix` provider. Safe Browsing header closure remains open; the
 next compile probe will validate these fixes before another broad build.
+
+The next capture declares source-header inventories for the missing Captive
+Portal, fullscreen-control and Safe Browsing interfaces on the Chrome shim;
+Electron's library receives the Safe Browsing interfaces too. Paths come from
+the pinned Chromium tree. The semantic guard limits the profile update to 140
+new file entries and those two owner header lists. Captured Safe Browsing flags
+and library dependencies remain intact. BB validation is pending.
