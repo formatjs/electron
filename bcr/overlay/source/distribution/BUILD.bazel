@@ -43,16 +43,12 @@ _NATIVE_LIBRARIES.update({"lib" + name + ".so": "@nss//:lib" + name + ".so" for 
     "ssl3",
 ]})
 
-_NSS_INTEGRITY = {
-    "nss_integrity_modules": ["lib" + name + ".so" for name in [
-        "freebl3",
-        "freeblpriv3",
-        "nssdbm3",
-        "softokn3",
-    ]],
-    "nss_integrity_tool": "//electron/private:nss_checksum",
-    "nss_parameters": "@nss//:cmd/shlibsign/shlibsign.c",
-}
+_NSS_INTEGRITY_MODULES = ["lib" + name + ".so" for name in [
+    "freebl3",
+    "freeblpriv3",
+    "nssdbm3",
+    "softokn3",
+]]
 
 _LIBRARIES = {"@electron_platform_runtime//:" + name: name for name in LIBRARIES if name not in _NATIVE_LIBRARIES}
 
@@ -140,9 +136,11 @@ electron_runtime_archive(
     files = _FILES,
     host_abi = _HOST_ABI,
     libraries = _LIBRARIES,
+    nss_integrity_modules = _NSS_INTEGRITY_MODULES,
+    nss_integrity_tool = "//electron/private:nss_checksum",
+    nss_parameters = "@nss//:cmd/shlibsign/shlibsign.c",
     report = "electron-linux-x64.elf.json",
     target_compatible_with = _COMPATIBLE,
-    **_NSS_INTEGRITY
 )
 
 py_test(
@@ -218,9 +216,11 @@ electron_runtime_archive(
     files = {":fixture_program": "electron"},
     host_abi = _HOST_ABI,
     libraries = {label: name for name, label in _NATIVE_LIBRARIES.items() if label.startswith("@nss//") or label.startswith("@nspr//")},
+    nss_integrity_modules = _NSS_INTEGRITY_MODULES,
+    nss_integrity_tool = "//electron/private:nss_checksum",
+    nss_parameters = "@nss//:cmd/shlibsign/shlibsign.c",
     report = "nss-fixture-runtime.elf.json",
     target_compatible_with = _COMPATIBLE,
-    **_NSS_INTEGRITY
 )
 
 cc_binary(
