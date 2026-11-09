@@ -2676,3 +2676,11 @@ but those files also need C++ compiler inputs. The next capture exposes them as
 textual headers on the original GTK and Electron stub providers. Other profile
 fields stay unchanged. Original-library and printing wire validation remain
 pending; the previous preflight stopped before running the wire test.
+
+The `532f86e` consumer passed the original-library
+[compile-only probe](https://formatjs.buildbuddy.io/invocation/486abc78-7992-40ea-9043-7a7f958db6ef),
+including Crashpad, GTK, message-center, spellchecker and printing. Its
+[printing wire test](https://formatjs.buildbuddy.io/invocation/f525cbeb-de5b-4b70-ba7b-cc80fbbb926d)
+then aborted because Mojo was not initialized. The test now links the existing
+Mojo embedder and initializes it before serialization. Runtime validation remains
+pending; complete Electron remains unverified.
