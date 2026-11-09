@@ -197,10 +197,9 @@ def electron_platform():
             linkopts = ["-l" + name for name in library["libs"] if name in ["m", "dl", "rt", "pthread", "resolv"]],
             linkstatic = True,
             target_compatible_with = _COMPATIBLE,
-            deps = {dep: True for dep in [":tool_headers" if original in PROFILE.get("tool_header_libraries", PROFILE["execution_closure"]) else (":electron_source_headers" if original in electron_libraries else ":content_source_headers" if original in content_libraries else ":modules_source_headers" if original in module_libraries else ":core_source_headers" if original in core_libraries else ":source_headers")] + _system_deps(original, library) + [_label(dep) for dep in library["gn_deps"] + library.get("additional_native_deps", []) if dep not in PROFILE["toolchain_deps"] and dep not in PROFILE["execution_tools"]]}.keys(),
+            deps = {dep: True for dep in [":tool_headers" if original in PROFILE.get("tool_header_libraries", PROFILE["execution_closure"]) else (":electron_source_headers" if original in electron_libraries else ":content_source_headers" if original in content_libraries else ":modules_source_headers" if original in module_libraries else ":core_source_headers" if original in core_libraries else ":source_headers")] + _system_deps(original, library) + [_label(dep) for dep in library["gn_link_deps"] + library.get("additional_native_deps", []) if dep not in PROFILE["toolchain_deps"] and dep not in PROFILE["execution_tools"]]}.keys(),
         )
-        if library.get("resource_sources"):
-            settings["data"] = [_file(path) for path in library["resource_sources"]]
+        settings["data"] = [_label(dep) for dep in library["gn_data_deps"] if dep not in PROFILE["toolchain_deps"] and dep not in PROFILE["execution_tools"]] + [_file(path) for path in library.get("resource_sources", [])]
         for language, sources, flags in [("c", library["c_srcs"], library["c_copts"]), ("asm", library["asm_srcs"], library["asm_copts"])]:
             if sources:
                 compiler_inputs = []
@@ -235,7 +234,7 @@ def electron_platform():
             link["dynamic_deps"] = ["@electron//source/glib:" + name for name in ["zlib", "glib", "gobject", "gmodule", "gio"]]
             cc_binary(name = soname, deps = [":" + internal], linkshared = True, linkstatic = True, target_compatible_with = _COMPATIBLE, **link)
             cc_import(name = library["name"] + "_import", shared_library = ":" + soname, target_compatible_with = _COMPATIBLE)
-            cc_library(name = library["name"], deps = [":" + library["name"] + "_import", ":source_headers"], target_compatible_with = _COMPATIBLE)
+            cc_library(name = library["name"], deps = [":" + library["name"] + "_import", ":source_headers"], data = settings["data"], target_compatible_with = _COMPATIBLE)
         else:
             cc_library(name = library["name"], srcs = [_file(path) for path in library["srcs"]], copts = library["copts"], alwayslink = library["kind"] == "source_set", **settings)
     icds = [_file(path) for action in PROFILE["actions"].values() if action["script"] in ["third_party/swiftshader/src/Vulkan/write_icd_json.py", "third_party/vulkan-tools/src/scripts/gn/generate_vulkan_icd_json.py"] for path in action["outputs"]]

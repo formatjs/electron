@@ -1,6 +1,7 @@
 exports_files([
     "credits_inputs.json",
     "platform_inputs.json",
+    "linux_amd64.dependency_kinds.json.gz",
     "runtime_inputs.json",
     "runtime_metadata.bzl",
     "runtime_files.bzl",

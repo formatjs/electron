@@ -14,6 +14,7 @@ import xml.etree.ElementTree as ElementTree
 from functools import cache
 from pathlib import Path
 
+from capture_gn_edges import split_dependencies
 from capture_mojo import SCRIPTS as MOJO_SCRIPTS
 from capture_node_tools import capture as capture_node_tools
 from native_graph import BUILD, capture_library, load_profiles, pack_profile
@@ -397,7 +398,7 @@ def isolated_header_libraries(libraries, actions, copies, metadata, producers, l
     return sorted(isolated)
 
 
-def capture(graph, digest, chromium, source_roots, profiles, *, extra_roots=()):
+def capture(graph, digest, chromium, source_roots, profiles, *, dependency_kinds, extra_roots=()):
     revisions = source_revisions(chromium)
     previous = [("base", "base"), ("embedder", "embedder"), ("ipcz", "ipcz"), ("libnode", "libnode"), ("perfetto", "perfetto_native"), ("protobuf", "protobuf"), ("v8_engine", "v8_engine"), ("v8_support", "v8_support"), ("network", "network"), ("mojo", "mojo"), ("fonts", "fonts"), ("codecs", "codecs"), ("skia", "skia"), ("gfx", "gfx"), ("display", "display"), ("events", "events"), ("ui", "ui"), ("content_webui", "content_webui")]
     external, shared = load_profiles(profiles, previous)
@@ -702,6 +703,8 @@ def capture(graph, digest, chromium, source_roots, profiles, *, extra_roots=()):
             raise ValueError("Expected captured Linux AMD64 platform profile")
         kind = target["type"]
         record = dict(name=names[label], kind=kind, gn_deps=target.get("deps", []))
+        if kind in ("group", "source_set", "static_library", "shared_library", "executable"):
+            record.update(split_dependencies(label, record["gn_deps"], dependency_kinds))
         if kind in ("action", "action_foreach"):
             if target["script"] not in SCRIPTS and label != ELECTRON_GENERATORS["version_args"]:
                 raise ValueError("Untranslated platform generator: " + target["script"])
@@ -1180,12 +1183,14 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("graph", "chromium-root", "profiles", "output"):
         parser.add_argument("--" + name, type=Path, required=True)
+    parser.add_argument("--dependency-kinds", type=Path, required=True)
     parser.add_argument("--source-root", action="append", default=[])
     parser.add_argument("--extra-root", action="append", default=[])
     args = parser.parse_args()
     roots = dict(item.split("=", 1) for item in args.source_root)
     content = args.graph.read_bytes()
-    profile = capture(json.loads(gzip.decompress(content)), hashlib.sha256(content).hexdigest(), args.chromium_root, {name: Path(path) for name, path in roots.items()}, args.profiles, extra_roots=args.extra_root)
+    profile = capture(json.loads(gzip.decompress(content)), hashlib.sha256(content).hexdigest(), args.chromium_root, {name: Path(path) for name, path in roots.items()}, args.profiles, dependency_kinds=json.loads(gzip.decompress(args.dependency_kinds.read_bytes())), extra_roots=args.extra_root)
+    profile["dependency_kinds_sha256"] = hashlib.sha256(args.dependency_kinds.read_bytes()).hexdigest()
     args.output.write_text(json.dumps(pack_profile(profile), separators=(",", ":")) + "\n")
 
 

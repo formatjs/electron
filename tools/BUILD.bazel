@@ -5,3 +5,9 @@ py_library(
     srcs = ["prepare_source.py"],
     visibility = ["//visibility:public"],
 )
+
+py_library(
+    name = "gn_dependencies",
+    srcs = ["capture_gn_edges.py"],
+    visibility = ["//visibility:public"],
+)

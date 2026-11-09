@@ -1349,7 +1349,13 @@ unfinished.
 Source capture reads metadata only:
 
 ```sh
+python3 tools/capture_gn_edges.py \
+  --gn=/path/to/pinned/gn \
+  --chromium-root=/path/to/electron-patched-chromium-and-deps \
+  --out-dir=/path/to/configured-gn-output \
+  --output=bcr/overlay/source/native/linux_amd64.dependency_kinds.json.gz
 python3 tools/capture_platform.py \
+  --dependency-kinds=bcr/overlay/source/native/linux_amd64.dependency_kinds.json.gz \
   --graph=bcr/overlay/source/native/linux_amd64.partial.json.gz \
   --chromium-root=/path/to/electron-patched-chromium-and-deps \
   --source-root=third_party/wayland/src=/path/to/wayland-a156431ea66fe67d69c9fbba8a8ad34dabbab81c \
@@ -2617,3 +2623,13 @@ edges, with explicit host ABI exclusions. The previous consumer failed loading
 `libpixman-1.so.0` in a platform generator. A narrow Cairo paint test exercises
 that loader path before the full source suite. Analysis confirms pixman enters
 its link closure; native execution and full runtime launch remain unverified.
+
+
+GN's JSON export merges private, public and data dependencies. Maintainer capture
+now records each kind through temporary metadata instrumentation, restores
+`BUILDCONFIG.gn`, then verifies every original target field and existing metadata
+against an uninstrumented capture. All 28,340 targets matched. The platform
+profile retains complete traversal edges, but only private/public edges provide
+`CcInfo`; runtime-only edges use Bazel `data`. This removes accidental linkage
+to ANGLE's Vulkan mock ICD. BB validation remains pending; complete Electron
+remains unfinished.

@@ -16,3 +16,9 @@ py_test(
     srcs = ["prepare_source_test.py"],
     deps = ["//tools:source_preparation"],
 )
+
+py_test(
+    name = "gn_dependencies_test",
+    srcs = ["gn_dependencies_test.py"],
+    deps = ["//tools:gn_dependencies"],
+)
