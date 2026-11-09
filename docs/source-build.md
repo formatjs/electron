@@ -2718,3 +2718,10 @@ Electron's library receives the Safe Browsing interfaces too. Paths come from
 the pinned Chromium tree. The semantic guard limits the profile update to 140
 new file entries and those two owner header lists. Captured Safe Browsing flags
 and library dependencies remain intact. BB validation is pending.
+
+The 6f5a084 consumer stopped during preflight on a GitHub HTTP 504 fetching
+`patchelf-0.19.1.tar.gz`; compilation did not run. The queued bootstrap prefetch
+uses public release asset 468524906 and verifies BCR SHA-256
+`491108728f120ce05b539934b41a750235031a6df8abc6b47e57aff7de15094d`
+before Bazel consumes the unchanged source archive from `--distdir`. The official
+Bazel mirror returned 404. No binary tool download or build wrapper is involved.

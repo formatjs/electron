@@ -4,6 +4,10 @@ set -euo pipefail
 bootstrap_directory="$1"
 mkdir -p "$bootstrap_directory"
 curl --silent --show-error --fail --location --retry 3 --retry-all-errors --connect-timeout 30 --max-time 180 \
+  --header 'Accept: application/octet-stream' --header 'X-GitHub-Api-Version: 2022-11-28' \
+  https://api.github.com/repos/NixOS/patchelf/releases/assets/468524906 \
+  --output "$bootstrap_directory/patchelf-0.19.1.tar.gz"
+curl --silent --show-error --fail --location --retry 3 --retry-all-errors --connect-timeout 30 --max-time 180 \
   https://codeload.github.com/bazel-contrib/rules_python/tar.gz/refs/tags/1.9.0 \
   --output "$bootstrap_directory/rules_python-1.9.0.tar.gz"
 curl --silent --show-error --fail --location --retry 3 --retry-all-errors --connect-timeout 30 --max-time 180 \
@@ -15,6 +19,7 @@ curl --silent --show-error --fail --location --retry 3 --retry-all-errors --conn
 (
   cd "$bootstrap_directory"
   sha256sum --check <<'HASHES'
+491108728f120ce05b539934b41a750235031a6df8abc6b47e57aff7de15094d  patchelf-0.19.1.tar.gz
 098ba13578e796c00c853a2161f382647f32eb9a77099e1c88bc5299333d0d6e  rules_python-1.9.0.tar.gz
 094367e732ece23f334eaf84089a720b861d053beeba6a6a68356d3aee1dc32b  bazel_features-v1.50.0.tar.gz
 99ea4a5a0b2c1a8182f478cf603209a996007ea402934cb20132fae6475604d9  v39.0.0.tar.gz
