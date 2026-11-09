@@ -228,7 +228,10 @@ cc_binary(
     srcs = ["nss_runtime_probe.cc"],
     linkopts = ["-ldl"],
     target_compatible_with = _COMPATIBLE,
-    deps = ["@nss//:headers"],
+    deps = [
+        "@nspr//:headers",
+        "@nss//:headers",
+    ],
 )
 
 py_test(
