@@ -9,7 +9,7 @@ from pathlib import Path
 
 import capture_ui
 from capture_mojo import SCRIPTS as MOJO_SCRIPTS
-from native_graph import load_profiles
+from native_graph import BUILD, load_profiles, value
 
 
 def capture(graph, digest, chromium, node_modules, profiles, *, root="//electron:electron_app"):
@@ -35,6 +35,15 @@ def capture(graph, digest, chromium, node_modules, profiles, *, root="//electron
         raise ValueError("Content WebUI must reuse native library providers")
     profile["capture_root"] = root
     use_real_credits(profile)
+    producer = "//third_party/libaddressinput:strings_grit"
+    if producer in profile["actions"]:
+        include = BUILD + "gen/third_party/libaddressinput"
+        consumer = graph["targets"]["//third_party/libaddressinput:strings"]
+        action = profile["actions"][producer]
+        if (include not in [path.rstrip("/") for path in value(graph, consumer, "include_dirs")]
+                or include + "/messages.h" not in action["outputs"]):
+            raise ValueError("Original libaddressinput generated-header layout changed")
+        action["header_include_dirs"] = [include.removeprefix(BUILD)]
     return profile
 
 

@@ -58,7 +58,7 @@ def electron_ui(profile = PROFILE, aliases = None, node_modules = ":node_modules
             hdrs = [_file(profile, path) for path in action["outputs"] if path.endswith(".h")],
             textual_hdrs = [_file(profile, path) for path in action["outputs"] if path.endswith((".inc", ".cc"))],
             data = [_file(profile, path) for path in action["outputs"] if not path.endswith((".h", ".inc", ".cc"))],
-            includes = ["gen"],
+            includes = ["gen"] + action.get("header_include_dirs", []),
             target_compatible_with = _COMPATIBLE,
         )
     for original, copy in profile["copies"].items():

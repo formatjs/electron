@@ -82,6 +82,7 @@ EXTRA_NATIVE_DEPS = {
 }
 
 EXTRA_NATIVE_HEADERS = {
+    "//ui/message_center/public/cpp:cpp": ["//chromeos/constants/chromeos_features.h"],
     "//content/browser:browser": ["//ash/constants/ash_switches.h", "//gpu/config/gpu_lists_version.h"],
     "//components/viz/host:host": ["//skia/ext/skia_commit_hash.h"],
     "//services/viz/privileged/mojom/compositing:compositing": ["//services/viz/privileged/cpp/renderer_settings_mojom_traits.h", "//services/viz/privileged/cpp/overlay_strategy_mojom_traits.h"],

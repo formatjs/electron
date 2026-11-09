@@ -2642,3 +2642,10 @@ The consumer also passed native-generator, policy, tracing, API-feature and
 version probes before its hosted free-tier timeout. Both large builds were still
 compiling Blink when disconnected. No new compiler error was captured; complete
 Electron remains unverified.
+
+The next source probe targets two compile failures reached during `d0d8472`:
+message-center's public header needs the captured ChromeOS feature header;
+libaddressinput needs its generated `messages.h` include directory from the
+owning WebUI GRIT repository. The metadata declares both at their provider.
+`platform_header_compile_probes` builds the original libraries before broad
+source tests. BB validation remains pending.
