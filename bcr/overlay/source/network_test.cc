@@ -181,9 +181,16 @@ void CheckMojo() {
 }
 
 void CheckIntegrity(const char* module_argument, const char* checksum_argument) {
-  const auto module = base::MakeAbsoluteFilePath(base::FilePath(module_argument));
-  const auto checksum = base::MakeAbsoluteFilePath(base::FilePath(checksum_argument));
-  Require(!module.empty() && !checksum.empty(), "declared NSS integrity files");
+  const auto source_module = base::MakeAbsoluteFilePath(base::FilePath(module_argument));
+  const auto source_checksum = base::MakeAbsoluteFilePath(base::FilePath(checksum_argument));
+  Require(!source_module.empty() && !source_checksum.empty(), "declared NSS integrity files");
+  base::ScopedTempDir inputs;
+  Require(inputs.CreateUniqueTempDir(), "NSS declared-pair staging directory");
+  const auto module = inputs.GetPath().AppendASCII("libfreeblpriv3.so");
+  const auto checksum = inputs.GetPath().AppendASCII("libfreeblpriv3.chk");
+  // NSS derives the checksum path from the loaded library's filename.
+  Require(base::CopyFile(source_module, module) && base::CopyFile(source_checksum, checksum),
+          "NSS declared integrity pair staging");
   void* library = dlopen(module.value().c_str(), RTLD_NOW | RTLD_LOCAL);
   Require(library != nullptr, "declared NSS implementation load");
   auto get_vector = reinterpret_cast<FREEBLGetVectorFn*>(dlsym(library, "FREEBL_GetVector"));

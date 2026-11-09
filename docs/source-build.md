@@ -2843,3 +2843,11 @@ probe now initializes `C.UTF-8` before threads and checks a nonempty path
 roundtrip. Browser smoke keeps both ASCII paths under `C` and Unicode paths
 under `C.UTF-8`. App path assertions run after navigation. This fixture correction
 still needs BB validation; production path handling and assertions stay intact.
+
+The 2e5d13f [consumer preflight](https://formatjs.buildbuddy.io/invocation/93ce8f83-ae00-4ef9-b876-f1244124a96f)
+passed Unicode path roundtrip and native LevelDB/DOM cleanup. It next failed the
+network probe's NSS checksum check. The probe now stages the declared library
+and checksum together before loading: NSS derives the checksum filename from
+the loaded module path, while resolved Bazel runfiles need not be adjacent.
+Declared bytes, original verification and corruption-rejection checks remain
+unchanged. The independent runtime-archive NSS fixture already passed.
