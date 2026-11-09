@@ -2633,3 +2633,12 @@ profile retains complete traversal edges, but only private/public edges provide
 `CcInfo`; runtime-only edges use Bazel `data`. This removes accidental linkage
 to ANGLE's Vulkan mock ICD. BB validation remains pending; complete Electron
 remains unfinished.
+
+The `88a79ce` dependency split passed the
+[component preflight](https://formatjs.buildbuddy.io/invocation/bbf681f7-487f-4b3a-aad4-b97cb5d189fc)
+(including typed-edge regression tests) and
+[graphics probe](https://formatjs.buildbuddy.io/invocation/a66e2330-7893-48d2-af84-e1bf6605049d).
+The consumer also passed native-generator, policy, tracing, API-feature and
+version probes before its hosted free-tier timeout. Both large builds were still
+compiling Blink when disconnected. No new compiler error was captured; complete
+Electron remains unverified.
