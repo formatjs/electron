@@ -2648,4 +2648,10 @@ message-center's public header needs the captured ChromeOS feature header;
 libaddressinput needs its generated `messages.h` include directory from the
 owning WebUI GRIT repository. The metadata declares both at their provider.
 `platform_header_compile_probes` builds the original libraries before broad
-source tests. BB validation remains pending.
+source tests. The `2d3f9b1`
+[component compile probe](https://formatjs.buildbuddy.io/invocation/83ff59d7-b42c-4914-a1e8-999c0d469e32)
+passed both original libraries on BB, followed by the
+[graphics tests](https://formatjs.buildbuddy.io/invocation/b50aab0f-0d65-41dd-a221-fc7ac3eed001).
+Broad source builds remain live; complete Electron remains unverified.
+The next probe uses native `compilation_outputs` to avoid rebuilding dependency
+archives before checking these scoped translation units.
