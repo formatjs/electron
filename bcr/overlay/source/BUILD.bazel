@@ -481,6 +481,7 @@ cc_test(
         "@electron_network_sources//:sql",
         "@electron_network_sources//:url",
         "@electron_platform_sources//:leveldatabase",
+        "@electron_platform_sources//:storage",
     ],
 )
 

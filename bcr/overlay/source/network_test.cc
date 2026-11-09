@@ -12,16 +12,20 @@
 #include "base/build_time.h"
 #include "base/command_line.h"
 #include "base/feature_list.h"
+#include "base/functional/bind.h"
 #include "base/files/file.h"
 #include "base/files/file_util.h"
 #include "base/files/memory_mapped_file.h"
 #include "base/files/scoped_temp_dir.h"
 #include "base/i18n/icu_util.h"
+#include "base/run_loop.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/task/single_thread_task_executor.h"
+#include "base/task/thread_pool.h"
 #include "base/task/thread_pool/thread_pool_instance.h"
 #include "base/threading/thread.h"
 #include "base/time/time_override.h"
+#include "components/services/storage/dom_storage/dom_storage_database.h"
 #include "crypto/nss_util.h"
 #include "crypto/sha2.h"
 #include "mojo/core/embedder/embedder.h"
@@ -82,6 +86,21 @@ void CheckLeveldb() {
   database.reset();
   Require(leveldb::DestroyDB(name, options).ok() && !base::PathExists(path),
           "LevelDB persistent destroy");
+  options.create_if_missing = true;
+  Require(leveldb_env::OpenDB(options, name, &database).ok(), "LevelDB persistent open");
+  database.reset();
+  base::RunLoop loop;
+  storage::DomStorageDatabaseFactory::Destroy(
+      directory.GetPath(), path.BaseName().AsUTF8Unsafe(),
+      base::ThreadPool::CreateSequencedTaskRunner(
+          {base::MayBlock(), base::WithBaseSyncPrimitives(),
+           base::TaskShutdownBehavior::BLOCK_SHUTDOWN}),
+      base::BindOnce([&loop](storage::DbStatus status) {
+        Require(status.ok(), "DOM storage persistent destroy");
+        loop.Quit();
+      }));
+  loop.Run();
+  Require(!base::PathExists(path), "DOM storage persistent destroy");
 }
 
 void CheckNetwork() {

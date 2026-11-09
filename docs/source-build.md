@@ -2821,3 +2821,8 @@ The packaged browser then failed `path.IsAbsolute()` in Chromium's filesystem
 directory enumeration, reached through `DomStorageDatabaseLevelDB::Destroy`.
 The smoke now checks default home/app/session paths before browser startup.
 Storage initialization, renderer/IPC and full ASAR alias behavior remain open.
+
+The network preflight now includes native LevelDB binary-data write/reopen/read
+and directory removal, followed by asynchronous removal through the original
+`DomStorageDatabaseFactory`. This covers the failing storage API separately from
+Electron initialization. These new checks still need BB validation.
