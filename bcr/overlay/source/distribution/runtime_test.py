@@ -22,6 +22,14 @@ FONT = Path(sys.argv[-1])
 del sys.argv[1:]
 
 
+def run_checked(*arguments, **options):
+    result = subprocess.run(*arguments, **options)
+    if result.returncode:
+        sys.stderr.write(result.stderr[:24000])
+        result.check_returncode()
+    return result
+
+
 def write_alias_fixture(resources):
     module = b"module.exports = {answer: 42};\n"
     packed = b"packed fixture\n"
@@ -68,14 +76,14 @@ class RuntimeTest(unittest.TestCase):
                                      escape(str(root / "font-cache")) + '</cachedir></fontconfig>')
             environment = {"PATH": "", "LANG": "C", "LC_ALL": "C", "TZ": "UTC", "HOME": str(root),
                            "FONTCONFIG_FILE": str(configuration), "FONTCONFIG_PATH": str(root)}
-            node = subprocess.run([str(root / "electron"), "-e", "console.log(JSON.stringify(process.versions))"],
+            node = run_checked([str(root / "electron"), "-e", "console.log(JSON.stringify(process.versions))"],
                                   cwd=root, env=dict(environment, ELECTRON_RUN_AS_NODE="1"),
-                                  check=True, capture_output=True, text=True, timeout=60)
+                                  capture_output=True, text=True, timeout=60)
             versions = json.loads(node.stdout)
             self.assertEqual(versions["electron"], "39.0.0")
             self.assertEqual(versions["node"], "22.20.0")
-            browser = subprocess.run([str(root / "electron"), "--version", "--no-sandbox"],
-                                     cwd=root, env=environment, check=True, capture_output=True, text=True, timeout=60)
+            browser = run_checked([str(root / "electron"), "--version", "--no-sandbox"],
+                                  cwd=root, env=environment, capture_output=True, text=True, timeout=60)
             self.assertEqual(browser.stdout.strip(), "v39.0.0")
             shutil.copyfile(SMOKE_ASAR, root / "resources/app.asar")
             write_alias_fixture(root / "resources")
