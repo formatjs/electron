@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import signal
 import shutil
+import struct
 import subprocess
 import sys
 import tempfile
@@ -19,6 +20,30 @@ REQUIRED = sys.argv[3:3 + COUNT]
 SMOKE_ASAR = Path(sys.argv[-2])
 FONT = Path(sys.argv[-1])
 del sys.argv[1:]
+
+
+def write_alias_fixture(resources):
+    module = b"module.exports = {answer: 42};\n"
+    packed = b"packed fixture\n"
+    files = {
+        "native": {"files": {"answer.cjs": {"size": len(module), "unpacked": True}}},
+        "directory": {"link": "native"},
+        "alias.cjs": {"link": "directory/answer.cjs"},
+        "chain.cjs": {"link": "alias.cjs"},
+        "root": {"link": ""},
+        "packed.bin": {"size": len(packed), "offset": "0"},
+        "packed-alias.bin": {"link": "packed.bin"},
+        "cycle-a": {"link": "cycle-b"},
+        "cycle-b": {"link": "cycle-a"},
+    }
+    encoded = json.dumps({"files": files}, separators=(",", ":")).encode()
+    payload = struct.pack("<I", len(encoded)) + encoded
+    payload += b"\0" * (-len(payload) % 4)
+    header = struct.pack("<I", len(payload)) + payload
+    (resources / "links.asar").write_bytes(struct.pack("<II", 4, len(header)) + header + packed)
+    sidecar = resources / "links.asar.unpacked/native"
+    sidecar.mkdir(parents=True)
+    (sidecar / "answer.cjs").write_bytes(module)
 
 
 class RuntimeTest(unittest.TestCase):
@@ -53,6 +78,7 @@ class RuntimeTest(unittest.TestCase):
                                      cwd=root, env=environment, check=True, capture_output=True, text=True, timeout=60)
             self.assertEqual(browser.stdout.strip(), "v39.0.0")
             shutil.copyfile(SMOKE_ASAR, root / "resources/app.asar")
+            write_alias_fixture(root / "resources")
             program = (root / "electron").rename(root / "source-runtime-smoke")
             process = subprocess.Popen([str(program), "--no-sandbox", "--ozone-platform=headless",
                                         "--disable-gpu", "--disable-dev-shm-usage", "--force-device-scale-factor=1",
@@ -73,6 +99,7 @@ class RuntimeTest(unittest.TestCase):
                        if line.startswith("SOURCE_RUNTIME_BROWSER_SMOKE:")]
             self.assertEqual(len(reports), 1)
             self.assertEqual(reports[0], {"answer": 42, "nodeIntegration": False, "packaged": True, "fromAsar": True,
+                                          "asarAliases": True,
                                           "size": {"width": 64, "height": 64},
                                           "channels": [18, 52, 86], "alpha": 255})
 

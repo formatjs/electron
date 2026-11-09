@@ -2789,3 +2789,10 @@ the final RPATH-adjusted bytes with the existing deterministic integrity tool.
 A relocated fixture checks original NSS module verification, initialization,
 random generation and rejection of modified modules/checksums. BB validation
 and full-runtime launch remain pending.
+
+The queued runtime smoke also reads chained unpacked aliases through sync/async
+`fs`, resolves canonical paths, checks directory aliases and `lstat`, and requires
+the same CommonJS module through each alias. It compares packed alias extraction
+inodes, writes through an unpacked alias descriptor and rejects cycles. These
+checks run in the relocated source Electron browser process before renderer/IPC
+validation; they have not passed BB yet.
