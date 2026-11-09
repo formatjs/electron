@@ -17,8 +17,9 @@ from xml.sax.saxutils import escape
 ARCHIVE = Path(sys.argv[1])
 COUNT = int(sys.argv[2])
 REQUIRED = sys.argv[3:3 + COUNT]
-SMOKE_ASAR = Path(sys.argv[-2])
-FONT = Path(sys.argv[-1])
+SMOKE_ASAR = Path(sys.argv[-3])
+FONT = Path(sys.argv[-2])
+SDK_ADDON = Path(sys.argv[-1])
 del sys.argv[1:]
 
 
@@ -96,6 +97,34 @@ class RuntimeTest(unittest.TestCase):
             shutil.copyfile(SMOKE_ASAR, root / "resources/app.asar")
             write_alias_fixture(root / "resources")
             program = (root / "electron").rename(root / "source-runtime-smoke")
+            shutil.copyfile(SDK_ADDON, root / "sdk.node")
+            sdk_script = root / "sdk-smoke.cjs"
+            sdk_script.write_text('''
+const assert = require('node:assert/strict');
+const { Worker } = require('node:worker_threads');
+const addon = require('./sdk.node');
+assert.equal(addon.moduleAbi, Number(process.versions.modules));
+for (let i = 0; i < 32; ++i) {
+  assert.deepEqual([...new Uint8Array(addon.backingStore())], [18, 52, 86, 120]);
+}
+let report;
+const worker = new Worker(`
+  const { parentPort, workerData } = require('node:worker_threads');
+  const addon = require(workerData);
+  parentPort.postMessage({ abi: addon.moduleAbi, bytes: [...new Uint8Array(addon.backingStore())] });
+`, { eval: true, workerData: require.resolve('./sdk.node'), execArgv: [], env: {} });
+worker.on('message', value => { report = value; });
+worker.on('error', error => { throw error; });
+worker.on('exit', code => {
+  assert.equal(code, 0);
+  assert.deepEqual(report, { abi: 140, bytes: [18, 52, 86, 120] });
+  console.log('SOURCE_SDK_ABI_OK 140');
+});
+''')
+            sdk = run_checked([str(program), str(sdk_script)], cwd=root,
+                              env=dict(environment, ELECTRON_RUN_AS_NODE="1"),
+                              capture_output=True, text=True, timeout=60)
+            self.assertEqual(sdk.stdout.strip(), "SOURCE_SDK_ABI_OK 140")
             process = subprocess.Popen([str(program), "--no-sandbox", "--ozone-platform=headless",
                                         "--disable-gpu", "--disable-dev-shm-usage", "--force-device-scale-factor=1",
                                         "--force-color-profile=srgb", "--disable-background-networking",

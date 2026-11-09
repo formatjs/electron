@@ -1,0 +1,45 @@
+load("@electron_libnode_sources//:profile.bzl", LIBNODE_PROFILE = "PROFILE")
+load("@electron_v8_engine_sources//:profile.bzl", V8_ENGINE_PROFILE = "PROFILE")
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+load("//electron:addon_sdk.bzl", "electron_addon_sdk")
+
+package(default_visibility = ["//visibility:public"])
+
+electron_addon_sdk(
+    name = "node_v8_addon_sdk",
+    defines = [
+        "BUILDING_NODE_EXTENSION",
+        "USING_UV_SHARED=1",
+        "USING_V8_SHARED=1",
+    ] + [
+        define
+        for define in LIBNODE_PROFILE["libraries"]["//third_party/electron_node:libnode"]["defines"]
+        if define.startswith("NODE_EMBEDDER_MODULE_VERSION=")
+    ] + [
+        define
+        for define in V8_ENGINE_PROFILE["libraries"]["//v8:v8_headers"]["defines"]
+        if define.startswith(("V8_", "CPPGC_", "DCHECK_ALWAYS_ON"))
+    ],
+    headers = [
+        "@electron_libnode_sources//:node_headers",
+        "@electron_v8_engine_sources//:source_headers",
+        "@electron_node_sources//:libuv",
+    ],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)
+
+cc_binary(
+    name = "probe.node",
+    srcs = ["probe.cc"],
+    copts = ["-std=c++20"],
+    defines = ["NODE_GYP_MODULE_NAME=source_sdk_probe"],
+    linkshared = True,
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    deps = [":node_v8_addon_sdk"],
+)

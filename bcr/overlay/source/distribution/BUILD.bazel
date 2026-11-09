@@ -152,11 +152,13 @@ py_test(
     ] + sorted(RUNTIME_FILES) + [
         "$(rootpath :runtime-smoke.asar)",
         "$(rootpath " + _SMOKE_FONT + ")",
+        "$(rootpath //sdk:probe.node)",
     ],
     data = [
         ":electron-linux-x64.zip",
         ":runtime-smoke.asar",
         _SMOKE_FONT,
+        "//sdk:probe.node",
     ],
     target_compatible_with = _COMPATIBLE,
 )

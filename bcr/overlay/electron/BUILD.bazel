@@ -1,4 +1,5 @@
 exports_files([
+    "addon_sdk.bzl",
     "archive_urls.bzl",
     "extensions.bzl",
     "source_rules.bzl",
