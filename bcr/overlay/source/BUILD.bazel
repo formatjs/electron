@@ -469,7 +469,7 @@ cc_test(
         "TZ": "UTC",
     },
     linkstatic = True,
-    local_defines = NETWORK_PROFILE["libraries"]["//net:net"]["defines"],
+    local_defines = NETWORK_PROFILE["libraries"]["//net:net"]["defines"] + ["LEVELDB_PLATFORM_CHROMIUM=1"],
     target_compatible_with = [
         "@platforms//os:linux",
         "@platforms//cpu:x86_64",
@@ -480,6 +480,7 @@ cc_test(
         "@electron_network_sources//:net",
         "@electron_network_sources//:sql",
         "@electron_network_sources//:url",
+        "@electron_platform_sources//:leveldatabase",
     ],
 )
 

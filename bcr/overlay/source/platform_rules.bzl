@@ -330,3 +330,5 @@ def electron_platform():
         native.alias(name = "electron_lib", actual = _label("//electron:electron_lib"))
     if "//content:content" in PROFILE["libraries"]:
         native.alias(name = "content", actual = _label("//content:content"))
+    if "//third_party/leveldatabase:leveldatabase" in PROFILE["libraries"]:
+        native.alias(name = "leveldatabase", actual = _label("//third_party/leveldatabase:leveldatabase"))

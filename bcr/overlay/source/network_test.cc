@@ -4,6 +4,7 @@
 #include <cstring>
 #include <dlfcn.h>
 #include <fstream>
+#include <memory>
 #include <string>
 #include <utility>
 
@@ -18,6 +19,7 @@
 #include "base/i18n/icu_util.h"
 #include "base/strings/string_number_conversions.h"
 #include "base/task/single_thread_task_executor.h"
+#include "base/task/thread_pool/thread_pool_instance.h"
 #include "base/threading/thread.h"
 #include "base/time/time_override.h"
 #include "crypto/nss_util.h"
@@ -35,6 +37,8 @@
 #include "lib/freebl/loader.h"
 #include "sql/database.h"
 #include "sql/statement.h"
+#include "third_party/leveldatabase/env_chromium.h"
+#include "third_party/leveldatabase/src/include/leveldb/db.h"
 #include "url/gurl.h"
 
 namespace {
@@ -50,6 +54,35 @@ void Stage(const char* name) {
 
 base::Time TimelyBuildTime() { return base::GetBuildTime() + base::Days(69); }
 base::Time ExpiredBuildTime() { return base::GetBuildTime() + base::Days(70); }
+
+void CheckLeveldb() {
+  base::ScopedTempDir directory;
+  Require(directory.CreateUniqueTempDir(), "LevelDB temporary directory");
+  const auto path = directory.GetPath().Append(
+      base::FilePath::FromUTF8Unsafe("database with spaces \xe4\xb8\x96\xe7\x95\x8c"));
+  Require(path.IsAbsolute(), "LevelDB absolute database path");
+  const auto name = path.AsUTF8Unsafe();
+  leveldb_env::ChromiumEnv environment;
+  leveldb_env::Options options;
+  options.env = &environment;
+  options.create_if_missing = true;
+  std::unique_ptr<leveldb::DB> database;
+  Require(leveldb_env::OpenDB(options, name, &database).ok(), "LevelDB persistent open");
+  const std::string key("key\0bytes", 9);
+  const std::string expected("value\0bytes", 11);
+  leveldb::WriteOptions write;
+  write.sync = true;
+  Require(database->Put(write, key, expected).ok(), "LevelDB persistent write");
+  database.reset();
+  options.create_if_missing = false;
+  Require(leveldb_env::OpenDB(options, name, &database).ok(), "LevelDB persistent reopen");
+  std::string value;
+  Require(database->Get(leveldb::ReadOptions(), key, &value).ok() && value == expected,
+          "LevelDB persisted binary value");
+  database.reset();
+  Require(leveldb::DestroyDB(name, options).ok() && !base::PathExists(path),
+          "LevelDB persistent destroy");
+}
 
 void CheckNetwork() {
   const GURL url("https://b\xc3\xbc" "cher.example:443/a/../b?q=x#f");
@@ -170,11 +203,13 @@ int main(int argc, char** argv) {
   base::CommandLine::Init(argc, argv);
   Require(base::FeatureList::InitInstance("", ""), "default feature initialization");
   base::SingleThreadTaskExecutor executor;
+  base::ThreadPoolInstance::CreateAndStartWithDefaultParams("source-network");
   Stage("icu");
   base::File data(base::MakeAbsoluteFilePath(base::FilePath(argv[1])), base::File::FLAG_OPEN | base::File::FLAG_READ);
   Require(data.IsValid() && base::i18n::InitializeICUWithFileDescriptor(data.TakePlatformFile(), base::MemoryMappedFile::Region::kWholeFile), "declared ICU initialization");
   Stage("modules");
   CheckNetwork();
+  CheckLeveldb();
   Stage("integrity");
   CheckIntegrity(argv[2], argv[3]);
   Stage("platform");
@@ -194,6 +229,7 @@ int main(int argc, char** argv) {
   }
   mojo::core::ShutDown();
   thread.Stop();
+  base::ThreadPoolInstance::Get()->Shutdown();
   base::i18n::ResetGlobalsForTesting();
   Stage("done");
 }
