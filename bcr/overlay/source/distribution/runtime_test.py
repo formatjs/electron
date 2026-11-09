@@ -56,8 +56,16 @@ def write_alias_fixture(resources):
 
 class RuntimeTest(unittest.TestCase):
     def test_relocated_node_browser_ipc_and_rendering(self):
-        with tempfile.TemporaryDirectory(prefix="source Electron relocated 世界 ") as temporary:
+        self.check_relocated("C", "source Electron relocated ")
+
+    def test_unicode_relocated_node_browser_ipc_and_rendering(self):
+        self.check_relocated("C.UTF-8", "source Electron relocated 世界 ")
+
+    def check_relocated(self, locale, prefix):
+        with tempfile.TemporaryDirectory(prefix=prefix) as temporary:
             root = Path(temporary)
+            if locale == "C":
+                self.assertTrue(str(root).isascii(), "C locale fixture requires an ASCII temporary root")
             with zipfile.ZipFile(ARCHIVE) as archive:
                 self.assertTrue(set(REQUIRED) <= set(archive.namelist()))
                 for info in archive.infolist():
@@ -74,7 +82,7 @@ class RuntimeTest(unittest.TestCase):
             configuration = root / "fonts.conf"
             configuration.write_text('<fontconfig><dir>' + escape(str(fonts)) + '</dir><cachedir>' +
                                      escape(str(root / "font-cache")) + '</cachedir></fontconfig>')
-            environment = {"PATH": "", "LANG": "C", "LC_ALL": "C", "TZ": "UTC", "HOME": str(root),
+            environment = {"PATH": "", "LANG": locale, "LC_ALL": locale, "TZ": "UTC", "HOME": str(root),
                            "FONTCONFIG_FILE": str(configuration), "FONTCONFIG_PATH": str(root)}
             node = run_checked([str(root / "electron"), "-e", "console.log(JSON.stringify(process.versions))"],
                                   cwd=root, env=dict(environment, ELECTRON_RUN_AS_NODE="1"),

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+#include <clocale>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -63,9 +64,12 @@ base::Time ExpiredBuildTime() { return base::GetBuildTime() + base::Days(70); }
 void CheckLeveldb() {
   base::ScopedTempDir directory;
   Require(directory.CreateUniqueTempDir(), "LevelDB temporary directory");
-  const auto path = directory.GetPath().Append(
-      base::FilePath::FromUTF8Unsafe("database with spaces \xe4\xb8\x96\xe7\x95\x8c"));
-  Require(path.IsAbsolute(), "LevelDB absolute database path");
+  const std::string component = "database with spaces \xe4\xb8\x96\xe7\x95\x8c";
+  const auto native_component = base::FilePath::FromUTF8Unsafe(component);
+  Require(!native_component.empty() && native_component.AsUTF8Unsafe() == component,
+          "UTF-8 native path roundtrip");
+  const auto path = directory.GetPath().Append(native_component);
+  Require(path.IsAbsolute() && path != directory.GetPath(), "LevelDB absolute database path");
   const auto name = path.AsUTF8Unsafe();
   leveldb_env::ChromiumEnv environment;
   leveldb_env::Options options;
@@ -98,12 +102,12 @@ void CheckLeveldb() {
            base::TaskShutdownBehavior::BLOCK_SHUTDOWN}),
       base::BindOnce(
           [](base::RepeatingClosure quit, storage::DbStatus status) {
-            Require(status.ok(), "DOM storage persistent destroy");
+            Require(status.ok(), "DOM storage destroy status");
             quit.Run();
           },
           loop.QuitClosure()));
   loop.Run();
-  Require(!base::PathExists(path), "DOM storage persistent destroy");
+  Require(!base::PathExists(path), "DOM storage directory removal");
 }
 
 void CheckNetwork() {
@@ -222,6 +226,7 @@ void CheckIntegrity(const char* module_argument, const char* checksum_argument) 
 int main(int argc, char** argv) {
   Require(argc == 4, "declared ICU and NSS integrity arguments");
   base::AtExitManager at_exit;
+  Require(std::setlocale(LC_ALL, "C.UTF-8") != nullptr, "UTF-8 locale initialization");
   base::CommandLine::Init(argc, argv);
   Require(base::FeatureList::InitInstance("", ""), "default feature initialization");
   base::SingleThreadTaskExecutor executor;

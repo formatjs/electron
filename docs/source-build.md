@@ -2833,3 +2833,13 @@ Meson and Ninja action mnemonics. Unknown or inconsistent summaries fail closed.
 The parser follows [Bazel 9.2's summary formatter](https://github.com/bazelbuild/bazel/blob/9.2.0/src/main/java/com/google/devtools/build/lib/query2/aquery/ActionGraphSummaryOutputFormatterCallback.java).
 Network isolation, declared inputs and deterministic bytes keep their separate
 checks. The new gate and its regression tests still need BB validation.
+
+The 8bb70f2 [consumer preflight](https://formatjs.buildbuddy.io/invocation/51f7d301-5434-49a6-af1c-e621c8730a63)
+passed native LevelDB write/reopen/read/direct removal, then failed DOM storage
+cleanup. The fixtures combined a forced `C` locale with Unicode paths.
+Chromium's [Linux path conversions](https://github.com/chromium/chromium/blob/142.0.7444.52/base/files/file_path.cc)
+use the C library locale and return empty paths on encoding errors. The native
+probe now initializes `C.UTF-8` before threads and checks a nonempty path
+roundtrip. Browser smoke keeps both ASCII paths under `C` and Unicode paths
+under `C.UTF-8`. App path assertions run after navigation. This fixture correction
+still needs BB validation; production path handling and assertions stay intact.

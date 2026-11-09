@@ -464,8 +464,8 @@ cc_test(
         "@nss//:libfreeblpriv3.so",
     ],
     env = {
-        "LANG": "C",
-        "LC_ALL": "C",
+        "LANG": "C.UTF-8",
+        "LC_ALL": "C.UTF-8",
         "TZ": "UTC",
     },
     linkstatic = True,

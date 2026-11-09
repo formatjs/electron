@@ -4,10 +4,6 @@ const fs = require('node:fs');
 const originalFs = require('original-fs');
 const path = require('node:path');
 
-for (const name of ['home', 'appData', 'userData', 'sessionData']) {
-  assert(path.isAbsolute(app.getPath(name)), `Expected absolute ${name} path`);
-}
-
 async function checkAsarAliases() {
   const archive = path.join(process.resourcesPath, 'links.asar');
   const canonical = path.join(archive, 'native/answer.cjs');
@@ -68,6 +64,9 @@ app.whenReady().then(async () => {
     },
   });
   await window.loadFile(path.join(__dirname, 'index.html'));
+  for (const name of ['home', 'appData', 'userData', 'sessionData']) {
+    assert(path.isAbsolute(app.getPath(name)), `Expected absolute ${name} path`);
+  }
   const renderer = await window.webContents.executeJavaScript(`(async () => ({
     answer: await window.runtimeProbe.ping(40),
     nodeIntegration: typeof process !== 'undefined' || typeof require !== 'undefined',
