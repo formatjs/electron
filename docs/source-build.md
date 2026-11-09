@@ -2684,3 +2684,10 @@ including Crashpad, GTK, message-center, spellchecker and printing. Its
 then aborted because Mojo was not initialized. The test now links the existing
 Mojo embedder and initializes it before serialization. Runtime validation remains
 pending; complete Electron remains unverified.
+
+The `416f428` components workflow passed the original-library
+[compile probe](https://formatjs.buildbuddy.io/invocation/9608d7c3-de5a-4f31-852a-2fb64453c615),
+[printing wire test](https://formatjs.buildbuddy.io/invocation/d4c98c88-88ec-4bfc-b71d-ee2794de4366)
+and [graphics tests](https://formatjs.buildbuddy.io/invocation/0c982c98-9671-4fd3-a141-5918f3318e0d).
+The wire test exercised successful round trips in both insertion orders and
+the expected duplicate-paper rejection. Broad source builds remain unverified.
