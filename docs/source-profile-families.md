@@ -72,3 +72,9 @@ aggregate dependencies remain in each profile. Staging binds them explicitly to
 the pinned upstream native Bazel targets under that role's compiler platform;
 missing or cross-role identities fail. Protobuf safety defines and builtins stay
 checked. BB compiles all three profiles after their action audits.
+
+Perfetto validation binds each role's zlib profile and the ordinary x64 Protobuf
+compiler profile together. Host libraries stay out of the target archive group;
+generator dependencies build in execution configuration. Action queries receive
+all repository overrides used by the native build. The workflow compiles the
+complete Perfetto closure for target, execution and snapshot roles.

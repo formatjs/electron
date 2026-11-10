@@ -101,6 +101,7 @@ py_library(
     visibility = ["//tests:__pkg__"],
     deps = [
         ":metadata_capture",
+        ":perfetto_capture",
         ":protobuf_capture",
         ":v8_support_capture",
     ],

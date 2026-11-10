@@ -8,6 +8,7 @@ import unittest
 
 from capture_v8_support import ROOTS
 from capture_protobuf import ROOTS as PROTOBUF_ROOTS
+from capture_perfetto import ROOTS as PERFETTO_ROOTS
 from stage_support_profile import stage
 
 
@@ -72,6 +73,38 @@ class SupportProfileStageTest(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, 'Abseil owner crosses compiler role'):
                     stage(profile, graph, {'protobuf': source}, build, rejected, 'protobuf')
                 self.assertFalse(rejected.exists())
+
+    def test_perfetto_keeps_runtime_and_generator_owners_separate(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = root / 'source'
+            source.mkdir()
+            (source / 'public.h').write_text('pinned Perfetto header')
+            graph, build, profile = [root / name for name in ('graph.gz', 'BUILD.bazel', 'profile.json')]
+            graph.write_bytes(b'captured graph')
+            build.write_text('electron_perfetto()\n')
+            host = '//build/toolchain/linux:clang_x64'
+            for role, chain in [('target', 'clang_arm64'), ('execution', 'clang_x64'), ('snapshot', 'clang_x64_v8_arm64')]:
+                suffix = '' if role == 'target' else '(//build/toolchain/linux:' + chain + ')'
+                external = {'//third_party/protobuf:protoc(' + host + ')': None,
+                            '//third_party/protobuf:protoc_lib(' + host + ')': None,
+                            '//third_party/zlib:zlib' + suffix: None}
+                record = {'target_arch': 'arm64', 'role': role, 'roots': PERFETTO_ROOTS,
+                          'graph_sha256': hashlib.sha256(graph.read_bytes()).hexdigest(),
+                          'files': ['third_party/perfetto/public.h'], 'external': external, 'actions': {},
+                          'libraries': {'runtime': {'architecture': 'arm64' if role == 'target' else 'x64', 'toolchain': '//build/toolchain/linux:' + chain},
+                                        'plugin': {'architecture': 'x64', 'toolchain': host}}}
+                profile.write_text(json.dumps(record))
+                output = root / role
+                self.assertEqual(stage(profile, graph, {'perfetto': source}, build, output, 'perfetto'), (role, 1))
+                bindings = (output / 'BUILD.bazel').read_text()
+                self.assertIn("'@electron_protobuf_sources//:protoc'", bindings)
+                self.assertIn("'@electron_protobuf_sources//:protoc_lib'", bindings)
+                self.assertIn("'@electron_v8_support_sources//:zlib'", bindings)
+                record['libraries']['plugin']['architecture'] = 'arm64'
+                profile.write_text(json.dumps(record))
+                with self.assertRaisesRegex(ValueError, 'Perfetto compiler role changed'):
+                    stage(profile, graph, {'perfetto': source}, build, root / ('rejected-' + role), 'perfetto')
 
 
 if __name__ == '__main__':

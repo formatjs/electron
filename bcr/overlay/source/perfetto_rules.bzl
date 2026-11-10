@@ -88,4 +88,4 @@ def electron_perfetto(profile = PROFILE, external = None):
                 settings["defines"] = [item for item in library["defines"] if item.startswith("JSON_")]
             cc_library(**settings)
     native.alias(name = "perfetto", actual = _label(profile["root"], profile, owners))
-    native.filegroup(name = "libraries", srcs = [_label(label, profile, owners) for label, library in profile["libraries"].items() if library["srcs"] and library["kind"] != "executable"])
+    native.filegroup(name = "libraries", srcs = [_label(label, profile, owners) for label, library in profile["libraries"].items() if library["srcs"] and library["kind"] != "executable" and library.get("toolchain") == profile["libraries"][profile["root"]].get("toolchain")])

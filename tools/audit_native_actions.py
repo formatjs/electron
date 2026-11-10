@@ -7,7 +7,7 @@ import sys
 
 
 FORBIDDEN = r"(?i)^(.*(foreign.?cc|cmake|meson|ninja).*|g?make|runmake|gn|rungn)$"
-TARGETS = ("@electron//:source_components", "@electron//source:cross_probes", "//:pkg_config", "@electron_v8_support_sources//:libraries", "@electron_protobuf_sources//:libraries")
+TARGETS = ("@electron//:source_components", "@electron//source:cross_probes", "//:pkg_config", "@electron_v8_support_sources//:libraries", "@electron_protobuf_sources//:libraries", "@electron_perfetto_native_sources//:libraries")
 
 
 class AuditFailure(ValueError):
@@ -51,10 +51,10 @@ def main():
     parser.add_argument("--downloader-config", required=True)
     parser.add_argument("--distdir", required=True)
     parser.add_argument("--target", choices=TARGETS, default=TARGETS[0])
-    parser.add_argument("--support-override")
+    parser.add_argument("--support-override", action="append")
     parser.add_argument("--support-platform", choices=("linux_amd64", "linux_arm64"))
     args = parser.parse_args()
-    support = args.target in ("@electron_v8_support_sources//:libraries", "@electron_protobuf_sources//:libraries")
+    support = args.target in ("@electron_v8_support_sources//:libraries", "@electron_protobuf_sources//:libraries", "@electron_perfetto_native_sources//:libraries")
     if (support and not (args.support_override and args.support_platform)
             or not support and (args.support_override or args.support_platform)):
         parser.error("Support audit requires repository and platform together")
@@ -67,8 +67,8 @@ def main():
     if not metadata:
         command += ["--registry=" + args.registry, "--registry=https://bcr.bazel.build"]
     if support:
-        command += ["--override_repository=" + args.support_override,
-                    "--platforms=@electron//source/platforms:" + args.support_platform]
+        command += ["--override_repository=" + value for value in args.support_override]
+        command += ["--platforms=@electron//source/platforms:" + args.support_platform]
     if cross:
         command += ["--repo_env=BAZEL_MSVC_RUNTIME_VISUAL_STUDIO_EULA=1",
                     "--repo_env=BAZEL_WINDOWS_SDK_EULA=1"]

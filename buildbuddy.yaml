@@ -177,7 +177,7 @@ actions:
             @electron//source:embedder_javascript @electron//source:dependency_patches \
             @electron_node_sources//:electron_patches.json \
             @electron_cast_core_sources//:proto/proto.gni @electron_glslang_sources//:BUILD.gn \
-            @electron_protobuf_sources//:profile.bzl @electron_platform_sources//:profile.bzl @electron_v8_support_sources//:profile.bzl \
+            @electron_perfetto_native_sources//:profile.bzl @electron_protobuf_sources//:profile.bzl @electron_platform_sources//:profile.bzl @electron_v8_support_sources//:profile.bzl \
             @electron_fonts_sources//:profile.bzl @electron_codecs_sources//:profile.bzl \
             @electron_skia_sources//:profile.bzl @electron_network_sources//:profile.bzl \
             @electron_gfx_sources//:profile.bzl @electron_events_sources//:profile.bzl \
@@ -231,9 +231,12 @@ actions:
             --capture-inputs="$metadata_inputs" --llvm-root="$llvm_root" --pkg-config="$pkg_config" \
             --target-arch=arm64 --output="$BUILDBUDDY_ARTIFACTS_DIRECTORY"
 
-          for module in v8-support protobuf; do
+          declare -A profile_repositories=()
+          declare -A profile_repository_names=()
+          for module in v8-support protobuf perfetto; do
             support_name=electron_v8_support_sources
             if [[ "$module" == protobuf ]]; then support_name=electron_protobuf_sources; fi
+            if [[ "$module" == perfetto ]]; then support_name=electron_perfetto_native_sources; fi
             support_repository_name="$(python3 - "$source_root" "$source_repositories" "$support_name" <<'PYCODE'
           from pathlib import Path
           import sys
@@ -242,6 +245,7 @@ actions:
           print(repository(Path(sys.argv[2]), sys.argv[3]).name)
           PYCODE
             )"
+            profile_repository_names["$module"]="$support_repository_name"
             for role in target execution snapshot; do
               support_parent="$(mktemp -d /tmp/electron-support-profile.XXXXXX)"
               support_repository="$support_parent/repository"
@@ -250,17 +254,28 @@ actions:
                 --profile="$BUILDBUDDY_ARTIFACTS_DIRECTORY/linux-arm64-$module-$role.json" \
                 --graph="$BUILDBUDDY_ARTIFACTS_DIRECTORY/linux-arm64-graph.json.gz" \
                 --output="$support_repository"
+              profile_repositories["$module:$role"]="$support_repository"
               support_platform=linux_amd64
               if [[ "$role" == target ]]; then support_platform=linux_arm64; fi
-              support_override="$support_repository_name=$support_repository"
+              support_overrides=("$support_repository_name=$support_repository")
+              if [[ "$module" == perfetto ]]; then
+                support_overrides+=("${profile_repository_names[protobuf]}=${profile_repositories[protobuf:execution]}")
+                support_overrides+=("${profile_repository_names[v8-support]}=${profile_repositories[v8-support:$role]}")
+              fi
+              audit_overrides=()
+              build_overrides=()
+              for override in "${support_overrides[@]}"; do
+                audit_overrides+=("--support-override=$override")
+                build_overrides+=("--override_repository=$override")
+              done
               python3 tools/audit_native_actions.py --registry="file://$registry" \
                 --downloader-config="$source_downloader" --distdir="$source_distdir" \
                 --target="@$support_name//:libraries" \
-                --support-override="$support_override" --support-platform="$support_platform"
+                "${audit_overrides[@]}" --support-platform="$support_platform"
               bazel --host_jvm_args=-Xmx12g build --config=buildbuddy \
                 --downloader_config="$source_downloader" --distdir="$source_distdir" \
                 --registry="file://$registry" --registry=https://bcr.bazel.build \
-                --override_repository="$support_override" \
+                "${build_overrides[@]}" \
                 --platforms="@electron//source/platforms:$support_platform" \
                 "@$support_name//:libraries"
               echo "SUPPORT_PROFILE_COMPILED module=$module role=$role"

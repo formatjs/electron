@@ -11,6 +11,7 @@ from capture_target import LinuxGraph, builtins_archive
 
 
 PREFIX = "//third_party/perfetto"
+ROOTS = {"perfetto": "third_party/perfetto", "jsoncpp": "third_party/jsoncpp/source"}
 BUILD = "//out/bazel-import/"
 ROOT = PREFIX + ":libperfetto"
 JSONCPP = "//third_party/jsoncpp:jsoncpp"
@@ -154,7 +155,7 @@ def capture(graph, chromium, perfetto, jsoncpp, target_arch="x64", role="target"
     for path in files:
         if not physical(path).is_file():
             raise ValueError("Missing original Perfetto input: " + path)
-    return {"target_arch": target_arch, "role": role, "root": root, "names": names, "libraries": libraries, "actions": actions, "producers": producers, "files": sorted(files), "headers": sorted(headers), "external": {label: external[label] for label in sorted({dep for label in seen for dep in targets[label].get("deps", []) if dep in external})}, "external_executables": [protoc], "toolchain_deps": sorted(toolchain)}
+    return {"roots": ROOTS, "target_arch": target_arch, "role": role, "root": root, "names": names, "libraries": libraries, "actions": actions, "producers": producers, "files": sorted(files), "headers": sorted(headers), "external": {label: external[label] for label in sorted({dep for label in seen for dep in targets[label].get("deps", []) if dep in external})}, "external_executables": [protoc], "toolchain_deps": sorted(toolchain)}
 
 
 def main():
