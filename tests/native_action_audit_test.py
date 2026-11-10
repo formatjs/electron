@@ -29,7 +29,7 @@ class NativeActionAuditTest(unittest.TestCase):
                 action_count(text)
 
     def test_wrapper_filter_preserves_native_generators(self):
-        for mnemonic in ("ForeignCc", "ForeignCcMake", "CMake", "Cmake", "Meson", "Ninja", "Make"):
+        for mnemonic in ("ForeignCc", "ForeignCcMake", "CMake", "Cmake", "Meson", "Ninja", "Make", "GMake", "RunMake", "GN", "RunGN"):
             with self.subTest(mnemonic=mnemonic):
                 self.assertIsNotNone(re.search(FORBIDDEN, mnemonic))
         for mnemonic in ("CppCompile", "CppLink", "ElectronPython", "ElectronNodeConfig", "MakeSymlinks"):

@@ -159,7 +159,8 @@ actions:
             --target-registry "$registry" --module electron --version 39.0.0
           bazel --host_jvm_args=-Xmx12g test --config=buildbuddy --strategy=TestRunner=remote \
             --downloader_config="$source_downloader" --distdir="$source_distdir" \
-            --registry="file://$registry" --registry=https://bcr.bazel.build //tests:metadata_capture_test //tests:prepare_source_test
+            --registry="file://$registry" --registry=https://bcr.bazel.build \
+            //tests:metadata_capture_test //tests:prepare_source_test //tests:native_action_audit_test
           source_labels_file="$(mktemp /tmp/electron-capture-labels.XXXXXX)"
           python3 - "$source_root" > "$source_labels_file" <<'PY'
           from pathlib import Path
@@ -199,6 +200,8 @@ actions:
           cd tools/metadata_capture
           bazel build --config=buildbuddy --downloader_config="$source_downloader" --distdir="$source_distdir" \
             //:inputs //:pkg_config
+          python3 "$source_root/tools/audit_native_actions.py" --target=//:pkg_config \
+            --registry=https://bcr.bazel.build --downloader-config="$source_downloader" --distdir="$source_distdir"
           metadata_input_file="$(bazel cquery --config=buildbuddy --output=files //:inputs)"
           metadata_execution_root="$(bazel info execution_root)"
           metadata_inputs="$(python3 - "$source_root" "$metadata_execution_root" "$metadata_input_file" <<'PY'
