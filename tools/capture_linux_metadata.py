@@ -43,6 +43,12 @@ _EXTRA_ROOTS = {
 }
 
 
+class MissingRepository(ValueError):
+    def __init__(self, name):
+        super().__init__('Expected one pinned source repository')
+        self.repository = name
+
+
 def digest(path):
     with path.open('rb') as source:
         return hashlib.file_digest(source, 'sha256').hexdigest()
@@ -51,7 +57,7 @@ def digest(path):
 def repository(root, name):
     matches = [path for path in root.iterdir() if path.name == name + '+' or path.name.endswith('+' + name)]
     if len(matches) != 1 or not matches[0].is_dir():
-        raise ValueError('Expected one pinned source repository')
+        raise MissingRepository(name)
     return matches[0].resolve()
 
 
@@ -84,17 +90,21 @@ def rust_sysroot(inputs, destination):
 
 
 def capture(args):
+    print('GN_METADATA_PHASE inputs', flush=True)
     inputs, overlay, output = args.capture_inputs, args.overlay_root, args.output
     pins = json.loads((inputs / 'capture_inputs.json').read_text())
     gn = inputs / 'gn/gn'
     if digest(gn) != pins['gn_binary_sha256']:
         raise ValueError('Pinned GN executable changed')
-    if not (args.llvm_root / 'lib/clang/23/include/stddef.h').is_file() or not args.pkg_config.is_file():
-        raise ValueError('Missing declared compiler or package tool')
+    if not (args.llvm_root / 'lib/clang/23/include/stddef.h').is_file():
+        raise ValueError('Missing declared LLVM resource headers')
+    if not args.pkg_config.is_file():
+        raise ValueError('Missing declared package tool')
     output.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='electron-gn-capture-') as temporary:
         temporary = Path(temporary)
         source = temporary / 'src'
+        print('GN_METADATA_PHASE repositories', flush=True)
         packages = json.loads((overlay / 'bcr/overlay/source/upstream_pins.json').read_text())
         dependencies = {}
         for package in packages:
@@ -116,10 +126,12 @@ def capture(args):
         for architecture, suffix in [('amd64', 'x64'), ('arm64', 'arm64')]:
             dependencies['build/linux/debian_bullseye_' + architecture + '-sysroot'] = inputs / ('sysroot_' + suffix)
         fingerprints = overlay / 'bcr/overlay/source/patch_fingerprints.json'
+        print('GN_METADATA_PHASE prepare', flush=True)
         prepare(repository(args.repositories, 'electron_chromium_sources'), repository(args.repositories, 'electron'),
                 repository(args.repositories, 'electron_node_sources'), repository(args.repositories, 'electron_v8_sources'),
                 None, source, dependencies=sorted(dependencies.items(), key=lambda item: (len(Path(item[0]).parts), item[0])),
                 fingerprints=json.loads(fingerprints.read_text()))
+        print('GN_METADATA_PHASE rust-sysroot', flush=True)
         rust = rust_sysroot(inputs, temporary / 'rust')
         tools = temporary / 'bin'
         tools.mkdir()
@@ -142,6 +154,7 @@ def capture(args):
                 raise ValueError('Metadata command failed')
             return result.stdout
 
+        print('GN_METADATA_PHASE rust-version', flush=True)
         if run([rust / 'bin/rustc', '-V'], 'rust-version').strip() != pins['rustc_version']:
             raise ValueError('Pinned Rust compiler version changed')
         build = source / 'out/bazel-import'
@@ -157,12 +170,15 @@ def capture(args):
         ]) + '\n'
         (build / 'args.gn').write_text(configuration)
         options = ['--root=' + str(source), '--root-target=//electron:electron', '--script-executable=' + sys.executable]
+        print('GN_METADATA_PHASE gn-gen', flush=True)
         run([gn, 'gen', build, *options, '--ide=json', '--json-file-name=project.json'], 'gn-gen')
+        print('GN_METADATA_PHASE gn-desc', flush=True)
         raw = run([gn, 'desc', build, '//electron:electron_app', 'runtime_deps', '--format=json', *options], 'gn-desc')
         runtime = temporary / 'runtime.json'
         runtime_data = json.loads(raw[raw.index('{'):])
         runtime.write_text(json.dumps(runtime_data))
         graph = output / ('linux-' + args.target_arch + '-graph.json.gz')
+        print('GN_METADATA_PHASE serialize', flush=True)
         run([sys.executable, Path(__file__).with_name('capture_source.py'), '--chromium-tools', inputs / 'chromium_tools/tools',
              '--source-root', source, '--llvm-root', args.llvm_root, '--rust-root', rust, '--gn', gn,
              '--runtime-deps', runtime, '--patch-fingerprints', fingerprints, '--output', graph,
@@ -186,8 +202,26 @@ def main():
     parser.add_argument('--target-arch', choices=('x64', 'arm64'), default='arm64')
     try:
         capture(parser.parse_args())
-    except Exception:
-        print('GN_METADATA_CAPTURE_FAILED', file=sys.stderr)
+    except MissingRepository as error:
+        report = {'reason': 'SOURCE_REPOSITORY'}
+        if re.fullmatch(r'electron(?:_[a-z0-9_]+)?', error.repository):
+            report['repository'] = error.repository
+        print('GN_METADATA_CAPTURE_FAILED ' + json.dumps(report, sort_keys=True), file=sys.stderr)
+        return 1
+    except Exception as error:
+        reasons = {
+            'Pinned GN executable changed': 'GN_DIGEST',
+            'Missing declared LLVM resource headers': 'LLVM_HEADERS',
+            'Missing declared package tool': 'PACKAGE_TOOL',
+            'Missing pinned Rust component': 'RUST_COMPONENT',
+            'Rust component link escapes declared files': 'RUST_LINK',
+            'Rust components disagree on shared file': 'RUST_COLLISION',
+            'Pinned Rust compiler version changed': 'RUST_VERSION',
+            'Metadata command failed': 'COMMAND',
+        }
+        reason = reasons.get(str(error), {'FileNotFoundError': 'FILE_MISSING', 'TimeoutExpired': 'TIMEOUT',
+                                          'JSONDecodeError': 'INVALID_JSON'}.get(type(error).__name__, 'INTERNAL'))
+        print('GN_METADATA_CAPTURE_FAILED ' + json.dumps({'reason': reason}), file=sys.stderr)
         return 1
     return 0
 

@@ -167,6 +167,8 @@ actions:
             @electron_platform_sources//:profile.bzl @electron_v8_support_sources//:profile.bzl \
             @electron_fonts_sources//:profile.bzl @electron_codecs_sources//:profile.bzl \
             @electron_skia_sources//:profile.bzl @electron_network_sources//:profile.bzl \
+            @electron_gfx_sources//:profile.bzl @electron_events_sources//:profile.bzl \
+            @electron_v8_engine_sources//:profile.bzl \
             @electron_embedder_sources//:profile.bzl @electron_libnode_sources//:profile.bzl \
             @electron_rust_sources//:profile.bzl @electron_icu_sources//:source_provenance.json \
             @electron_chromium_node_tool//:node-linux-x64/bin/node \
