@@ -28,3 +28,9 @@ py_test(
     srcs = ["gn_dependencies_test.py"],
     deps = ["//tools:gn_dependencies"],
 )
+
+py_test(
+    name = "platform_runtime_capture_test",
+    srcs = ["platform_runtime_capture_test.py"],
+    deps = ["//tools:platform_runtime_capture"],
+)

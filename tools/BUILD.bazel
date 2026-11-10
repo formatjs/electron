@@ -17,3 +17,9 @@ py_library(
     srcs = ["capture_gn_edges.py"],
     visibility = ["//visibility:public"],
 )
+
+py_library(
+    name = "platform_runtime_capture",
+    srcs = ["pin_platform_runtime.py"],
+    visibility = ["//tests:__pkg__"],
+)

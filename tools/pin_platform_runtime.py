@@ -50,9 +50,16 @@ def main():
     for name in ("sdk", "manifest", "cache", "output"):
         parser.add_argument("--" + name, type=Path, required=True)
     parser.add_argument("--root", action="append", required=True)
+    parser.add_argument("--architecture", choices=("amd64", "arm64"), default="amd64",
+                        help="Debian SDK target architecture; the manifest must match")
     args = parser.parse_args()
     sdk = args.sdk.resolve()
     manifest = json.loads(args.manifest.read_text())
+    # Unmarked captures are existing AMD64 inventories.
+    if manifest.get("architecture", "amd64") != args.architecture:
+        raise ValueError("Runtime manifest architecture differs from requested SDK")
+    manifest["architecture"] = args.architecture
+    triple = {"amd64": "x86_64-linux-gnu", "arm64": "aarch64-linux-gnu"}[args.architecture]
     args.cache.mkdir(parents=True, exist_ok=True)
     owners = {}
     for path in (sdk / "debian").glob("*/DEBIAN/md5sums"):
@@ -68,7 +75,7 @@ def main():
             continue
         if not re.fullmatch(r"[A-Za-z0-9_.+-]+", soname):
             raise ValueError("Invalid library SONAME")
-        interface = next((sdk / directory / soname for directory in ("usr/lib/x86_64-linux-gnu", "lib/x86_64-linux-gnu")
+        interface = next((sdk / directory / soname for directory in ("usr/lib/" + triple, "lib/" + triple)
                           if (sdk / directory / soname).exists()), None)
         if interface is None:
             raise ValueError("SDK library unavailable: " + soname)
@@ -82,8 +89,8 @@ def main():
         relative = interface.resolve().relative_to(sdk).as_posix()
         package, expected_md5 = owners[relative]
         name, version, architecture = (package[key] for key in ("Package", "Version", "Architecture"))
-        if architecture != "amd64":
-            raise ValueError("Expected captured AMD64 SDK package")
+        if architecture != args.architecture:
+            raise ValueError("SDK package architecture differs from requested target")
         if name not in packages:
             source = package.get("Source", name).split(" ", 1)[0]
             filename = name + "_" + version.split(":", 1)[-1] + "_" + architecture + ".deb"
