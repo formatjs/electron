@@ -49,3 +49,9 @@ py_test(
     srcs = ["metadata_capture_test.py"],
     deps = ["//tools:metadata_capture"],
 )
+
+py_test(
+    name = "perfetto_capture_test",
+    srcs = ["perfetto_capture_test.py"],
+    deps = ["//tools:perfetto_capture"],
+)

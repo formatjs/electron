@@ -7,6 +7,8 @@ import hashlib
 import json
 from pathlib import Path
 
+from capture_target import LinuxGraph, builtins_archive
+
 
 PREFIX = "//third_party/perfetto"
 BUILD = "//out/bazel-import/"
@@ -28,16 +30,22 @@ SCRIPTS = {
 }
 
 
-def capture(graph, chromium, perfetto, jsoncpp):
+def capture(graph, chromium, perfetto, jsoncpp, target_arch="x64", role="target"):
+    scope = LinuxGraph(graph, target_arch)
+    root = scope.resolve(ROOT, role)
+    protoc = scope.resolve("//third_party/protobuf:protoc", "execution")
+    external = {label: (EXTERNAL[label] if target_arch == "x64" and role == "target" and label in EXTERNAL else None)
+                for label in graph["targets"] if label.split("(")[0] in EXTERNAL}
+    toolchain = {label for label in graph["targets"] if label.split("(")[0] in TOOLCHAIN}
     deps = (chromium / "DEPS").read_text()
     if "42e892d96e47b1f6e29844cc705e148ec4856448" not in deps:
         raise ValueError("JsonCpp DEPS pin changed")
-    targets, seen, pending = graph["targets"], set(), [ROOT]
+    targets, seen, pending = graph["targets"], set(), [root]
     while pending:
         label = pending.pop()
-        if label in seen or label in EXTERNAL or label in TOOLCHAIN:
+        if label in seen or label in external or label in toolchain:
             continue
-        if not label.startswith(PREFIX) and label != JSONCPP:
+        if not label.startswith(PREFIX) and label.split("(")[0] != JSONCPP:
             raise ValueError("Untranslated Perfetto dependency: " + label)
         seen.add(label)
         pending.extend(targets[label].get("deps", []))
@@ -62,7 +70,10 @@ def capture(graph, chromium, perfetto, jsoncpp):
         files.update(prefix + path.name for path in directory.iterdir() if path.is_file() and path.name.startswith(("LICENSE", "COPYING", "NOTICE")))
     python = sorted("third_party/perfetto/" + path.relative_to(perfetto).as_posix() for directory in ("python/generators/trace_processor_table", "src/trace_processor/tables") for path in (perfetto / directory).rglob("*.py"))
     tools = {BUILD + targets[label]["outputs"][0].removeprefix(BUILD): label for label in seen if targets[label]["type"] == "executable"}
-    tools[BUILD + "protoc"] = "//third_party/protobuf:protoc"
+    for output in targets[protoc]["outputs"]:
+        if not output.startswith(BUILD):
+            raise ValueError("Unexpected protoc output")
+        tools[output] = protoc
     producers = {}
     for label in sorted(seen):
         target = targets[label]
@@ -75,10 +86,12 @@ def capture(graph, chromium, perfetto, jsoncpp):
                 producers[output] = label
     for label in sorted(seen):
         target = targets[label]
-        if target["toolchain"] != "//build/toolchain/linux:clang_x64":
-            raise ValueError("Expected captured Linux AMD64 Perfetto profile")
+        architecture = scope.architecture(label)
+        if target["type"] == "executable" and architecture != "x64":
+            raise ValueError("Perfetto generators must execute on Linux x64")
         kind = target["type"]
-        record = {"name": names[label], "kind": kind, "gn_deps": target.get("deps", [])}
+        record = {"name": names[label], "kind": kind, "gn_deps": target.get("deps", []),
+                  "architecture": architecture, "toolchain": target["toolchain"]}
         if kind == "action":
             inputs = set(target.get("inputs", []) + target.get("sources", []) + [target["script"]])
             if target["script"].endswith("/gen_tp_table_headers.py"):
@@ -100,6 +113,8 @@ def capture(graph, chromium, perfetto, jsoncpp):
             record.update(script=target["script"][2:], args=target.get("args", []), response=target.get("response_file_contents", []), inputs=source_inputs, tools=tool_inputs, outputs=target["outputs"])
             if any("{{" in arg and arg != "{{response_file_name}}" for arg in record["args"]):
                 raise ValueError("Unknown GN generator placeholder")
+            record["generated_include_roots"] = sorted({path.removeprefix(BUILD).split("gen/")[0] + "gen"
+                                                         for path in target["outputs"] if "gen/" in path.removeprefix(BUILD)})
             actions[label] = record
         elif kind in ("source_set", "static_library", "executable", "group"):
             sources = target.get("sources", [])
@@ -130,7 +145,7 @@ def capture(graph, chromium, perfetto, jsoncpp):
                     includes.append(path[2:].rstrip("/") or ".")
                 else:
                     raise ValueError("Unexpected Perfetto include root")
-            if any(lib not in ("dl", "pthread", "rt", "$LLVM_ROOT/lib/clang/23/lib/x86_64-unknown-linux-gnu/libclang_rt.builtins.a") for lib in value(target, "libs")):
+            if any(lib not in ("dl", "pthread", "rt", builtins_archive(architecture)) for lib in value(target, "libs")):
                 raise ValueError("Untranslated Perfetto link library")
             record.update(srcs=units, generated_headers=[path for path in sources if path.startswith(BUILD) and path.endswith(".h")], copts=flags, defines=[item.replace('"', '\\"') for item in value(target, "defines")], includes=includes, gn_include_dirs=value(target, "include_dirs"), gn_ldflags=value(target, "ldflags"), libs=value(target, "libs"), omitted_toolchain_and_diagnostic_flags=omitted)
             libraries[label] = record
@@ -139,7 +154,7 @@ def capture(graph, chromium, perfetto, jsoncpp):
     for path in files:
         if not physical(path).is_file():
             raise ValueError("Missing original Perfetto input: " + path)
-    return {"root": ROOT, "names": names, "libraries": libraries, "actions": actions, "producers": producers, "files": sorted(files), "headers": sorted(headers), "external": EXTERNAL, "toolchain_deps": sorted(TOOLCHAIN)}
+    return {"target_arch": target_arch, "role": role, "root": root, "names": names, "libraries": libraries, "actions": actions, "producers": producers, "files": sorted(files), "headers": sorted(headers), "external": {label: external[label] for label in sorted({dep for label in seen for dep in targets[label].get("deps", []) if dep in external})}, "external_executables": [protoc], "toolchain_deps": sorted(toolchain)}
 
 
 def main():
@@ -149,9 +164,11 @@ def main():
     parser.add_argument("--perfetto-root", type=Path, required=True)
     parser.add_argument("--jsoncpp-root", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--target-arch", choices=("x64", "arm64"), default="x64")
+    parser.add_argument("--role", choices=("target", "execution", "snapshot"), default="target")
     args = parser.parse_args()
     content = args.graph.read_bytes()
-    result = capture(json.loads(gzip.decompress(content)), args.chromium_root, args.perfetto_root, args.jsoncpp_root)
+    result = capture(json.loads(gzip.decompress(content)), args.chromium_root, args.perfetto_root, args.jsoncpp_root, args.target_arch, args.role)
     result["graph_sha256"] = hashlib.sha256(content).hexdigest()
     args.output.write_text(json.dumps(result, indent=2) + "\n")
 

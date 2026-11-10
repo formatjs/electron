@@ -62,6 +62,7 @@ py_binary(
     name = "capture_linux_metadata",
     srcs = [
         "capture_linux_metadata.py",
+        "capture_perfetto.py",
         "capture_source.py",
         "capture_target.py",
         "prepare_source.py",
@@ -69,4 +70,14 @@ py_binary(
     imports = ["."],
     main = "capture_linux_metadata.py",
     tags = ["manual"],
+)
+
+py_library(
+    name = "perfetto_capture",
+    srcs = [
+        "capture_perfetto.py",
+        "capture_target.py",
+    ],
+    imports = ["."],
+    visibility = ["//tests:__pkg__"],
 )

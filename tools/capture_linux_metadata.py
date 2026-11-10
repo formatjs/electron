@@ -2,6 +2,7 @@
 
 import argparse
 import hashlib
+import gzip
 import json
 import os
 from pathlib import Path
@@ -219,6 +220,16 @@ def capture(args):
              '--source-root', source, '--llvm-root', args.llvm_root, '--rust-root', rust, '--gn', gn,
              '--runtime-deps', runtime, '--patch-fingerprints', fingerprints, '--output', graph,
              '--target-arch', args.target_arch, '--pkg-config', args.pkg_config], 'serialize')
+        print('GN_METADATA_PHASE perfetto', flush=True)
+        from capture_perfetto import capture as capture_perfetto
+        graph_data = json.loads(gzip.decompress(graph.read_bytes()))
+        for role in ('target', 'execution', 'snapshot'):
+            profile = capture_perfetto(graph_data, source, source / 'third_party/perfetto',
+                                       source / 'third_party/jsoncpp/source', args.target_arch, role)
+            profile['graph_sha256'] = digest(graph)
+            (output / ('linux-' + args.target_arch + '-perfetto-' + role + '.json')).write_text(json.dumps(profile, indent=2) + '\n')
+            print('GN_METADATA_PERFETTO ' + json.dumps({'role': role, 'libraries': len(profile['libraries']),
+                                                       'actions': len(profile['actions']), 'externals': len(profile['external'])}, sort_keys=True), flush=True)
         report = {'pins': pins, 'llvm_clang_sha256': digest(args.llvm_root / 'bin/clang'),
                   'pkgconf_sha256': digest(args.pkg_config), 'python_version': platform.python_version(),
                   'capture_script_sha256': digest(Path(__file__))}
