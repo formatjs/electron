@@ -1,13 +1,36 @@
 """Pinned Rust component composition and exact source repository discovery."""
 
 from pathlib import Path
+import json
 import tempfile
 import unittest
 
-from capture_linux_metadata import repository, rust_sysroot, resolve_output
+from capture_linux_metadata import repository, rust_sysroot, resolve_output, source_roots, source_labels
 
 
 class MetadataCaptureTest(unittest.TestCase):
+    def test_every_prepared_repository_has_a_materialization_label_and_patches_win(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            metadata = root / 'bcr/overlay/source'
+            (metadata / 'native').mkdir(parents=True)
+            (metadata / 'upstream_pins.json').write_text(json.dumps([
+                {'group': 'chromium', 'repo': 'src'}, {'group': 'v8', 'repo': 'src/v8'},
+                {'group': 'perfetto', 'repo': 'src/third_party/perfetto'},
+            ]))
+            (metadata / 'native/platform_inputs.json').write_text(json.dumps({'source_revisions': {
+                'third_party/perfetto': {'patch_group': 'perfetto'}, 'third_party/custom-src/inner': {},
+            }}))
+            roots = source_roots(root)
+            labels = set(source_labels(roots))
+            self.assertEqual(roots['third_party/perfetto'], ('electron_perfetto_sources', 'source_anchor', ''))
+            self.assertEqual(roots['third_party/custom-src/inner'], ('electron_platform_custom_src_inner', 'BUILD.bazel', ''))
+            self.assertIn('@electron_jsoncpp_upstream//:BUILD.bazel', labels)
+            self.assertIn('@electron_perfetto_sources//:source_anchor', labels)
+            self.assertEqual(roots['third_party/node/node_modules'][2], 'node_modules')
+            for name, anchor, _ in roots.values():
+                self.assertIn('@' + name + '//:' + anchor, labels)
+
     def test_cquery_paths_resolve_from_execution_root_instead_of_workspace(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

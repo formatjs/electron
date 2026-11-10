@@ -42,6 +42,47 @@ _EXTRA_ROOTS = {
     'third_party/node/linux': 'electron_chromium_node_tool',
 }
 
+_ANCHORS = {
+    'icu': 'source_provenance.json', 'skia': 'LICENSE', 'harfbuzz': 'COPYING', 'freetype': 'LICENSE.TXT',
+    'fontconfig': 'COPYING', 'jpeg': 'LICENSE.md', 'webp': 'COPYING', 'wuffs': 'LICENSE', 'nasm': 'LICENSE',
+    'jsoncpp': 'BUILD.bazel', 'protobuf_javascript': 'BUILD.bazel', 'crabbyavif': 'LICENSE', 'lss': 'LICENSE',
+    'quiche': 'LICENSE', 're2': 'LICENSE', 'snappy': 'COPYING', 'libdrm': 'xf86drm.h', 'libsync': 'sync.c',
+    'ced': 'LICENSE', 'zstd': 'LICENSE', 'fp16': 'BUILD.bazel', 'dragonbox': 'BUILD.bazel',
+    'fast_float': 'BUILD.bazel', 'highway': 'BUILD.bazel',
+}
+
+
+def source_roots(overlay):
+    roots = {}
+    packages = json.loads((overlay / 'bcr/overlay/source/upstream_pins.json').read_text())
+    for package in packages:
+        if package['group'] not in {'chromium', 'node', 'v8'}:
+            group = package['group'].lower().replace('.', '_').replace('-', '_')
+            roots[package['repo'].removeprefix('src/')] = ('electron_' + group + '_sources',
+                                                        'LICENSE' if group == 'boringssl' else 'source_anchor', '')
+    profile = json.loads((overlay / 'bcr/overlay/source/native/platform_inputs.json').read_text())
+    for prefix in profile['source_revisions']:
+        if prefix not in roots:
+            suffix = prefix.removeprefix('third_party/').replace('-', '_').replace('/', '_').lower()
+            roots[prefix] = ('electron_platform_' + suffix, 'BUILD.bazel', '')
+    for prefix, name in _EXTRA_ROOTS.items():
+        if name == 'electron_chromium_node_tool':
+            anchor = 'node-linux-x64/bin/node'
+        else:
+            group = name.removeprefix('electron_').removesuffix('_upstream').removesuffix('_sources')
+            anchor = _ANCHORS[group]
+        roots[prefix] = (name, anchor, '')
+    roots.update({
+        'third_party/node/node_modules': ('electron_chromium_webui_upstream', 'BUILD.bazel', 'node_modules'),
+        'third_party/cast_core/public/src': ('electron_cast_core_sources', 'proto/proto.gni', ''),
+        'third_party/glslang/src': ('electron_glslang_sources', 'BUILD.gn', ''),
+    })
+    return roots
+
+
+def source_labels(roots):
+    return sorted({'@' + name + '//:' + anchor for name, anchor, _ in roots.values()})
+
 
 class MissingRepository(ValueError):
     def __init__(self, name):
@@ -116,24 +157,8 @@ def capture(args):
         temporary = Path(temporary)
         source = temporary / 'src'
         print('GN_METADATA_PHASE repositories', flush=True)
-        packages = json.loads((overlay / 'bcr/overlay/source/upstream_pins.json').read_text())
-        dependencies = {}
-        for package in packages:
-            if package['group'] not in {'chromium', 'node', 'v8'}:
-                name = 'electron_' + package['group'].lower().replace('.', '_').replace('-', '_') + '_sources'
-                dependencies[package['repo'].removeprefix('src/')] = repository(args.repositories, name)
-        profile = json.loads((overlay / 'bcr/overlay/source/native/platform_inputs.json').read_text())
-        for prefix, pin in profile['source_revisions'].items():
-            if prefix in dependencies:
-                continue
-            suffix = prefix.removeprefix('third_party/').replace('-', '_').replace('/', '_').lower()
-            dependencies[prefix] = repository(args.repositories, 'electron_platform_' + suffix)
-        for prefix, name in _EXTRA_ROOTS.items():
-            dependencies[prefix] = repository(args.repositories, name)
-        dependencies['third_party/node/node_modules'] = repository(args.repositories, 'electron_chromium_webui_upstream') / 'node_modules'
-        for path, name in [('third_party/cast_core/public/src', 'electron_cast_core_sources'),
-                           ('third_party/glslang/src', 'electron_glslang_sources')]:
-            dependencies[path] = repository(args.repositories, name)
+        dependencies = {prefix: repository(args.repositories, name) / subdirectory
+                        for prefix, (name, _, subdirectory) in source_roots(overlay).items()}
         for architecture, suffix in [('amd64', 'x64'), ('arm64', 'arm64')]:
             dependencies['build/linux/debian_bullseye_' + architecture + '-sysroot'] = inputs / ('sysroot_' + suffix)
         fingerprints = overlay / 'bcr/overlay/source/patch_fingerprints.json'

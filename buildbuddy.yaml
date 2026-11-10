@@ -160,6 +160,15 @@ actions:
           bazel --host_jvm_args=-Xmx12g test --config=buildbuddy --strategy=TestRunner=remote \
             --downloader_config="$source_downloader" --distdir="$source_distdir" \
             --registry="file://$registry" --registry=https://bcr.bazel.build //tests:metadata_capture_test
+          source_labels_file="$(mktemp /tmp/electron-capture-labels.XXXXXX)"
+          python3 - "$source_root" > "$source_labels_file" <<'PY'
+          from pathlib import Path
+          import sys
+          sys.path.insert(0, str(Path(sys.argv[1]) / 'tools'))
+          from capture_linux_metadata import source_roots, source_labels
+          print('\n'.join(source_labels(source_roots(Path(sys.argv[1])))))
+          PY
+          mapfile -t source_labels < "$source_labels_file"
           bazel --host_jvm_args=-Xmx12g build --config=buildbuddy \
             --downloader_config="$source_downloader" --distdir="$source_distdir" \
             --registry="file://$registry" --registry=https://bcr.bazel.build \
@@ -176,7 +185,7 @@ actions:
             @electron_rust_sources//:profile.bzl @electron_icu_sources//:source_provenance.json \
             @electron_chromium_node_tool//:node-linux-x64/bin/node \
             @electron_chromium_webui_upstream//:BUILD.bazel \
-            @electron//source:gn_link_plain_test //tools:capture_linux_metadata
+            @electron//source:gn_link_plain_test //tools:capture_linux_metadata "${source_labels[@]}"
           source_repositories="$(bazel --host_jvm_args=-Xmx12g info output_base)/external"
           cp MODULE.bazel.lock "$BUILDBUDDY_ARTIFACTS_DIRECTORY/source-capture-MODULE.bazel.lock"
           llvm_root="$(python3 - "$source_repositories" <<'PY'
