@@ -21,7 +21,7 @@ ROOTS = {"protobuf": "third_party/protobuf", "javascript": "third_party/protobuf
 
 def capture(graph, chromium, javascript, target_arch="x64", role="target"):
     scope = LinuxGraph(graph, target_arch)
-    root = scope.resolve(PREFIX + ("protoc" if role == "execution" or target_arch == "x64" and role == "target" else "protobuf_lite"), role)
+    root_label = scope.resolve(PREFIX + ("protoc" if role == "execution" or target_arch == "x64" and role == "target" else "protobuf_lite"), role)
     abseil_label = scope.resolve(ABSEIL, role)
     toolchain = {label for label in graph["targets"] if label.split("(")[0] in TOOLCHAIN}
     if "Version: 32.0\n" not in (chromium / "third_party/protobuf/README.chromium").read_text():
@@ -35,7 +35,7 @@ def capture(graph, chromium, javascript, target_arch="x64", role="target"):
         result = target.get(key, [])
         return graph["pool"][result["pool"]] if isinstance(result, dict) else result
 
-    labels, pending = set(), [root]
+    labels, pending = set(), [root_label]
     while pending:
         label = pending.pop()
         if label in labels or label in toolchain or label == abseil_label:
@@ -104,7 +104,7 @@ def capture(graph, chromium, javascript, target_arch="x64", role="target"):
         physical = javascript / logical.removeprefix("third_party/protobuf-javascript/src/") if logical.startswith("third_party/protobuf-javascript/src/") else chromium / logical
         if not physical.is_file():
             raise ValueError("Missing original Protobuf input: " + logical)
-    return {"target_arch": target_arch, "role": role, "root": root, "roots": ROOTS, "libraries": libraries, "files": sorted(files), "abseil_gn_deps": abseil["deps"], "abseil_deps": (["@electron_abseil_sources//" + dep.removeprefix("//third_party/abseil-cpp/") for dep in abseil["deps"]] if target_arch == "x64" and role == "target" else None), "javascript_revision": JS_REVISION, "version": "32.0", "toolchain_deps": sorted(toolchain)}
+    return {"target_arch": target_arch, "role": role, "root": root_label, "roots": ROOTS, "libraries": libraries, "files": sorted(files), "abseil_gn_deps": abseil["deps"], "abseil_deps": (["@electron_abseil_sources//" + dep.removeprefix("//third_party/abseil-cpp/") for dep in abseil["deps"]] if target_arch == "x64" and role == "target" else None), "javascript_revision": JS_REVISION, "version": "32.0", "toolchain_deps": sorted(toolchain)}
 
 
 def main():
