@@ -15,5 +15,9 @@ the pinned Linux x64 OCI image with network disabled. Push
 composes a private tree, runs GN gen/desc with declared Python/pkgconf tools, and
 archives the graph, input hashes and tool-module lock. No Ninja build runs.
 
-BB validation remains pending. These inputs and metadata alone do not establish
-an ARM64 source profile; component translation and cross-build still follow.
+The [7607582 capture](https://formatjs.buildbuddy.io/invocation/8cfa31b7-55a1-4322-ad53-c9111c3aeaff)
+passed with 19,222 targets. The [verified handoff](https://github.com/formatjs/rules_electron/actions/runs/42801550744)
+binds the checked-in tool-module lock to that exact successful commit and digest;
+tool resolution now uses `--lockfile_mode=error`. Frozen validation is pending.
+The [wrapper audit](https://formatjs.buildbuddy.io/invocation/b09f76c1-2155-4fa6-acbf-6d5c0fa3859c)
+also passed. Module translation and source cross-build remain open.

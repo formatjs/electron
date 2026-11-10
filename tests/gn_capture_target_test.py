@@ -7,15 +7,53 @@ import unittest
 
 from capture_ipcz import ROOT, DRIVER_SOURCES, capture
 from capture_base import ROOT as BASE_ROOT, BUILD, CXX, NATIVE_CPP, capture as capture_base
-from capture_target import validate_graph_target
+from capture_target import validate_graph_target, LinuxGraph
 from native_graph import capture_library
 
 
 class GnCaptureTargetTest(unittest.TestCase):
+    def test_role_resolution_keeps_target_and_three_execution_toolchains_distinct(self):
+        for architecture in ('x64', 'arm64'):
+            with self.subTest(architecture=architecture):
+                chains = {'target': '//build/toolchain/linux:clang_' + architecture,
+                          'execution': '//build/toolchain/linux:clang_x64',
+                          'snapshot': '//build/toolchain/linux:clang_x64_v8_arm64' if architecture == 'arm64' else '//build/toolchain/linux:clang_x64',
+                          'rust_execution': '//build/toolchain/linux:clang_x64_for_rust_host_build_tools'}
+                labels = {role: '//base:base' + ('' if chain == chains['target'] else '(' + chain + ')')
+                          for role, chain in chains.items()}
+                targets = {labels[role]: {'toolchain': chain} for role, chain in chains.items()}
+                graph = {'target_arch': architecture, 'targets': targets}
+                scope = LinuxGraph(graph, architecture)
+                for role, label in labels.items():
+                    self.assertEqual(scope.resolve('//base:base', role), label)
+                    self.assertEqual(scope.resolve(label, role), label)
+                    self.assertEqual(scope.architecture(label), architecture if role == 'target' else 'x64')
+                if architecture == 'arm64':
+                    with self.assertRaises(ValueError):
+                        scope.resolve(labels['snapshot'], 'target')
+                for label, role in [('//missing:missing', 'target'), ('//base:base', 'unknown')]:
+                    with self.assertRaises(ValueError):
+                        scope.resolve(label, role)
+                ambiguous = copy.deepcopy(graph)
+                ambiguous['targets']['//base:base(' + chains['target'] + ')'] = {'toolchain': chains['target']}
+                with self.assertRaises(ValueError):
+                    LinuxGraph(ambiguous, architecture).resolve('//base:base')
+                inconsistent = copy.deepcopy(graph)
+                inconsistent['targets'][labels['rust_execution']]['toolchain'] = chains['target']
+                with self.assertRaises(ValueError):
+                    LinuxGraph(inconsistent, architecture)
+                with self.assertRaises(ValueError):
+                    LinuxGraph(graph, 'x64' if architecture == 'arm64' else 'arm64')
+                if architecture == 'arm64':
+                    unmarked = {key: value for key, value in graph.items() if key != 'target_arch'}
+                    with self.assertRaises(ValueError):
+                        LinuxGraph(unmarked, 'x64')
+
     def test_native_libraries_use_each_records_cpu_including_execution_libraries(self):
         toolchains = [('clang_x64', 'x86_64-unknown-linux-gnu'),
                       ('clang_arm64', 'aarch64-unknown-linux-gnu'),
-                      ('clang_x64_for_rust_host_build_tools', 'x86_64-unknown-linux-gnu')]
+                      ('clang_x64_for_rust_host_build_tools', 'x86_64-unknown-linux-gnu'),
+                      ('clang_x64_v8_arm64', 'x86_64-unknown-linux-gnu')]
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             sources = ['//lib/input' + extension for extension in ('.cc', '.c', '.S', '.h', '.m', '.mm', '.rc', '.grd')]
@@ -28,6 +66,8 @@ class GnCaptureTargetTest(unittest.TestCase):
                     builtins = '$LLVM_ROOT/lib/clang/23/lib/' + triple + '/libclang_rt.builtins.a'
                     target = {'sources': sources, 'toolchain': '//build/toolchain/linux:' + toolchain,
                               'cflags': ['--target=' + triple, '-O2'], 'libs': [builtins]}
+                    if toolchain == 'clang_x64_v8_arm64':
+                        target['defines'] = ['V8_TARGET_ARCH_ARM64']
                     inputs = []
 
                     def original_file(path):
@@ -43,6 +83,7 @@ class GnCaptureTargetTest(unittest.TestCase):
                     self.assertEqual(result['resource_sources'], ['//lib/input.rc', '//lib/input.grd'])
                     self.assertEqual(result['copts'], ['-O2'])
                     self.assertEqual(result['libs'], [builtins])
+                    self.assertEqual(result['defines'], target.get('defines', []))
                     other = 'x86_64-unknown-linux-gnu' if triple.startswith('aarch64') else 'aarch64-unknown-linux-gnu'
                     wrong = {**target, 'libs': ['$LLVM_ROOT/lib/clang/23/lib/' + other + '/libclang_rt.builtins.a']}
                     with self.assertRaisesRegex(ValueError, 'Untranslated native library'):

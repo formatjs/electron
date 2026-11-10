@@ -3,12 +3,10 @@
 
 from pathlib import Path
 import json
-from capture_target import builtins_archive, target_toolchain
+from capture_target import builtins_archive, toolchain_architecture
 
 BUILD = "//out/bazel-import/"
 DIAGNOSTIC_INPUTS = {"//build/config/unsafe_buffers_paths.txt", "//build/config/warning_suppression.txt"}
-LINUX_ARCHITECTURES = {target_toolchain(architecture): architecture for architecture in ('x64', 'arm64')}
-LINUX_ARCHITECTURES['//build/toolchain/linux:clang_x64_for_rust_host_build_tools'] = 'x64'
 
 
 def pack_profile(profile):
@@ -65,7 +63,7 @@ def value(graph, target, key):
 
 
 def capture_library(graph, target, record, input_file, label, extra_libs=()):
-    architecture = LINUX_ARCHITECTURES.get(target.get('toolchain'))
+    architecture = toolchain_architecture(target.get('toolchain'))
     resources = [path for path in target.get("sources", []) if path.endswith(".grd") or (path.endswith(".rc") and architecture is not None)]
     # GN skips Objective-C sources when the Linux toolchain has no objc tools.
     ignored = [path for path in target.get("sources", []) if architecture is not None and Path(path).suffix in (".m", ".mm")]

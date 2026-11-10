@@ -9,7 +9,7 @@ import json
 from pathlib import Path
 import subprocess
 
-from capture_target import validate_graph_target
+from capture_target import validate_graph_target, LinuxGraph
 
 
 def main():
@@ -31,6 +31,17 @@ def main():
     graph = capture.capture(project, json.loads(args.runtime_deps.read_text(encoding="utf-8")), args.source_root, replacements)
     validate_graph_target(graph, "//electron:electron", args.target_arch)
     graph["target_arch"] = args.target_arch
+    identity = LinuxGraph(graph, args.target_arch)
+    execution_tools = {}
+    for name, root, role in [
+        ('protoc', '//third_party/protobuf:protoc', 'execution'),
+        ('mksnapshot', '//v8:mksnapshot', 'snapshot'),
+        ('cxxbridge', '//third_party/rust/cxxbridge_cmd/v1:cxxbridge', 'rust_execution'),
+    ]:
+        label = identity.resolve(root, role)
+        if graph['targets'][label]['type'] != 'executable' or identity.architecture(label) != 'x64':
+            raise ValueError('Expected Linux x64 execution tool')
+        execution_tools[name] = {'label': label, 'role': role, 'compiler_arch': identity.architecture(label)}
     configuration = (args.source_root / "out/bazel-import/args.gn").read_text(encoding="utf-8")
     for old, new in replacements:
         configuration = configuration.replace(old, new)
@@ -49,6 +60,7 @@ def main():
         "chromium_revision": "7efca501bfcc84657ba2921a852e98ce1fb37641",
         "electron_version": "39.0.0",
         "target_arch": args.target_arch,
+        "execution_tools": execution_tools,
         "gn_version": subprocess.check_output([str(args.gn), "--version"], text=True).strip(),
         "gn_sha256": hashlib.sha256(args.gn.read_bytes()).hexdigest(),
         "capture_tool_sha256": hashlib.sha256(source.read_bytes()).hexdigest(),
