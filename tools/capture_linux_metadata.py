@@ -54,6 +54,13 @@ def digest(path):
         return hashlib.file_digest(source, 'sha256').hexdigest()
 
 
+def resolve_output(execution_root, path):
+    output = (execution_root / Path(path)).resolve(strict=True)
+    if not output.is_file():
+        raise ValueError('Expected one Bazel output file')
+    return output
+
+
 def repository(root, name):
     matches = [path for path in root.iterdir() if path.name == name + '+' or path.name.endswith('+' + name)]
     if len(matches) != 1 or not matches[0].is_dir():
@@ -92,8 +99,12 @@ def rust_sysroot(inputs, destination):
 def capture(args):
     print('GN_METADATA_PHASE inputs', flush=True)
     inputs, overlay, output = args.capture_inputs, args.overlay_root, args.output
+    if not (inputs / 'capture_inputs.json').is_file():
+        raise ValueError('Missing capture input manifest')
     pins = json.loads((inputs / 'capture_inputs.json').read_text())
     gn = inputs / 'gn/gn'
+    if not gn.is_file():
+        raise ValueError('Missing declared GN executable')
     if digest(gn) != pins['gn_binary_sha256']:
         raise ValueError('Pinned GN executable changed')
     if not (args.llvm_root / 'lib/clang/23/include/stddef.h').is_file():
@@ -210,6 +221,8 @@ def main():
         return 1
     except Exception as error:
         reasons = {
+            'Missing capture input manifest': 'INPUT_MANIFEST',
+            'Missing declared GN executable': 'GN_EXECUTABLE',
             'Pinned GN executable changed': 'GN_DIGEST',
             'Missing declared LLVM resource headers': 'LLVM_HEADERS',
             'Missing declared package tool': 'PACKAGE_TOOL',

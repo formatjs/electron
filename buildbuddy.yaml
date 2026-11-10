@@ -157,6 +157,9 @@ actions:
           bash tools/prefetch-bootstrap.sh "$source_distdir"
           python3 tools/stage_bcr_entry.py --source-registry bcr \
             --target-registry "$registry" --module electron --version 39.0.0
+          bazel --host_jvm_args=-Xmx12g test --config=buildbuddy --strategy=TestRunner=remote \
+            --downloader_config="$source_downloader" --distdir="$source_distdir" \
+            --registry="file://$registry" --registry=https://bcr.bazel.build //tests:metadata_capture_test
           bazel --host_jvm_args=-Xmx12g build --config=buildbuddy \
             --downloader_config="$source_downloader" --distdir="$source_distdir" \
             --registry="file://$registry" --registry=https://bcr.bazel.build \
@@ -188,8 +191,24 @@ actions:
           bazel build --config=buildbuddy --downloader_config="$source_downloader" --distdir="$source_distdir" \
             //:inputs //:pkg_config
           metadata_input_file="$(bazel cquery --config=buildbuddy --output=files //:inputs)"
-          metadata_inputs="$(dirname "$(realpath "$metadata_input_file")")"
-          pkg_config="$(realpath "$(bazel cquery --config=buildbuddy --output=files //:pkg_config)")"
+          metadata_execution_root="$(bazel info execution_root)"
+          metadata_inputs="$(python3 - "$source_root" "$metadata_execution_root" "$metadata_input_file" <<'PY'
+          from pathlib import Path
+          import sys
+          sys.path.insert(0, str(Path(sys.argv[1]) / 'tools'))
+          from capture_linux_metadata import resolve_output
+          print(resolve_output(Path(sys.argv[2]), sys.argv[3]).parent)
+          PY
+          )"
+          pkg_output_file="$(bazel cquery --config=buildbuddy --output=files //:pkg_config)"
+          pkg_config="$(python3 - "$source_root" "$metadata_execution_root" "$pkg_output_file" <<'PY'
+          from pathlib import Path
+          import sys
+          sys.path.insert(0, str(Path(sys.argv[1]) / 'tools'))
+          from capture_linux_metadata import resolve_output
+          print(resolve_output(Path(sys.argv[2]), sys.argv[3]))
+          PY
+          )"
           cp MODULE.bazel.lock "$BUILDBUDDY_ARTIFACTS_DIRECTORY/metadata-tools-MODULE.bazel.lock"
           cd "$source_root"
           bazel --host_jvm_args=-Xmx12g run --config=buildbuddy \

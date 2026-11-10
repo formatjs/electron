@@ -4,10 +4,25 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from capture_linux_metadata import repository, rust_sysroot
+from capture_linux_metadata import repository, rust_sysroot, resolve_output
 
 
 class MetadataCaptureTest(unittest.TestCase):
+    def test_cquery_paths_resolve_from_execution_root_instead_of_workspace(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            execution, workspace = root / 'execroot', root / 'workspace'
+            relative = 'external/metadata_inputs/capture_inputs.json'
+            for directory, content in [(execution, b'verified repository'), (workspace, b'wrong workspace file')]:
+                path = directory / relative
+                path.parent.mkdir(parents=True)
+                path.write_bytes(content)
+            output = resolve_output(execution, relative)
+            self.assertEqual(output.read_bytes(), b'verified repository')
+            self.assertEqual(resolve_output(execution, output), output)
+            with self.assertRaises(FileNotFoundError):
+                resolve_output(execution, 'external/missing/file')
+
     def components(self, root):
         for component, paths in {
             'rustc': ['bin/rustc', 'lib/compiler.so'],
