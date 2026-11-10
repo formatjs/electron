@@ -2,12 +2,14 @@
 """Capture GN dependency kinds without executing build actions."""
 
 import argparse
+from contextlib import contextmanager
 import hashlib
 import gzip
 import json
 from pathlib import Path
 import re
 import subprocess
+import tempfile
 
 
 _METADATA = '''
@@ -119,6 +121,20 @@ def split_dependencies(label, dependencies, capture):
                 gn_data_deps=[dep for dep in dependencies if dep not in links])
 
 
+@contextmanager
+def private_config(config):
+    original = config.read_bytes()
+    with tempfile.TemporaryDirectory(prefix='.gn-edges-', dir=config.parent) as temporary:
+        backup = Path(temporary) / config.name
+        config.rename(backup)
+        try:
+            config.write_bytes(original)
+            yield original
+        finally:
+            config.unlink(missing_ok=True)
+            backup.rename(config)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--gn', type=Path, required=True)
@@ -129,11 +145,9 @@ def main():
     config = args.chromium_root / 'build/config/BUILDCONFIG.gn'
     original = config.read_bytes()
     subprocess.run([str(args.gn), 'gen', str(args.out_dir), '--ide=json', '--json-file-name=baseline-typed-project.json'], cwd=args.chromium_root, check=True)
-    try:
+    with private_config(config):
         config.write_text(instrument(original.decode()))
         subprocess.run([str(args.gn), 'gen', str(args.out_dir), '--ide=json', '--json-file-name=typed-project.json'], cwd=args.chromium_root, check=True)
-    finally:
-        config.write_bytes(original)
     digest = hashlib.sha256(original).hexdigest()
     print('Original BUILDCONFIG.gn restored; SHA256 ' + digest)
     write_capture(json.loads((args.out_dir / 'baseline-typed-project.json').read_text()), json.loads((args.out_dir / 'typed-project.json').read_text()), args.output, digest)
