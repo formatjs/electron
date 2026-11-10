@@ -3,9 +3,12 @@
 
 from pathlib import Path
 import json
+from capture_target import builtins_archive, target_toolchain
 
 BUILD = "//out/bazel-import/"
 DIAGNOSTIC_INPUTS = {"//build/config/unsafe_buffers_paths.txt", "//build/config/warning_suppression.txt"}
+LINUX_ARCHITECTURES = {target_toolchain(architecture): architecture for architecture in ('x64', 'arm64')}
+LINUX_ARCHITECTURES['//build/toolchain/linux:clang_x64_for_rust_host_build_tools'] = 'x64'
 
 
 def pack_profile(profile):
@@ -62,9 +65,10 @@ def value(graph, target, key):
 
 
 def capture_library(graph, target, record, input_file, label, extra_libs=()):
-    resources = [path for path in target.get("sources", []) if path.endswith(".grd") or (path.endswith(".rc") and target.get("toolchain") == "//build/toolchain/linux:clang_x64")]
+    architecture = LINUX_ARCHITECTURES.get(target.get('toolchain'))
+    resources = [path for path in target.get("sources", []) if path.endswith(".grd") or (path.endswith(".rc") and architecture is not None)]
     # GN skips Objective-C sources when the Linux toolchain has no objc tools.
-    ignored = [path for path in target.get("sources", []) if target.get("toolchain") == "//build/toolchain/linux:clang_x64" and Path(path).suffix in (".m", ".mm")]
+    ignored = [path for path in target.get("sources", []) if architecture is not None and Path(path).suffix in (".m", ".mm")]
     sources = [path for path in target.get("sources", []) if path not in resources and path not in ignored]
     if ignored:
         record["gn_uncompiled_sources"] = ignored
@@ -100,7 +104,8 @@ def capture_library(graph, target, record, input_file, label, extra_libs=()):
         else:
             raise ValueError("Unexpected native include root")
     libs = value(graph, target, "libs")
-    if set(libs) - set(extra_libs) - {"m", "dl", "rt", "pthread", "resolv", "xcb", "xkbcommon", "uuid", "expat", "gio-2.0", "glib-2.0", "gmodule-2.0", "gobject-2.0", "gthread-2.0", "nspr4", "nss3", "nssutil3", "plc4", "plds4", "smime3", "$LLVM_ROOT/lib/clang/23/lib/x86_64-unknown-linux-gnu/libclang_rt.builtins.a"}:
+    builtins = {builtins_archive(architecture)} if architecture is not None else set()
+    if set(libs) - set(extra_libs) - builtins - {"m", "dl", "rt", "pthread", "resolv", "xcb", "xkbcommon", "uuid", "expat", "gio-2.0", "glib-2.0", "gmodule-2.0", "gobject-2.0", "gthread-2.0", "nspr4", "nss3", "nssutil3", "plc4", "plds4", "smime3"}:
         raise ValueError("Untranslated native library")
     record.update(srcs=[path for path in sources if path.endswith((".cc", ".cpp", ".cxx", ".o"))], c_srcs=[path for path in sources if path.endswith(".c")], asm_srcs=[path for path in sources if path.endswith((".S", ".s"))], generated_headers=[path for path in sources if path.startswith(BUILD) and path.endswith((".h", ".hh", ".hpp", ".hxx", ".inc"))], copts=flags["cc"], c_copts=flags["c"], asm_copts=flags["asm"], defines=[item.replace('"', '\\"').replace(" ", "\\ ").replace("\t", "\\\t") for item in value(graph, target, "defines")], includes=includes, libs=libs, gn_include_dirs=value(graph, target, "include_dirs"), gn_ldflags=value(graph, target, "ldflags"), omitted_toolchain_and_diagnostic_flags=sorted(set(omitted)))
     record["public_headers"] = public

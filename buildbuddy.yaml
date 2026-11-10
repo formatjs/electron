@@ -27,7 +27,7 @@ actions:
             --downloader-config="$source_downloader" --distdir="$source_distdir"
           bazel --host_jvm_args=-Xmx24g test --config=buildbuddy --downloader_config="$source_downloader" --distdir="$source_distdir" --strategy=TestRunner=remote \
             --registry="file://$registry" --registry=https://bcr.bazel.build \
-            //tests:hermetic_execution_test //tests:archive_urls_test //tests:gn_dependencies_test //tests:native_action_audit_test //tests:platform_runtime_capture_test \
+            //tests:hermetic_execution_test //tests:archive_urls_test //tests:gn_dependencies_test //tests:native_action_audit_test //tests:platform_runtime_capture_test //tests:gn_capture_target_test \
             @electron//source/default_app:assets_test @electron//source/credits:credits_test \
             @electron//source/distribution:metadata_test @electron//source/distribution:archive_test @electron//source:cairo_loader_test @electron//source:asar_path_resolver_test @electron//source:asar_reader_test @electron//source:gn_link_plain_test @electron//source:gn_link_thin_lto_test @electron//source:network_test
           bazel --host_jvm_args=-Xmx24g build --config=buildbuddy --downloader_config="$source_downloader" --distdir="$source_distdir" \

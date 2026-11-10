@@ -23,3 +23,27 @@ py_library(
     srcs = ["pin_platform_runtime.py"],
     visibility = ["//tests:__pkg__"],
 )
+
+py_library(
+    name = "ipcz_capture",
+    srcs = [
+        "capture_ipcz.py",
+        "capture_target.py",
+    ],
+    imports = ["."],
+    visibility = ["//tests:__pkg__"],
+)
+
+py_library(
+    name = "base_capture",
+    srcs = [
+        "capture_base.py",
+        "capture_crabby.py",
+        "capture_cxx.py",
+        "capture_target.py",
+        "capture_temporal.py",
+        "native_graph.py",
+    ],
+    imports = ["."],
+    visibility = ["//tests:__pkg__"],
+)

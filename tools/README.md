@@ -10,3 +10,29 @@ records SHA-256 archive pins and reads dynamic metadata without executing target
 libraries. This prepares ARM64 runtime inventories; it does not provide a complete
 ARM64 Electron source profile. GN component profiles and native Bazel platform
 selection still need separate capture and build validation.
+
+# GN target capture
+
+`capture_source.py`, `capture_base.py` and `capture_ipcz.py` accept
+`--target-arch x64` (default) or `arm64`. They reject a different root toolchain
+or component profile architecture. Unmarked component profiles mean x64.
+Base and IPCz select the matching compiler builtins archive. Shared native
+library capture uses each record's toolchain, including x64 Rust execution
+libraries inside an ARM64 graph; Linux resource and uncompiled Objective-C
+inventories stay separate. CXX execution tools retain their original x64
+identities. Capture runs on BB, never target hardware.
+
+```mermaid
+flowchart LR
+  graph[Pinned GN metadata] --> target[ARM64 target records]
+  graph --> host[x64 execution records]
+  target --> bazel[Native Bazel cross-build]
+  host --> bazel
+```
+
+This is capture support, not an ARM64 source runtime. Actual ARM64 GN metadata,
+Rust/Perfetto and remaining component profiles, SDK inventories and the complete
+native Bazel cross-build still need validation. Keep qualified GN labels and host
+records separate; replacing x64 strings across a graph can turn execution tools
+into target binaries. GN only supplies maintainer metadata; no GN/Ninja build
+action is introduced.

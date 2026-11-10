@@ -7,12 +7,16 @@ import hashlib
 import json
 from pathlib import Path
 
+from capture_target import builtins_archive, target_toolchain, validate_profile_target
+
 ROOT = "//third_party/ipcz/src:ipcz_chromium"
 TOOLCHAIN = {"//buildtools/third_party/libc++:" + name for name in ("all_modules", "custom_headers", "libcxx_headers")}
 DRIVER_SOURCES = ["third_party/ipcz/src/reference_drivers/" + name + ".cc" for name in ("object", "random", "single_process_reference_driver_base", "sync_reference_driver")]
 
 
-def capture(graph, chromium, base):
+def capture(graph, chromium, base, target_arch="x64"):
+    toolchain = target_toolchain(target_arch)
+    validate_profile_target(base, target_arch)
     external = {label: "@electron_base_sources//:" + name for label, name in base["names"].items()}
     external["//third_party/abseil-cpp:absl"] = "@electron_protobuf_sources//:abseil"
     targets, seen, pending = graph["targets"], set(), [ROOT]
@@ -37,8 +41,8 @@ def capture(graph, chromium, base):
     files, libraries = set(headers + DRIVER_SOURCES + ["third_party/ipcz/LICENSE"]), {}
     for label in sorted(seen):
         target = targets[label]
-        if target["type"] != "source_set" or target["toolchain"] != "//build/toolchain/linux:clang_x64":
-            raise ValueError("Expected captured Linux AMD64 IPCz source set")
+        if target["type"] != "source_set" or target["toolchain"] != toolchain:
+            raise ValueError("Expected IPCz source set for selected Linux target")
         sources = target.get("sources", [])
         if any(not path.startswith("//third_party/ipcz/") or Path(path).suffix not in (".h", ".cc") for path in sources):
             raise ValueError("Unexpected IPCz source")
@@ -60,7 +64,7 @@ def capture(graph, chromium, base):
             else:
                 raise ValueError("Unexpected IPCz include root")
         libs = value(target, "libs")
-        if set(libs) - {"dl", "rt", "glib-2.0", "gmodule-2.0", "gobject-2.0", "gthread-2.0", "$LLVM_ROOT/lib/clang/23/lib/x86_64-unknown-linux-gnu/libclang_rt.builtins.a"}:
+        if set(libs) - {"dl", "rt", "glib-2.0", "gmodule-2.0", "gobject-2.0", "gthread-2.0", builtins_archive(target_arch)}:
             raise ValueError("Untranslated IPCz link library")
         defines = value(target, "defines")
         if "IPCZ_STANDALONE" in defines:
@@ -70,16 +74,17 @@ def capture(graph, chromium, base):
         if not (chromium / path).is_file():
             raise ValueError("Missing original IPCz input: " + path)
     used = {dep for label in seen for dep in targets[label].get("deps", []) if dep in external}
-    return dict(roots=[ROOT], names=names, libraries=libraries, external={label: external[label] for label in sorted(used)}, files=sorted(files), headers=headers, toolchain_deps=sorted(TOOLCHAIN), test_driver_sources=DRIVER_SOURCES)
+    return dict(target_arch=target_arch, roots=[ROOT], names=names, libraries=libraries, external={label: external[label] for label in sorted(used)}, files=sorted(files), headers=headers, toolchain_deps=sorted(TOOLCHAIN), test_driver_sources=DRIVER_SOURCES)
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("graph", "chromium-root", "base-profile", "output"):
         parser.add_argument("--" + name, type=Path, required=True)
+    parser.add_argument("--target-arch", choices=("x64", "arm64"), default="x64")
     args = parser.parse_args()
     content = args.graph.read_bytes()
-    result = capture(json.loads(gzip.decompress(content)), args.chromium_root, json.loads(args.base_profile.read_text()))
+    result = capture(json.loads(gzip.decompress(content)), args.chromium_root, json.loads(args.base_profile.read_text()), target_arch=args.target_arch)
     result["graph_sha256"] = hashlib.sha256(content).hexdigest()
     args.output.write_text(json.dumps(result, indent=2) + "\n")
 

@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 
 from capture_temporal import NATIVE_CPP
+from capture_target import builtins_archive, target_toolchain, validate_profile_target
 
 BUILD = "//out/bazel-import/"
 ROOT = "//base:base"
@@ -23,7 +24,12 @@ TOOLCHAIN = {"//buildtools/third_party/libc++:" + n for n in ("all_modules", "cu
 TOOLCHAIN.add("//build/config:executable_deps")
 
 
-def capture(graph, chromium, boringssl, icu, perfetto_profile, rust_profile):
+def capture(graph, chromium, boringssl, icu, perfetto_profile, rust_profile, target_arch="x64"):
+    toolchain = target_toolchain(target_arch)
+    validate_profile_target(perfetto_profile, target_arch)
+    validate_profile_target(rust_profile, target_arch)
+    if graph["targets"][ROOT].get("toolchain") != toolchain:
+        raise ValueError("Base root does not match selected Linux target")
     for root, header in [(boringssl, "include/openssl/base.h"), (icu, "source/common/unicode/locid.h")]:
         if not (root / header).is_file():
             raise ValueError("Missing pinned header source: " + header)
@@ -73,8 +79,8 @@ def capture(graph, chromium, boringssl, icu, perfetto_profile, rust_profile):
     external_files = {}
     for label in sorted(seen):
         target = targets[label]
-        if target["toolchain"] != "//build/toolchain/linux:clang_x64":
-            raise ValueError("Expected Linux AMD64 base profile")
+        if target["toolchain"] != toolchain:
+            raise ValueError("Expected base target for selected Linux architecture")
         kind = target["type"]
         record = {"name": names[label], "kind": kind, "gn_deps": target.get("deps", [])}
         if label == CFG:
@@ -155,7 +161,7 @@ def capture(graph, chromium, boringssl, icu, perfetto_profile, rust_profile):
                 else:
                     raise ValueError("Unexpected base include directory")
             libs = value(target, "libs")
-            allowed = {"glib-2.0", "gmodule-2.0", "gobject-2.0", "gthread-2.0", "dl", "pthread", "rt", "$LLVM_ROOT/lib/clang/23/lib/x86_64-unknown-linux-gnu/libclang_rt.builtins.a"}
+            allowed = {"glib-2.0", "gmodule-2.0", "gobject-2.0", "gthread-2.0", "dl", "pthread", "rt", builtins_archive(target_arch)}
             if set(libs) - allowed:
                 raise ValueError("Untranslated base native library: " + repr(set(libs) - allowed))
             record.update(srcs=[path for path in sources if path.endswith((".cc", ".cpp"))], c_srcs=[path for path in sources if path.endswith(".c")], asm_srcs=[path for path in sources if path.endswith((".S", ".s"))], generated_headers=[path for path in sources if path.startswith(BUILD) and path.endswith((".h", ".inc"))], copts=language_flags["cc"], c_copts=language_flags["c"], asm_copts=language_flags["asm"], defines=[item.replace('"', '\\"') for item in value(target, "defines")], includes=includes, libs=libs, gn_ldflags=value(target,"ldflags"), omitted_toolchain_and_diagnostic_flags=omitted)
@@ -168,7 +174,7 @@ def capture(graph, chromium, boringssl, icu, perfetto_profile, rust_profile):
         if not (chromium / path).is_file():
             raise ValueError("Missing original base input: " + path)
     used_external = {dep for label in seen for dep in targets[label].get("deps", []) if dep in external}
-    return {"root": ROOT, "names": names, "libraries": libraries, "actions": actions, "copies": copies, "producers": producers, "files": sorted(files), "headers": sorted(headers), "external": {label: external[label] for label in sorted(used_external)}, "external_files": external_files, "toolchain_deps": sorted(TOOLCHAIN)}
+    return {"target_arch": target_arch, "root": ROOT, "names": names, "libraries": libraries, "actions": actions, "copies": copies, "producers": producers, "files": sorted(files), "headers": sorted(headers), "external": {label: external[label] for label in sorted(used_external)}, "external_files": external_files, "toolchain_deps": sorted(TOOLCHAIN)}
 
 
 def main():
@@ -180,9 +186,10 @@ def main():
     parser.add_argument("--perfetto-profile", type=Path, default=Path("bcr/overlay/source/native/perfetto_inputs.json"))
     parser.add_argument("--rust-profile", type=Path, default=Path("bcr/overlay/source/native/temporal_inputs.json"))
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--target-arch", choices=("x64", "arm64"), default="x64")
     args = parser.parse_args()
     content = args.graph.read_bytes()
-    result = capture(json.loads(gzip.decompress(content)), args.chromium_root, args.boringssl_root, args.icu_root, json.loads(args.perfetto_profile.read_text()), json.loads(args.rust_profile.read_text()))
+    result = capture(json.loads(gzip.decompress(content)), args.chromium_root, args.boringssl_root, args.icu_root, json.loads(args.perfetto_profile.read_text()), json.loads(args.rust_profile.read_text()), target_arch=args.target_arch)
     result["graph_sha256"] = hashlib.sha256(content).hexdigest()
     args.output.write_text(json.dumps(result, indent=2) + "\n")
 

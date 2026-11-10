@@ -34,3 +34,12 @@ py_test(
     srcs = ["platform_runtime_capture_test.py"],
     deps = ["//tools:platform_runtime_capture"],
 )
+
+py_test(
+    name = "gn_capture_target_test",
+    srcs = ["gn_capture_target_test.py"],
+    deps = [
+        "//tools:base_capture",
+        "//tools:ipcz_capture",
+    ],
+)

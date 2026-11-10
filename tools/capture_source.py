@@ -9,11 +9,14 @@ import json
 from pathlib import Path
 import subprocess
 
+from capture_target import validate_graph_target
+
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("chromium-tools", "source-root", "llvm-root", "rust-root", "gn", "runtime-deps", "patch-fingerprints", "output"):
         parser.add_argument("--" + name, type=Path, required=True)
+    parser.add_argument("--target-arch", choices=("x64", "arm64"), default="x64")
     args = parser.parse_args()
     source = args.chromium_tools / "capture_native_graph.py"
     spec = importlib.util.spec_from_file_location("chromium_capture", source)
@@ -23,6 +26,8 @@ def main():
     project = capture.target_closure(project, ["//electron:electron"])
     replacements = [(str(args.llvm_root), "$LLVM_ROOT"), (str(args.rust_root), "$RUST_ROOT"), (str(args.source_root), "$SOURCE_ROOT")]
     graph = capture.capture(project, json.loads(args.runtime_deps.read_text(encoding="utf-8")), args.source_root, replacements)
+    validate_graph_target(graph, "//electron:electron", args.target_arch)
+    graph["target_arch"] = args.target_arch
     configuration = (args.source_root / "out/bazel-import/args.gn").read_text(encoding="utf-8")
     for old, new in replacements:
         configuration = configuration.replace(old, new)
@@ -40,6 +45,7 @@ def main():
     graph["provenance"] = {
         "chromium_revision": "7efca501bfcc84657ba2921a852e98ce1fb37641",
         "electron_version": "39.0.0",
+        "target_arch": args.target_arch,
         "gn_version": subprocess.check_output([str(args.gn), "--version"], text=True).strip(),
         "gn_sha256": hashlib.sha256(args.gn.read_bytes()).hexdigest(),
         "capture_tool_sha256": hashlib.sha256(source.read_bytes()).hexdigest(),
@@ -63,7 +69,8 @@ def main():
     }
     args.output.with_suffix(".summary.json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
     flags = project["targets"]["//base:debugging_buildflags"]["response_file_contents"][1:]
-    args.output.with_name("fuses_flags.bzl").write_text('"""From Electron39 Linux AMD64 GN //base:debugging_buildflags."""\n\nDEBUG_FLAGS = ' + json.dumps(flags, indent=4) + "\n", encoding="utf-8")
+    cpu_name = "AMD64" if args.target_arch == "x64" else "ARM64"
+    args.output.with_name("fuses_flags.bzl").write_text('"""From Electron39 Linux ' + cpu_name + ' GN //base:debugging_buildflags."""\n\nDEBUG_FLAGS = ' + json.dumps(flags, indent=4) + "\n", encoding="utf-8")
     print(f"Captured {len(graph['targets'])} targets, {len(payload)} bytes, {args.output.stat().st_size} compressed")
 
 
