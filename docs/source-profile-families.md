@@ -56,3 +56,11 @@ needs only zlib; target and snapshot capture retain V8's number and SIMD
 libraries. Compiler builtins and generated include roots must match each role.
 The native macro accepts a profile explicitly; complete family registration and
 ARM64 compiler validation remain open.
+
+
+The maintainer workflow projects each captured support profile into a temporary
+repository using declared source roots. A graph digest, family/role identity and
+source path checks precede projection. Bazel then audits and compiles every
+library for Linux ARM64 or x64 with the pinned GNU 2.31 toolchain. Compilation
+runs on BB; this step executes no target binaries. This validates support
+profiles before registering the complete runtime family.

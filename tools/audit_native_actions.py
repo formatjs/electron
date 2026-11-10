@@ -7,7 +7,7 @@ import sys
 
 
 FORBIDDEN = r"(?i)^(.*(foreign.?cc|cmake|meson|ninja).*|g?make|runmake|gn|rungn)$"
-TARGETS = ("@electron//:source_components", "@electron//source:cross_probes", "//:pkg_config")
+TARGETS = ("@electron//:source_components", "@electron//source:cross_probes", "//:pkg_config", "@electron_v8_support_sources//:libraries")
 
 
 class AuditFailure(ValueError):
@@ -51,21 +51,30 @@ def main():
     parser.add_argument("--downloader-config", required=True)
     parser.add_argument("--distdir", required=True)
     parser.add_argument("--target", choices=TARGETS, default=TARGETS[0])
+    parser.add_argument("--support-override")
+    parser.add_argument("--support-platform", choices=("linux_amd64", "linux_arm64"))
     args = parser.parse_args()
+    support = args.target == "@electron_v8_support_sources//:libraries"
+    if (support and not (args.support_override and args.support_platform)
+            or not support and (args.support_override or args.support_platform)):
+        parser.error("Support audit requires repository and platform together")
     cross = args.target == "@electron//source:cross_probes"
     metadata = args.target == "//:pkg_config"
-    command = ["bazel"] + ([] if metadata else ["--host_jvm_args=-Xmx" + ("12g" if cross else "24g")])
+    command = ["bazel"] + ([] if metadata else ["--host_jvm_args=-Xmx" + ("12g" if cross or support else "24g")])
     command += ["aquery", "--config=buildbuddy",
                "--downloader_config=" + args.downloader_config, "--distdir=" + args.distdir,
                "--include_aspects", "--output=summary"]
     if not metadata:
         command += ["--registry=" + args.registry, "--registry=https://bcr.bazel.build"]
+    if support:
+        command += ["--override_repository=" + args.support_override,
+                    "--platforms=@electron//source/platforms:" + args.support_platform]
     if cross:
         command += ["--repo_env=BAZEL_MSVC_RUNTIME_VISUAL_STUDIO_EULA=1",
                     "--repo_env=BAZEL_WINDOWS_SDK_EULA=1"]
     try:
         summaries = []
-        roots = args.target if cross or metadata else "set(" + args.target + " @electron//:source_tests)"
+        roots = args.target if cross or metadata or support else "set(" + args.target + " @electron//:source_tests)"
         for expression in ("CppCompile", FORBIDDEN):
             query = 'mnemonic("' + expression + '", deps(' + roots + '))'
             result = subprocess.run(command + [query], check=True, capture_output=True, text=True)

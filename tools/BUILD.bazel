@@ -92,3 +92,14 @@ py_library(
     imports = ["."],
     visibility = ["//tests:__pkg__"],
 )
+
+py_library(
+    name = "support_profile_staging",
+    srcs = ["stage_support_profile.py"],
+    imports = ["."],
+    visibility = ["//tests:__pkg__"],
+    deps = [
+        ":metadata_capture",
+        ":v8_support_capture",
+    ],
+)

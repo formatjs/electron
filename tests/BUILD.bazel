@@ -61,3 +61,9 @@ py_test(
     srcs = ["v8_support_capture_test.py"],
     deps = ["//tools:v8_support_capture"],
 )
+
+py_test(
+    name = "support_profile_stage_test",
+    srcs = ["support_profile_stage_test.py"],
+    deps = ["//tools:support_profile_staging"],
+)
