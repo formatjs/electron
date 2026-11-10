@@ -239,6 +239,14 @@ def capture(args):
             profile['graph_sha256'] = digest(graph)
             (output / ('linux-' + args.target_arch + '-v8-support-' + role + '.json')).write_text(json.dumps(profile, indent=2) + '\n')
             print('GN_METADATA_V8_SUPPORT ' + json.dumps({'role': role, 'libraries': len(profile['libraries'])}, sort_keys=True), flush=True)
+        print('GN_METADATA_PHASE protobuf', flush=True)
+        from capture_protobuf import capture as capture_protobuf
+        for role in ('target', 'execution', 'snapshot'):
+            profile = capture_protobuf(graph_data, source, source / 'third_party/protobuf-javascript/src', args.target_arch, role)
+            profile['graph_sha256'] = digest(graph)
+            (output / ('linux-' + args.target_arch + '-protobuf-' + role + '.json')).write_text(json.dumps(profile, indent=2) + '\n')
+            print('GN_METADATA_PROTOBUF ' + json.dumps({'role': role, 'libraries': len(profile['libraries']),
+                                                        'abseil_libraries': len(profile['abseil_gn_deps'])}, sort_keys=True), flush=True)
         report = {'pins': pins, 'llvm_clang_sha256': digest(args.llvm_root / 'bin/clang'),
                   'pkgconf_sha256': digest(args.pkg_config), 'python_version': platform.python_version(),
                   'capture_script_sha256': digest(Path(__file__))}

@@ -64,3 +64,11 @@ source path checks precede projection. Bazel then audits and compiles every
 library for Linux ARM64 or x64 with the pinned GNU 2.31 toolchain. Compilation
 runs on BB; this step executes no target binaries. This validates support
 profiles before registering the complete runtime family.
+
+
+Protobuf capture selects `protobuf_lite` for ARM64 target and snapshot profiles,
+and `protoc` plus compiler plugins for ordinary execution. Qualified Abseil
+aggregate dependencies remain in each profile. Staging binds them explicitly to
+the pinned upstream native Bazel targets under that role's compiler platform;
+missing or cross-role identities fail. Protobuf safety defines and builtins stay
+checked. BB compiles all three profiles after their action audits.

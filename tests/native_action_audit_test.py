@@ -33,20 +33,21 @@ class NativeActionAuditTest(unittest.TestCase):
                 action_count(text)
 
     def test_support_audit_uses_same_repository_and_platform_for_both_queries(self):
-        for platform in ('linux_arm64', 'linux_amd64'):
-            arguments = ['audit', '--registry=file:///registry', '--downloader-config=/downloader',
-                         '--distdir=/distdir', '--target=@electron_v8_support_sources//:libraries',
-                         '--support-override=electron+sources=/declared/profile', '--support-platform=' + platform]
-            with patch('sys.argv', arguments), patch('subprocess.run', side_effect=[SimpleNamespace(stdout=COMPILERS), SimpleNamespace(stdout=EMPTY)]) as run, redirect_stdout(io.StringIO()):
-                self.assertEqual(main(), 0)
-                self.assertEqual(run.call_count, 2)
-                for call in run.call_args_list:
-                    command = call.args[0]
-                    self.assertIn('--override_repository=electron+sources=/declared/profile', command)
-                    self.assertIn('--platforms=@electron//source/platforms:' + platform, command)
-                    self.assertIn('deps(@electron_v8_support_sources//:libraries)', command[-1])
-                    self.assertNotIn('source_tests', command[-1])
-                    self.assertEqual(call.kwargs, {'check': True, 'capture_output': True, 'text': True})
+        for target in ("@electron_v8_support_sources//:libraries", "@electron_protobuf_sources//:libraries"):
+            for platform in ('linux_arm64', 'linux_amd64'):
+                arguments = ['audit', '--registry=file:///registry', '--downloader-config=/downloader',
+                             '--distdir=/distdir', '--target=' + target,
+                             '--support-override=electron+sources=/declared/profile', '--support-platform=' + platform]
+                with patch('sys.argv', arguments), patch('subprocess.run', side_effect=[SimpleNamespace(stdout=COMPILERS), SimpleNamespace(stdout=EMPTY)]) as run, redirect_stdout(io.StringIO()):
+                    self.assertEqual(main(), 0)
+                    self.assertEqual(run.call_count, 2)
+                    for call in run.call_args_list:
+                        command = call.args[0]
+                        self.assertIn('--override_repository=electron+sources=/declared/profile', command)
+                        self.assertIn('--platforms=@electron//source/platforms:' + platform, command)
+                        self.assertIn('deps(' + target + ')', command[-1])
+                        self.assertNotIn('source_tests', command[-1])
+                        self.assertEqual(call.kwargs, {'check': True, 'capture_output': True, 'text': True})
 
     def test_wrapper_filter_preserves_native_generators(self):
         for mnemonic in ("ForeignCc", "ForeignCcMake", "CMake", "Cmake", "Meson", "Ninja", "Make", "GMake", "RunMake", "GN", "RunGN"):

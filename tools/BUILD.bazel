@@ -63,6 +63,7 @@ py_binary(
     srcs = [
         "capture_linux_metadata.py",
         "capture_perfetto.py",
+        "capture_protobuf.py",
         "capture_source.py",
         "capture_target.py",
         "capture_v8_support.py",
@@ -100,6 +101,17 @@ py_library(
     visibility = ["//tests:__pkg__"],
     deps = [
         ":metadata_capture",
+        ":protobuf_capture",
         ":v8_support_capture",
     ],
+)
+
+py_library(
+    name = "protobuf_capture",
+    srcs = [
+        "capture_protobuf.py",
+        "capture_target.py",
+    ],
+    imports = ["."],
+    visibility = ["//tests:__pkg__"],
 )

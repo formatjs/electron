@@ -7,7 +7,7 @@ import sys
 
 
 FORBIDDEN = r"(?i)^(.*(foreign.?cc|cmake|meson|ninja).*|g?make|runmake|gn|rungn)$"
-TARGETS = ("@electron//:source_components", "@electron//source:cross_probes", "//:pkg_config", "@electron_v8_support_sources//:libraries")
+TARGETS = ("@electron//:source_components", "@electron//source:cross_probes", "//:pkg_config", "@electron_v8_support_sources//:libraries", "@electron_protobuf_sources//:libraries")
 
 
 class AuditFailure(ValueError):
@@ -54,7 +54,7 @@ def main():
     parser.add_argument("--support-override")
     parser.add_argument("--support-platform", choices=("linux_amd64", "linux_arm64"))
     args = parser.parse_args()
-    support = args.target == "@electron_v8_support_sources//:libraries"
+    support = args.target in ("@electron_v8_support_sources//:libraries", "@electron_protobuf_sources//:libraries")
     if (support and not (args.support_override and args.support_platform)
             or not support and (args.support_override or args.support_platform)):
         parser.error("Support audit requires repository and platform together")

@@ -67,3 +67,9 @@ py_test(
     srcs = ["support_profile_stage_test.py"],
     deps = ["//tools:support_profile_staging"],
 )
+
+py_test(
+    name = "protobuf_capture_test",
+    srcs = ["protobuf_capture_test.py"],
+    deps = ["//tools:protobuf_capture"],
+)
