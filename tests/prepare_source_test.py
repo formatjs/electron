@@ -44,6 +44,24 @@ class PrepareSourceTest(unittest.TestCase):
         self.assertEqual((self.paths["deps_cache"] / "VERSION").read_text(), "59")
         self.assertEqual((destination / "v8").resolve(), self.paths["v8"])
 
+    def test_declared_only_mode_never_reads_fallback_checkout(self):
+        dependency = self.root / 'declared_dependency'
+        dependency.mkdir()
+        (dependency / 'public.h').write_text('pinned dependency')
+        # A cache exists beside the inputs, but was not supplied.
+        (self.paths['deps_cache'] / 'DEPS').write_text('wrong revisions')
+        arguments = {name: path for name, path in self.paths.items() if name != 'deps_cache'}
+        prepare(**arguments, deps_cache=None, dependencies=[('third_party/declared', dependency)])
+        destination = self.paths['destination']
+        self.assertEqual((destination / 'VERSION').read_text(), '52')
+        self.assertEqual((destination / 'third_party/declared/public.h').read_text(), 'pinned dependency')
+        self.assertFalse((destination / 'third_party/extra').exists())
+        self.assertFalse((destination / 'out').exists())
+        provenance = json.loads((destination / 'electron-source-provenance.json').read_text())
+        self.assertEqual(provenance['dependency_mode'], 'declared-only')
+        self.assertIsNone(provenance['deps_cache'])
+        self.assertEqual((self.paths['chromium'] / 'build/util/LASTCHANGE').read_text(), 'original immutable source')
+
     def test_mismatched_cache_rejected_before_writes(self):
         (self.paths["deps_cache"] / "DEPS").write_text("wrong revisions")
         with self.assertRaisesRegex(ValueError, "DEPS differs"):

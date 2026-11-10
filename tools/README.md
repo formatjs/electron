@@ -36,3 +36,11 @@ native Bazel cross-build still need validation. Keep qualified GN labels and hos
 records separate; replacing x64 strings across a graph can turn execution tools
 into target binaries. GN only supplies maintainer metadata; no GN/Ninja build
 action is introduced.
+
+`prepare_source.py` can omit `--deps-cache`. This mode uses only the supplied
+source/dependency roots and records `dependency_mode: declared-only`; missing
+checkout files remain missing. Optional legacy caches still require matching
+DEPS. Source bytes and checkout metadata remain unchanged.
+
+Run edge capture against that private tree. Its temporary BUILDCONFIG.gn node
+never writes through a source symlink; the original node is restored on failure.

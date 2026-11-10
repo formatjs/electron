@@ -1,0 +1,34 @@
+package(default_visibility = ["//visibility:public"])
+
+exports_files(["pins.json"])
+
+alias(
+    name = "pkg_config",
+    actual = "@pkgconf//:pkgconf",
+)
+
+alias(
+    name = "inputs",
+    actual = "@metadata_inputs//:capture_inputs.json",
+)
+
+platform(
+    name = "linux_x64",
+    parents = ["@llvm//platforms:linux_x86_64_gnu.2.31"],
+)
+
+platform(
+    name = "buildbuddy_linux_x64",
+    constraint_values = [
+        "@platforms//cpu:x86_64",
+        "@platforms//os:linux",
+        "@llvm//constraints/libc:gnu.2.31",
+    ],
+    exec_properties = {
+        "Arch": "amd64",
+        "OSFamily": "Linux",
+        "container-image": "docker://gcr.io/flame-public/rbe-ubuntu22-04@sha256:c5bd51bd7e4a40cdd8bce5a7afb8f292a02c395b7a7c0e82e1ad745cb665f9c0",
+        "dockerNetwork": "off",
+        "workload-isolation-type": "oci",
+    },
+)

@@ -1,0 +1,17 @@
+module(
+    name = "electron_metadata_capture",
+    version = "0.1.0",
+)
+
+bazel_dep(name = "llvm", version = "0.8.26")
+bazel_dep(name = "pkgconf", version = "3.0.10")
+bazel_dep(name = "platforms", version = "1.1.0")
+
+register_toolchains("@llvm//toolchain:all")
+
+capture_inputs = use_repo_rule("//:inputs.bzl", "capture_inputs")
+
+capture_inputs(
+    name = "metadata_inputs",
+    pins = "//:pins.json",
+)

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-"""Prepare private GN maintainer metadata tree; never compile from this cache overlay."""
+"""Prepare a private GN metadata tree from pinned source repositories."""
 import argparse
 import hashlib
 import json
@@ -20,10 +20,10 @@ def link_missing(source, destination):
 
 
 def prepare(chromium, electron, node, v8, deps_cache, destination, dependencies=(), fingerprints=None):
-    for directory in (chromium, electron, node, v8, deps_cache):
+    for directory in (chromium, electron, node, v8) + ((deps_cache,) if deps_cache is not None else ()):
         if not directory.is_dir():
             raise ValueError(f"Missing source root: {directory}")
-    if (chromium / "DEPS").read_bytes() != (deps_cache / "DEPS").read_bytes():
+    if deps_cache is not None and (chromium / "DEPS").read_bytes() != (deps_cache / "DEPS").read_bytes():
         raise ValueError("Dependency cache DEPS differs from pinned Chromium; use matching cache")
     expected = {"chromium": ("7efca501bfcc84657ba2921a852e98ce1fb37641", 144), "v8": ("bb294624702efbb17691b642333f06bf5108e600", 1)}
     for group, root in (("chromium", chromium), ("v8", v8)):
@@ -76,7 +76,8 @@ def prepare(chromium, electron, node, v8, deps_cache, destination, dependencies=
                 shutil.rmtree(target)
         target.parent.mkdir(parents=True, exist_ok=True)
         target.symlink_to(root, target_is_directory=True)
-    link_missing(deps_cache, destination)
+    if deps_cache is not None:
+        link_missing(deps_cache, destination)
     # Chromium archives omit generated checkout metadata. Write private files,
     # never follow source/cache symlinks while updating the pinned revision.
     for name, text in {"build/util/LASTCHANGE": "LASTCHANGE=7efca501bfcc84657ba2921a852e98ce1fb37641\nLASTCHANGE_YEAR=2025\n"}.items():
@@ -84,14 +85,15 @@ def prepare(chromium, electron, node, v8, deps_cache, destination, dependencies=
         if target.is_symlink():
             target.unlink()
         target.write_text(text, encoding="utf-8")
-    manifest = {"purpose": "GN maintainer metadata only; native target translation/linkage unfinished", "chromium_revision": expected["chromium"][0], "v8_revision": expected["v8"][0], "deps_sha256": hashlib.sha256((chromium / "DEPS").read_bytes()).hexdigest(), "deps_cache": str(deps_cache), "applied_patch_groups": sorted(applied)}
+    manifest = {"purpose": "GN maintainer metadata only; target code is not compiled here", "chromium_revision": expected["chromium"][0], "v8_revision": expected["v8"][0], "deps_sha256": hashlib.sha256((chromium / "DEPS").read_bytes()).hexdigest(), "deps_cache": str(deps_cache) if deps_cache is not None else None, "dependency_mode": "matching-DEPS-cache" if deps_cache is not None else "declared-only", "applied_patch_groups": sorted(applied)}
     (destination / "electron-source-provenance.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    for argument in ("chromium", "electron", "node", "v8", "deps-cache", "destination"):
+    for argument in ("chromium", "electron", "node", "v8", "destination"):
         parser.add_argument("--" + argument, type=Path, required=True)
+    parser.add_argument("--deps-cache", type=Path, help="Optional matching-DEPS fallback; omit for declared inputs only")
     parser.add_argument("--dependency", action="append", default=[], metavar="RELATIVE_PATH=SOURCE_ROOT")
     parser.add_argument("--patch-fingerprints", type=Path)
     arguments = vars(parser.parse_args())
@@ -103,7 +105,7 @@ def main():
         if Path(name).is_absolute() or ".." in Path(name).parts:
             parser.error("Dependency destination must stay below source root")
         dependencies.append((name, Path(root).resolve()))
-    prepare(**{name: path.resolve() for name, path in arguments.items()}, dependencies=dependencies, fingerprints=fingerprints)
+    prepare(**{name: path.resolve() if path is not None else None for name, path in arguments.items()}, dependencies=dependencies, fingerprints=fingerprints)
 
 
 if __name__ == "__main__":

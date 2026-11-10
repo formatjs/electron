@@ -1,0 +1,47 @@
+{
+  "gn_revision": "81b24e01531ecf0eff12ec9359a555ec3944ec4e",
+  "gn_binary_sha256": "c6be2b6774aa536bbeef8f2c2c793f52fa4c27f883c7a01d4260653b0a71e0cf",
+  "rustc_version": "rustc 1.92.0-nightly (caccb4d03 2025-09-24)",
+  "chromium_revision": "7efca501bfcc84657ba2921a852e98ce1fb37641",
+  "packages": {
+    "gn": {
+      "url": "https://chrome-infra-packages.appspot.com/dl/gn/gn/linux-amd64/+/git_revision:81b24e01531ecf0eff12ec9359a555ec3944ec4e",
+      "sha256": "cd330cb4f4e0d8e5c82ca3a583798ea5337fd01308952dbe227c9dd8bc51d854",
+      "type": "zip"
+    },
+    "sysroot_x64": {
+      "url": "https://commondatastorage.googleapis.com/chrome-linux-sysroot/36a164623d03f525e3dfb783a5e9b8a00e98e1ddd2b5cff4e449bd016dd27e50",
+      "sha256": "36a164623d03f525e3dfb783a5e9b8a00e98e1ddd2b5cff4e449bd016dd27e50",
+      "type": "tar.xz"
+    },
+    "sysroot_arm64": {
+      "url": "https://commondatastorage.googleapis.com/chrome-linux-sysroot/2f915d821eec27515c0c6d21b69898e23762908d8d7ccc1aa2a8f5f25e8b7e18",
+      "sha256": "2f915d821eec27515c0c6d21b69898e23762908d8d7ccc1aa2a8f5f25e8b7e18",
+      "type": "tar.xz"
+    },
+    "chromium_tools": {
+      "url": "https://codeload.github.com/formatjs/chromium/tar.gz/4a2321d1086a36b4bb99ec237a379827b784b0b0",
+      "sha256": "45c37819be5d4472d01f101088b651c40ff1d80b49f333ebee7626a1512fc522",
+      "type": "tar.gz",
+      "strip_prefix": "chromium-4a2321d1086a36b4bb99ec237a379827b784b0b0"
+    },
+    "rustc": {
+      "url": "https://static.rust-lang.org/dist/2025-09-25/rustc-nightly-x86_64-unknown-linux-gnu.tar.xz",
+      "sha256": "2dc5543b7410662ceac1ab5fc54f281c9fc180fb4428df4990dd906ceafee4d8",
+      "type": "tar.xz",
+      "strip_prefix": "rustc-nightly-x86_64-unknown-linux-gnu/rustc"
+    },
+    "rust_std_x64": {
+      "url": "https://static.rust-lang.org/dist/2025-09-25/rust-std-nightly-x86_64-unknown-linux-gnu.tar.xz",
+      "sha256": "96a25ad99eaaefad7b9980974999777949b22041c887ca7a109769fc1933fb0e",
+      "type": "tar.xz",
+      "strip_prefix": "rust-std-nightly-x86_64-unknown-linux-gnu/rust-std-x86_64-unknown-linux-gnu"
+    },
+    "rust_std_arm64": {
+      "url": "https://static.rust-lang.org/dist/2025-09-25/rust-std-nightly-aarch64-unknown-linux-gnu.tar.xz",
+      "sha256": "9d3daf7a467d647e5f69d77f88decfe51dde0ba3f3ab1b8ca18d058f0ae060a6",
+      "type": "tar.xz",
+      "strip_prefix": "rust-std-nightly-aarch64-unknown-linux-gnu/rust-std-aarch64-unknown-linux-gnu"
+    }
+  }
+}
