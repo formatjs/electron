@@ -78,3 +78,10 @@ compiler profile together. Host libraries stay out of the target archive group;
 generator dependencies build in execution configuration. Action queries receive
 all repository overrides used by the native build. The workflow compiles the
 complete Perfetto closure for target, execution and snapshot roles.
+
+Generator interpreters resolve through an execution-configured dependency.
+Resolving Python directly in a target rule selected ARM64 Python for an x64 BB
+worker and failed with `Exec format error`. Source actions, artifact staging,
+runtime assembly, Node project wrappers and native tool staging share the
+execution runtime provider. Cross-platform probes execute the generator under
+Linux x64/ARM64, macOS ARM64 and Windows x64/ARM64 target configurations.

@@ -1,7 +1,7 @@
 """Build a Linux x64 runtime ZIP from declared upstream distribution files."""
 
 def _impl(ctx):
-    python = ctx.toolchains["@rules_python//python:toolchain_type"].py3_runtime
+    python = ctx.attr._python[platform_common.ToolchainInfo].py3_runtime
     if not python.interpreter:
         fail("Runtime assembly requires a declared Python interpreter")
     entries, inputs, seen = [], [], {}
@@ -62,8 +62,8 @@ def _impl(ctx):
 
 electron_runtime_archive = rule(
     implementation = _impl,
-    toolchains = ["@rules_python//python:toolchain_type"],
     attrs = {
+        "_python": attr.label(default = Label("//electron/private:execution_python"), cfg = "exec"),
         "files": attr.label_keyed_string_dict(allow_files = True, mandatory = True),
         "libraries": attr.label_keyed_string_dict(allow_files = True),
         "executables": attr.string_list(default = ["electron", "chrome-sandbox", "chrome_crashpad_handler"]),

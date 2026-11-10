@@ -6,7 +6,7 @@ def _relative(path):
     return path
 
 def _node_project_impl(ctx):
-    python = ctx.toolchains["@rules_python//python:toolchain_type"].py3_runtime
+    python = ctx.attr._python[platform_common.ToolchainInfo].py3_runtime
     if not python.interpreter:
         fail("Electron Node generators require a declared Python interpreter")
     node = ctx.toolchains["@rules_nodejs//nodejs:toolchain_type"].nodeinfo.node
@@ -79,6 +79,7 @@ def _node_project_impl(ctx):
 electron_node_project = rule(
     implementation = _node_project_impl,
     attrs = {
+        "_python": attr.label(default = Label("//electron/private:execution_python"), cfg = "exec"),
         "srcs": attr.label_keyed_string_dict(allow_files = True, mandatory = True),
         "npm_packages": attr.label_keyed_string_dict(mandatory = True),
         "lock": attr.label(allow_single_file = True, mandatory = True),
@@ -90,7 +91,7 @@ electron_node_project = rule(
         "_runner": attr.label(default = Label("//electron/private:node_project.py"), allow_single_file = True, cfg = "exec"),
         "_workspace": attr.label(default = Label("//electron/private:npm_workspace.py"), allow_single_file = True, cfg = "exec"),
     },
-    toolchains = ["@rules_nodejs//nodejs:toolchain_type", "@rules_python//python:toolchain_type"],
+    toolchains = ["@rules_nodejs//nodejs:toolchain_type"],
 )
 
 def _npm_file_impl(ctx):

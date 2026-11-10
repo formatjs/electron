@@ -1,7 +1,7 @@
 """Materialize declared artifact bytes under their runtime filename."""
 
 def _impl(ctx):
-    python = ctx.toolchains["@rules_python//python:toolchain_type"].py3_runtime
+    python = ctx.attr._python[platform_common.ToolchainInfo].py3_runtime
     if not python.interpreter:
         fail("Artifact staging requires a declared Python interpreter")
     ctx.actions.run(
@@ -16,8 +16,8 @@ def _impl(ctx):
 
 electron_artifact_file = rule(
     implementation = _impl,
-    toolchains = ["@rules_python//python:toolchain_type"],
     attrs = {
+        "_python": attr.label(default = Label("//electron/private:execution_python"), cfg = "exec"),
         "src": attr.label(allow_single_file = True, mandatory = True),
         "out": attr.output(mandatory = True),
         "executable": attr.bool(doc = "Normalize executable mode to 0755; data files use 0644."),

@@ -1,7 +1,7 @@
 """Declared upstream Python actions with matching execution-platform tools."""
 
 def _impl(ctx):
-    python = ctx.toolchains["@rules_python//python:toolchain_type"].py3_runtime
+    python = ctx.attr._python[platform_common.ToolchainInfo].py3_runtime
     if not python.interpreter:
         fail("Source generators require a declared Python interpreter")
     mappings = {}
@@ -79,8 +79,8 @@ def _impl(ctx):
 
 _electron_source_action = rule(
     implementation = _impl,
-    toolchains = ["@rules_python//python:toolchain_type"],
     attrs = {
+        "_python": attr.label(default = Label("//electron/private:execution_python"), cfg = "exec"),
         "srcs": attr.label_keyed_string_dict(allow_files = True),
         "literal_files": attr.string_dict(doc = "Declared logical input paths mapped to UTF-8 contents, including empty discovery markers."),
         "tools": attr.label_keyed_string_dict(cfg = "exec", allow_files = True),

@@ -6,7 +6,7 @@ def _path(value):
     return value
 
 def _impl(ctx):
-    runtime = ctx.toolchains["@rules_python//python:toolchain_type"].py3_runtime
+    runtime = ctx.attr._python[platform_common.ToolchainInfo].py3_runtime
     if not runtime.interpreter:
         fail("Native tool staging requires a declared Python interpreter")
     original = ctx.executable.binary
@@ -39,8 +39,8 @@ def _impl(ctx):
 
 electron_source_tool = rule(
     implementation = _impl,
-    toolchains = ["@rules_python//python:toolchain_type"],
     attrs = {
+        "_python": attr.label(default = Label("//electron/private:execution_python"), cfg = "exec"),
         "binary": attr.label(executable = True, cfg = "exec", mandatory = True),
         "data": attr.label_keyed_string_dict(allow_files = True, cfg = "exec"),
         "_script": attr.label(default = Label("//electron/private:source_tool.py"), allow_single_file = True),

@@ -1,8 +1,11 @@
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
+load("//electron:execution_python.bzl", "electron_execution_python")
 load("//electron:source_action.bzl", "electron_source_action")
 
 package(default_visibility = ["//visibility:public"])
+
+electron_execution_python(name = "execution_python")
 
 py_library(
     name = "runtime_archive_lib",
