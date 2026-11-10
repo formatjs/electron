@@ -42,6 +42,12 @@ source/dependency roots and records `dependency_mode: declared-only`; missing
 checkout files remain missing. Optional legacy caches still require matching
 DEPS. Source bytes and checkout metadata remain unchanged.
 
+Declared-only preparation derives `gclient_args.gni` from pinned Chromium DEPS
+and Electron's parent overrides. It parses booleans and `Str(...)` literals,
+rejects unsupported expressions and runs no checkout hooks. Generation replaces
+private nodes; source symlinks and their targets stay immutable. Graph provenance
+records the generated file's SHA-256.
+
 Run edge capture against that private tree. Its temporary BUILDCONFIG.gn node
 never writes through a source symlink; the original node is restored on failure.
 

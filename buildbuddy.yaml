@@ -159,7 +159,7 @@ actions:
             --target-registry "$registry" --module electron --version 39.0.0
           bazel --host_jvm_args=-Xmx12g test --config=buildbuddy --strategy=TestRunner=remote \
             --downloader_config="$source_downloader" --distdir="$source_distdir" \
-            --registry="file://$registry" --registry=https://bcr.bazel.build //tests:metadata_capture_test
+            --registry="file://$registry" --registry=https://bcr.bazel.build //tests:metadata_capture_test //tests:prepare_source_test
           source_labels_file="$(mktemp /tmp/electron-capture-labels.XXXXXX)"
           python3 - "$source_root" > "$source_labels_file" <<'PY'
           from pathlib import Path

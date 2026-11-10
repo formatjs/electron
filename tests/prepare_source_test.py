@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from tools.prepare_source import prepare
+from tools.prepare_source import prepare, checkout_args
 
 
 class PrepareSourceTest(unittest.TestCase):
@@ -18,7 +18,11 @@ class PrepareSourceTest(unittest.TestCase):
             if name != "destination":
                 path.mkdir()
         for name in ("chromium", "deps_cache"):
-            (self.paths[name] / "DEPS").write_text("matching revisions")
+            (self.paths[name] / "DEPS").write_text("gclient_gn_args_file = 'src/build/config/gclient_args.gni'\n"
+                "gclient_gn_args = ['build_with_chromium', 'generate_location_tags']\n"
+                "vars = {'build_with_chromium': True, 'generate_location_tags': True}\n")
+        (self.paths['electron'] / 'DEPS').write_text("gclient_gn_args_from = 'src'\n"
+            "vars = {'build_with_chromium': True, 'generate_location_tags': False}\n")
         for group, revision, count in (("chromium", "7efca501bfcc84657ba2921a852e98ce1fb37641", 144), ("v8", "bb294624702efbb17691b642333f06bf5108e600", 1)):
             (self.paths[group] / "electron_patches.json").write_text(json.dumps({"upstream_revision": revision, "patches": ["patch"] * count}))
         core = self.paths["chromium"]
@@ -60,7 +64,36 @@ class PrepareSourceTest(unittest.TestCase):
         provenance = json.loads((destination / 'electron-source-provenance.json').read_text())
         self.assertEqual(provenance['dependency_mode'], 'declared-only')
         self.assertIsNone(provenance['deps_cache'])
+        self.assertEqual((destination / 'build/config/gclient_args.gni').read_text(),
+                         '# Generated from pinned Chromium/Electron DEPS; no hooks run.\n'
+                         'build_with_chromium = true\ngenerate_location_tags = false\n')
         self.assertEqual((self.paths['chromium'] / 'build/util/LASTCHANGE').read_text(), 'original immutable source')
+
+    def test_generated_checkout_values_use_parent_overrides_and_literal_string_wrappers(self):
+        chromium, electron = self.paths['chromium'] / 'DEPS', self.paths['electron'] / 'DEPS'
+        chromium.write_text("gclient_gn_args_file = 'src/build/config/gclient_args.gni'\n"
+            "gclient_gn_args = ['build_with_chromium', 'checkout_openxr', 'cros_boards']\n"
+            "vars = {'build_with_chromium': True, 'checkout_openxr': 'checkout_win or checkout_android', 'cros_boards': Str('')}\n")
+        electron.write_text("gclient_gn_args_from = 'src'\nvars = {'checkout_openxr': False}\n"
+                            "raise RuntimeError('DEPS must not execute')\n")
+        self.assertEqual(checkout_args(chromium, electron),
+                         '# Generated from pinned Chromium/Electron DEPS; no hooks run.\n'
+                         'build_with_chromium = true\ncheckout_openxr = false\ncros_boards = ""\n')
+        electron.write_text("gclient_gn_args_from = 'src'\nvars = {}\n")
+        with self.assertRaisesRegex(ValueError, 'Unsupported pinned checkout argument expression'):
+            checkout_args(chromium, electron)
+
+    def test_generated_checkout_file_materializes_private_parents(self):
+        config = self.root / 'config'
+        config.mkdir()
+        original = config / 'gclient_args.gni'
+        original.write_bytes(b'immutable declared input')
+        arguments = {name: path for name, path in self.paths.items() if name != 'deps_cache'}
+        prepare(**arguments, deps_cache=None, dependencies=[('build/config', config)])
+        generated = self.paths['destination'] / 'build/config/gclient_args.gni'
+        self.assertFalse(generated.is_symlink())
+        self.assertIn('generate_location_tags = false', generated.read_text())
+        self.assertEqual(original.read_bytes(), b'immutable declared input')
 
     def test_mismatched_cache_rejected_before_writes(self):
         (self.paths["deps_cache"] / "DEPS").write_text("wrong revisions")

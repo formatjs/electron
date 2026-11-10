@@ -1,11 +1,68 @@
 # SPDX-License-Identifier: MIT
 """Prepare a private GN metadata tree from pinned source repositories."""
 import argparse
+import ast
 import hashlib
 import json
 import os
+import re
 import shutil
 from pathlib import Path
+
+
+def checkout_args(chromium_deps, electron_deps):
+    def assignments(path):
+        return {target.id: node.value for node in ast.parse(path.read_text()).body if isinstance(node, ast.Assign)
+                for target in node.targets if isinstance(target, ast.Name)}
+
+    chromium, electron = assignments(chromium_deps), assignments(electron_deps)
+    if (ast.literal_eval(chromium['gclient_gn_args_file']) != 'src/build/config/gclient_args.gni'
+            or ast.literal_eval(electron['gclient_gn_args_from']) != 'src'):
+        raise ValueError('Unexpected pinned checkout argument source')
+    names = ast.literal_eval(chromium['gclient_gn_args'])
+    if (not isinstance(names, list) or not all(isinstance(name, str) and re.fullmatch(r'[A-Za-z_][A-Za-z_0-9]*', name) for name in names)
+            or len(set(names)) != len(names)):
+        raise ValueError('Invalid pinned checkout argument names')
+    values = {}
+    for tree in (chromium, electron):
+        variables = tree['vars']
+        if not isinstance(variables, ast.Dict):
+            raise ValueError('Expected pinned checkout variable dictionary')
+        for key, value in zip(variables.keys, variables.values):
+            if isinstance(key, ast.Constant) and key.value in names and (tree is chromium or key.value in values):
+                values[key.value] = value
+    lines = ['# Generated from pinned Chromium/Electron DEPS; no hooks run.']
+    for name in names:
+        value = values[name]
+        if isinstance(value, ast.Constant) and type(value.value) is bool:
+            literal = 'true' if value.value else 'false'
+        elif (isinstance(value, ast.Call) and isinstance(value.func, ast.Name) and value.func.id == 'Str'
+              and len(value.args) == 1 and not value.keywords):
+            text = ast.literal_eval(value.args[0])
+            if not isinstance(text, str) or '\n' in text or '\r' in text:
+                raise ValueError('Invalid pinned checkout string')
+            literal = '"' + text.replace('\\', '\\\\').replace('"', '\\"').replace('$', '\\$') + '"'
+        else:
+            raise ValueError('Unsupported pinned checkout argument expression')
+        lines.append(name + ' = ' + literal)
+    return '\n'.join(lines) + '\n'
+
+
+def private_parents(destination, target):
+    parents = []
+    parent = target.parent
+    while parent != destination:
+        parents.append(parent)
+        parent = parent.parent
+    for parent in reversed(parents):
+        if parent.is_symlink():
+            source = parent.resolve()
+            parent.unlink()
+            parent.mkdir()
+            for child in source.iterdir():
+                (parent / child.name).symlink_to(child, target_is_directory=child.is_dir())
+        elif not parent.exists():
+            parent.mkdir()
 
 
 def link_missing(source, destination):
@@ -50,25 +107,13 @@ def prepare(chromium, electron, node, v8, deps_cache, destination, dependencies=
     for name, root in overlays:
         if Path(name).is_absolute() or ".." in Path(name).parts:
             raise ValueError("Dependency destination must stay below source root")
+    generated_args = checkout_args(chromium / 'DEPS', electron / 'DEPS') if deps_cache is None else None
     shutil.copytree(chromium, destination, symlinks=True, copy_function=os.symlink)
     for name, root in overlays:
         target = destination / name
         # A nested dependency may live below a directory symlink (Squirrel's
         # Mantle/ReactiveObjC submodules). Materialize private parents first.
-        parents = []
-        parent = target.parent
-        while parent != destination:
-            parents.append(parent)
-            parent = parent.parent
-        for parent in reversed(parents):
-            if parent.is_symlink():
-                source = parent.resolve()
-                parent.unlink()
-                parent.mkdir()
-                for child in source.iterdir():
-                    (parent / child.name).symlink_to(child, target_is_directory=child.is_dir())
-            elif not parent.exists():
-                parent.mkdir()
+        private_parents(destination, target)
         if target.exists() or target.is_symlink():
             if target.is_symlink():
                 target.unlink()
@@ -80,8 +125,12 @@ def prepare(chromium, electron, node, v8, deps_cache, destination, dependencies=
         link_missing(deps_cache, destination)
     # Chromium archives omit generated checkout metadata. Write private files,
     # never follow source/cache symlinks while updating the pinned revision.
-    for name, text in {"build/util/LASTCHANGE": "LASTCHANGE=7efca501bfcc84657ba2921a852e98ce1fb37641\nLASTCHANGE_YEAR=2025\n"}.items():
+    generated = {"build/util/LASTCHANGE": "LASTCHANGE=7efca501bfcc84657ba2921a852e98ce1fb37641\nLASTCHANGE_YEAR=2025\n"}
+    if generated_args is not None:
+        generated['build/config/gclient_args.gni'] = generated_args
+    for name, text in generated.items():
         target = destination / name
+        private_parents(destination, target)
         if target.is_symlink():
             target.unlink()
         target.write_text(text, encoding="utf-8")
