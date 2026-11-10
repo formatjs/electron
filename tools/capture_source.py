@@ -17,6 +17,7 @@ def main():
     for name in ("chromium-tools", "source-root", "llvm-root", "rust-root", "gn", "runtime-deps", "patch-fingerprints", "output"):
         parser.add_argument("--" + name, type=Path, required=True)
     parser.add_argument("--target-arch", choices=("x64", "arm64"), default="x64")
+    parser.add_argument("--pkg-config", type=Path)
     args = parser.parse_args()
     source = args.chromium_tools / "capture_native_graph.py"
     spec = importlib.util.spec_from_file_location("chromium_capture", source)
@@ -25,6 +26,8 @@ def main():
     project = json.loads((args.source_root / "out/bazel-import/project.json").read_text(encoding="utf-8"))
     project = capture.target_closure(project, ["//electron:electron"])
     replacements = [(str(args.llvm_root), "$LLVM_ROOT"), (str(args.rust_root), "$RUST_ROOT"), (str(args.source_root), "$SOURCE_ROOT")]
+    if args.pkg_config is not None:
+        replacements.append((str(args.pkg_config), "$PKG_CONFIG"))
     graph = capture.capture(project, json.loads(args.runtime_deps.read_text(encoding="utf-8")), args.source_root, replacements)
     validate_graph_target(graph, "//electron:electron", args.target_arch)
     graph["target_arch"] = args.target_arch

@@ -44,3 +44,7 @@ DEPS. Source bytes and checkout metadata remain unchanged.
 
 Run edge capture against that private tree. Its temporary BUILDCONFIG.gn node
 never writes through a source symlink; the original node is restored on failure.
+
+The [isolated capture workspace](metadata_capture/README.md) pins GN, host/target
+Rust libraries, SDKs and the native Bazel package tool. The BB-only runner keeps
+target ARM64 records separate from x64 execution tools and records input hashes.

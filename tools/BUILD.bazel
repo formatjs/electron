@@ -1,4 +1,4 @@
-load("@rules_python//python:defs.bzl", "py_library")
+load("@rules_python//python:defs.bzl", "py_binary", "py_library")
 
 py_library(
     name = "native_action_audit",
@@ -46,4 +46,27 @@ py_library(
     ],
     imports = ["."],
     visibility = ["//tests:__pkg__"],
+)
+
+py_library(
+    name = "metadata_capture",
+    srcs = [
+        "capture_linux_metadata.py",
+        "prepare_source.py",
+    ],
+    imports = ["."],
+    visibility = ["//tests:__pkg__"],
+)
+
+py_binary(
+    name = "capture_linux_metadata",
+    srcs = [
+        "capture_linux_metadata.py",
+        "capture_source.py",
+        "capture_target.py",
+        "prepare_source.py",
+    ],
+    imports = ["."],
+    main = "capture_linux_metadata.py",
+    tags = ["manual"],
 )

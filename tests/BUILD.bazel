@@ -43,3 +43,9 @@ py_test(
         "//tools:ipcz_capture",
     ],
 )
+
+py_test(
+    name = "metadata_capture_test",
+    srcs = ["metadata_capture_test.py"],
+    deps = ["//tools:metadata_capture"],
+)

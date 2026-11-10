@@ -27,7 +27,7 @@ actions:
             --downloader-config="$source_downloader" --distdir="$source_distdir"
           bazel --host_jvm_args=-Xmx24g test --config=buildbuddy --downloader_config="$source_downloader" --distdir="$source_distdir" --strategy=TestRunner=remote \
             --registry="file://$registry" --registry=https://bcr.bazel.build \
-            //tests:hermetic_execution_test //tests:archive_urls_test //tests:gn_dependencies_test //tests:native_action_audit_test //tests:platform_runtime_capture_test //tests:gn_capture_target_test \
+            //tests:hermetic_execution_test //tests:archive_urls_test //tests:gn_dependencies_test //tests:native_action_audit_test //tests:platform_runtime_capture_test //tests:gn_capture_target_test //tests:metadata_capture_test \
             @electron//source/default_app:assets_test @electron//source/credits:credits_test \
             @electron//source/distribution:metadata_test @electron//source/distribution:archive_test @electron//source:cairo_loader_test @electron//source:asar_path_resolver_test @electron//source:asar_reader_test @electron//source:gn_link_plain_test @electron//source:gn_link_thin_lto_test @electron//source:network_test
           bazel --host_jvm_args=-Xmx24g build --config=buildbuddy --downloader_config="$source_downloader" --distdir="$source_distdir" \
@@ -134,3 +134,66 @@ actions:
             --experimental_profile_additional_tasks=remote_cache_check \
             --experimental_profile_additional_tasks=remote_download \
             //:loop_consumer_test @electron//:source_tests
+
+  - name: Capture Linux ARM64 GN metadata
+    container_image: ubuntu-24.04
+    allow_concurrent_runs: false
+    allow_concurrent_runs_on_branches: []
+    timeout: 1h
+    resource_requests:
+      cpu: 8
+      memory: 16GB
+      disk: 100GB
+    triggers:
+      push:
+        branches: [codex/metadata-linux-arm64]
+    steps:
+      - run: |
+          set -euo pipefail
+          source_root="$PWD"
+          registry="$(mktemp -d /tmp/electron-capture-registry.XXXXXX)"
+          source_downloader="$PWD/tools/public-downloader.cfg"
+          source_distdir="$(mktemp -d /tmp/electron-capture-bootstrap.XXXXXX)"
+          bash tools/prefetch-bootstrap.sh "$source_distdir"
+          python3 tools/stage_bcr_entry.py --source-registry bcr \
+            --target-registry "$registry" --module electron --version 39.0.0
+          bazel --host_jvm_args=-Xmx12g build --config=buildbuddy \
+            --downloader_config="$source_downloader" --distdir="$source_distdir" \
+            --registry="file://$registry" --registry=https://bcr.bazel.build \
+            @electron//source:chromium_patches @electron//source:v8_patches \
+            @electron//source:embedder_javascript @electron//source:dependency_patches \
+            @electron_node_sources//:electron_patches.json \
+            @electron_cast_core_sources//:proto/proto.gni @electron_glslang_sources//:BUILD.gn \
+            @electron_platform_sources//:profile.bzl @electron_v8_support_sources//:profile.bzl \
+            @electron_fonts_sources//:profile.bzl @electron_codecs_sources//:profile.bzl \
+            @electron_skia_sources//:profile.bzl @electron_network_sources//:profile.bzl \
+            @electron_embedder_sources//:profile.bzl @electron_libnode_sources//:profile.bzl \
+            @electron_rust_sources//:profile.bzl @electron_icu_sources//:source_provenance.json \
+            @electron_chromium_node_tool//:node-linux-x64/bin/node \
+            @electron_chromium_webui_upstream//:BUILD.bazel \
+            @electron//source:gn_link_plain_test //tools:capture_linux_metadata
+          source_repositories="$(bazel --host_jvm_args=-Xmx12g info output_base)/external"
+          cp MODULE.bazel.lock "$BUILDBUDDY_ARTIFACTS_DIRECTORY/source-capture-MODULE.bazel.lock"
+          llvm_root="$(python3 - "$source_repositories" <<'PY'
+          from pathlib import Path
+          import sys
+          matches = [path for path in Path(sys.argv[1]).iterdir() if path.name.endswith('+llvm-toolchain-minimal-linux-amd64')]
+          assert len(matches) == 1, 'Expected one pinned Linux LLVM repository'
+          print(matches[0].resolve())
+          PY
+          )"
+          cd tools/metadata_capture
+          bazel build --config=buildbuddy --downloader_config="$source_downloader" --distdir="$source_distdir" \
+            //:inputs //:pkg_config
+          metadata_input_file="$(bazel cquery --config=buildbuddy --output=files //:inputs)"
+          metadata_inputs="$(dirname "$(realpath "$metadata_input_file")")"
+          pkg_config="$(realpath "$(bazel cquery --config=buildbuddy --output=files //:pkg_config)")"
+          cp MODULE.bazel.lock "$BUILDBUDDY_ARTIFACTS_DIRECTORY/metadata-tools-MODULE.bazel.lock"
+          cd "$source_root"
+          bazel --host_jvm_args=-Xmx12g run --config=buildbuddy \
+            --downloader_config="$source_downloader" --distdir="$source_distdir" \
+            --registry="file://$registry" --registry=https://bcr.bazel.build \
+            //tools:capture_linux_metadata -- \
+            --overlay-root="$source_root" --repositories="$source_repositories" \
+            --capture-inputs="$metadata_inputs" --llvm-root="$llvm_root" --pkg-config="$pkg_config" \
+            --target-arch=arm64 --output="$BUILDBUDDY_ARTIFACTS_DIRECTORY"
