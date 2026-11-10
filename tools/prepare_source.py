@@ -9,6 +9,8 @@ import re
 import shutil
 from pathlib import Path
 
+CHROMIUM_COMMIT_TIME = 1761077994
+
 
 def checkout_args(chromium_deps, electron_deps):
     def assignments(path):
@@ -125,7 +127,10 @@ def prepare(chromium, electron, node, v8, deps_cache, destination, dependencies=
         link_missing(deps_cache, destination)
     # Chromium archives omit generated checkout metadata. Write private files,
     # never follow source/cache symlinks while updating the pinned revision.
-    generated = {"build/util/LASTCHANGE": "LASTCHANGE=7efca501bfcc84657ba2921a852e98ce1fb37641\nLASTCHANGE_YEAR=2025\n"}
+    generated = {
+        "build/util/LASTCHANGE": "LASTCHANGE=7efca501bfcc84657ba2921a852e98ce1fb37641\nLASTCHANGE_YEAR=2025\n",
+        "build/util/LASTCHANGE.committime": str(CHROMIUM_COMMIT_TIME) + '\n',
+    }
     if generated_args is not None:
         generated['build/config/gclient_args.gni'] = generated_args
     for name, text in generated.items():

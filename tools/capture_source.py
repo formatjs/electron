@@ -55,6 +55,7 @@ def main():
         "patch_fingerprints_sha256": hashlib.sha256(args.patch_fingerprints.read_bytes()).hexdigest(),
         "deps_sha256": hashlib.sha256((args.source_root / "DEPS").read_bytes()).hexdigest(),
         "gclient_args_sha256": hashlib.sha256((args.source_root / "build/config/gclient_args.gni").read_bytes()).hexdigest(),
+        "chromium_commit_time": int((args.source_root / "build/util/LASTCHANGE.committime").read_text().strip()),
         "args_gn": configuration,
         "incomplete_patch_groups": remaining,
         "applied_patch_groups": sorted(applied),

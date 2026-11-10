@@ -47,6 +47,8 @@ and Electron's parent overrides. It parses booleans and `Str(...)` literals,
 rejects unsupported expressions and runs no checkout hooks. Generation replaces
 private nodes; source symlinks and their targets stay immutable. Graph provenance
 records the generated file's SHA-256.
+`LASTCHANGE.committime` uses the pinned Chromium commit's Unix timestamp,
+`1761077994`, so timestamp generation has no wall-clock dependency.
 
 Run edge capture against that private tree. Its temporary BUILDCONFIG.gn node
 never writes through a source symlink; the original node is restored on failure.

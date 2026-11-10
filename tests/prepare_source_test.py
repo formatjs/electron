@@ -44,6 +44,7 @@ class PrepareSourceTest(unittest.TestCase):
         self.assertFalse((destination / "out").exists())
         self.assertIn("7efca501", (destination / "build/util/LASTCHANGE").read_text())
         self.assertFalse((destination / "build/util/LASTCHANGE").is_symlink())
+        self.assertEqual((destination / 'build/util/LASTCHANGE.committime').read_bytes(), b'1761077994\n')
         self.assertEqual((self.paths["chromium"] / "build/util/LASTCHANGE").read_text(), "original immutable source")
         self.assertEqual((self.paths["deps_cache"] / "VERSION").read_text(), "59")
         self.assertEqual((destination / "v8").resolve(), self.paths["v8"])
