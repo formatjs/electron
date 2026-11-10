@@ -8,6 +8,8 @@ import json
 import re
 from pathlib import Path
 
+from capture_target import LinuxGraph, builtins_archive
+
 
 ROOTS = {
     "dragonbox": "third_party/dragonbox/src",
@@ -26,6 +28,7 @@ TARGETS = {
     "//third_party/zlib:zlib_adler32_simd": "zlib_adler32_simd",
     "//third_party/zlib:zlib_common_headers": "zlib_headers",
     "//third_party/zlib:zlib_crc32_simd": "zlib_crc32_simd",
+    "//third_party/zlib:zlib_arm_crc32": "zlib_arm_crc32",
     "//third_party/zlib:zlib_data_chunk_simd": "zlib_data_chunk_simd",
     "//third_party/zlib:zlib_slide_hash_simd": "zlib_slide_hash_simd",
     "//third_party/zlib/google:compression_utils_portable": "compression_utils_portable",
@@ -38,7 +41,22 @@ REVISIONS = {
 }
 
 
-def capture(graph, roots):
+def capture(graph, roots, target_arch="x64", role="target"):
+    scope = LinuxGraph(graph, target_arch)
+    seeds = [label for label in TARGETS if not label.startswith("//third_party/zlib:") or label == "//third_party/zlib:zlib"]
+    if role == "execution":
+        seeds = ["//third_party/zlib:zlib"]
+    selected, pending = {}, [scope.resolve(label, role) for label in seeds]
+    toolchain = {label for label in graph["targets"] if label.split("(")[0] in TOOLCHAIN}
+    while pending:
+        label = pending.pop()
+        if label in selected or label in toolchain:
+            continue
+        bare = label.split("(")[0]
+        if bare not in TARGETS or scope.resolve(bare, role) != label:
+            raise ValueError("Untranslated V8 support dependency")
+        selected[label] = TARGETS[bare]
+        pending.extend(graph["targets"][label].get("deps", []))
     deps = (roots["chromium"] / "DEPS").read_text()
     for name, revision in REVISIONS.items():
         entry = re.search(r"'src/" + re.escape(ROOTS[name]) + r"'\s*:\s*\n([^\n]+)", deps)
@@ -64,13 +82,14 @@ def capture(graph, roots):
             raise ValueError("Missing pinned dependency headers: " + name)
         files.update(headers[name])
         files.update(prefix + "/" + path.name for path in directory.iterdir() if path.is_file() and path.name.startswith(("LICENSE", "COPYING", "NOTICE")))
-    for label, name in TARGETS.items():
+    for label, name in sorted(selected.items()):
         target = graph["targets"][label]
-        if target["toolchain"] != "//build/toolchain/linux:clang_x64" or target["type"] not in ("source_set", "static_library"):
+        architecture = scope.architecture(label)
+        if target["type"] not in ("source_set", "static_library"):
             raise ValueError("Unexpected V8 support target profile")
-        if set(target["deps"]) - TOOLCHAIN - TARGETS.keys():
+        if set(target["deps"]) - toolchain - selected.keys():
             raise ValueError("Untranslated V8 support dependency")
-        family = label.split("/")[3].split(":")[0]
+        family = label.split("(")[0].split("/")[3].split(":")[0]
         sources = target.get("sources", [])
         public = target.get("public", [])
         if isinstance(public, list):
@@ -89,25 +108,31 @@ def capture(graph, roots):
                 omitted.append(flag)
             else:
                 flags.append(flag)
+        if any(lib != builtins_archive(architecture) for lib in value(target, "libs")):
+            raise ValueError("Unexpected V8 support link library")
+        generated = "//out/bazel-import/" + ("" if label == label.split("(")[0] else target["toolchain"].split(":")[-1] + "/") + "gen/"
         includes = []
         for path in value(target, "include_dirs"):
-            if path in ("//", "//out/bazel-import/gen/", "//buildtools/third_party/libc++/"):
+            if path in ("//", generated, "//buildtools/third_party/libc++/"):
                 continue
             if not path.startswith("//third_party/" + family + "/"):
                 raise ValueError("Untranslated V8 support include directory")
             includes.append(path.removeprefix("//").rstrip("/"))
         libraries[name] = {
             "kind": target["type"],
+            "architecture": architecture,
+            "toolchain": target["toolchain"],
             "srcs": source_files,
             "family": family,
             "copts": flags,
             "defines": [item.replace('"', '\\"') for item in value(target, "defines")],
             "includes": includes,
-            "deps": [TARGETS[dep] for dep in target["deps"] if dep not in TOOLCHAIN],
+            "deps": [selected[dep] for dep in target["deps"] if dep not in toolchain],
             "gn_label": label,
             "gn_deps": target["deps"],
             "gn_include_dirs": value(target, "include_dirs"),
             "gn_ldflags": value(target, "ldflags"),
+            "gn_libs": value(target, "libs"),
             "omitted_toolchain_and_diagnostic_flags": omitted,
         }
     files.update(["build/build_config.h", "build/buildflag.h", "LICENSE"])
@@ -116,7 +141,7 @@ def capture(graph, roots):
         physical = roots[owner] / path.removeprefix(ROOTS[owner] + "/") if owner else roots["chromium"] / path
         if not physical.is_file():
             raise ValueError("Missing pinned V8 support input: " + path)
-    return {"libraries": libraries, "headers": headers, "files": sorted(files), "roots": ROOTS, "revisions": REVISIONS}
+    return {"target_arch": target_arch, "role": role, "libraries": libraries, "headers": headers, "files": sorted(files), "roots": ROOTS, "revisions": REVISIONS}
 
 
 def main():
@@ -126,11 +151,13 @@ def main():
     for name in ("dragonbox", "fast_float", "highway"):
         parser.add_argument("--" + name.replace("_", "-") + "-root", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--target-arch", choices=("x64", "arm64"), default="x64")
+    parser.add_argument("--role", choices=("target", "execution", "snapshot"), default="target")
     args = parser.parse_args()
     roots = {"chromium": args.chromium_root, "dragonbox": args.dragonbox_root, "fast_float": args.fast_float_root, "highway": args.highway_root}
     roots.update({name: args.chromium_root / ROOTS[name] for name in ("simdutf", "zlib")})
     content = args.graph.read_bytes()
-    profile = capture(json.loads(gzip.decompress(content)), roots)
+    profile = capture(json.loads(gzip.decompress(content)), roots, args.target_arch, args.role)
     profile["graph_sha256"] = hashlib.sha256(content).hexdigest()
     args.output.write_text(json.dumps(profile, indent=2) + "\n")
 

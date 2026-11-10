@@ -27,7 +27,7 @@ actions:
             --downloader-config="$source_downloader" --distdir="$source_distdir"
           bazel --host_jvm_args=-Xmx24g test --config=buildbuddy --downloader_config="$source_downloader" --distdir="$source_distdir" --strategy=TestRunner=remote \
             --registry="file://$registry" --registry=https://bcr.bazel.build \
-            //tests:hermetic_execution_test //tests:archive_urls_test //tests:gn_dependencies_test //tests:native_action_audit_test //tests:platform_runtime_capture_test //tests:gn_capture_target_test //tests:perfetto_capture_test //tests:metadata_capture_test \
+            //tests:hermetic_execution_test //tests:archive_urls_test //tests:gn_dependencies_test //tests:native_action_audit_test //tests:platform_runtime_capture_test //tests:gn_capture_target_test //tests:perfetto_capture_test //tests:v8_support_capture_test //tests:metadata_capture_test \
             @electron//source/default_app:assets_test @electron//source/credits:credits_test \
             @electron//source/distribution:metadata_test @electron//source/distribution:archive_test @electron//source:cairo_loader_test @electron//source:asar_path_resolver_test @electron//source:asar_reader_test @electron//source:gn_link_plain_test @electron//source:gn_link_thin_lto_test @electron//source:network_test
           bazel --host_jvm_args=-Xmx24g build --config=buildbuddy --downloader_config="$source_downloader" --distdir="$source_distdir" \
@@ -160,7 +160,7 @@ actions:
           bazel --host_jvm_args=-Xmx12g test --config=buildbuddy --strategy=TestRunner=remote \
             --downloader_config="$source_downloader" --distdir="$source_distdir" \
             --registry="file://$registry" --registry=https://bcr.bazel.build \
-            //tests:metadata_capture_test //tests:prepare_source_test //tests:native_action_audit_test //tests:gn_capture_target_test //tests:perfetto_capture_test
+            //tests:metadata_capture_test //tests:prepare_source_test //tests:native_action_audit_test //tests:gn_capture_target_test //tests:perfetto_capture_test //tests:v8_support_capture_test
           source_labels_file="$(mktemp /tmp/electron-capture-labels.XXXXXX)"
           python3 - "$source_root" > "$source_labels_file" <<'PY'
           from pathlib import Path

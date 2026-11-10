@@ -65,6 +65,7 @@ py_binary(
         "capture_perfetto.py",
         "capture_source.py",
         "capture_target.py",
+        "capture_v8_support.py",
         "prepare_source.py",
     ],
     imports = ["."],
@@ -77,6 +78,16 @@ py_library(
     srcs = [
         "capture_perfetto.py",
         "capture_target.py",
+    ],
+    imports = ["."],
+    visibility = ["//tests:__pkg__"],
+)
+
+py_library(
+    name = "v8_support_capture",
+    srcs = [
+        "capture_target.py",
+        "capture_v8_support.py",
     ],
     imports = ["."],
     visibility = ["//tests:__pkg__"],

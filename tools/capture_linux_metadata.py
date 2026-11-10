@@ -230,6 +230,15 @@ def capture(args):
             (output / ('linux-' + args.target_arch + '-perfetto-' + role + '.json')).write_text(json.dumps(profile, indent=2) + '\n')
             print('GN_METADATA_PERFETTO ' + json.dumps({'role': role, 'libraries': len(profile['libraries']),
                                                        'actions': len(profile['actions']), 'externals': len(profile['external'])}, sort_keys=True), flush=True)
+        print('GN_METADATA_PHASE v8-support', flush=True)
+        from capture_v8_support import ROOTS, capture as capture_v8_support
+        roots = {name: source / prefix for name, prefix in ROOTS.items()}
+        roots['chromium'] = source
+        for role in ('target', 'execution', 'snapshot'):
+            profile = capture_v8_support(graph_data, roots, args.target_arch, role)
+            profile['graph_sha256'] = digest(graph)
+            (output / ('linux-' + args.target_arch + '-v8-support-' + role + '.json')).write_text(json.dumps(profile, indent=2) + '\n')
+            print('GN_METADATA_V8_SUPPORT ' + json.dumps({'role': role, 'libraries': len(profile['libraries'])}, sort_keys=True), flush=True)
         report = {'pins': pins, 'llvm_clang_sha256': digest(args.llvm_root / 'bin/clang'),
                   'pkgconf_sha256': digest(args.pkg_config), 'python_version': platform.python_version(),
                   'capture_script_sha256': digest(Path(__file__))}

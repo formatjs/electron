@@ -49,3 +49,10 @@ profiles leave external owners unbound; `electron_perfetto(profile, external)`
 rejects missing owners. No ARM64 dependency silently uses the x64 default. The
 capture workflow exports all three profiles. Cross-building those profiles and
 the remaining family modules is still required.
+
+V8 support capture follows each role's dependency closure, including ARM64's
+`zlib_arm_crc32` instead of x64's `zlib_crc32_simd`. Ordinary execution capture
+needs only zlib; target and snapshot capture retain V8's number and SIMD
+libraries. Compiler builtins and generated include roots must match each role.
+The native macro accepts a profile explicitly; complete family registration and
+ARM64 compiler validation remain open.

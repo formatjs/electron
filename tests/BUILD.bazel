@@ -55,3 +55,9 @@ py_test(
     srcs = ["perfetto_capture_test.py"],
     deps = ["//tools:perfetto_capture"],
 )
+
+py_test(
+    name = "v8_support_capture_test",
+    srcs = ["v8_support_capture_test.py"],
+    deps = ["//tools:v8_support_capture"],
+)
